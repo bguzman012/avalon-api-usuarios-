@@ -4,9 +4,9 @@ spring:
     #    name: ms-store-products-fs.up.railway.app
     name: ms-usuarios
   datasource:
-    url: jdbc:postgresql://167.114.68.106:5432/MS-USUARIOS
-    username: ms_tfm
-    password: ms_tfm
+    url: jdbc:postgresql://149.56.110.32:5432/ms-usuarios
+    username: avalon
+    password: avalon_psw
 
   jpa:
     show-sql: true
