@@ -25,8 +25,8 @@ public class Rol {
     @Column(name = "nombre", unique = true)
     private String nombre;
 
-    @Column(name = "observaciones")
-    private String observaciones;
+    @Column(name = "codigo")
+    private String codigo;
 
     @JsonIgnore
     @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL)

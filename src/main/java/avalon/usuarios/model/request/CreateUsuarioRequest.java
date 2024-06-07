@@ -1,6 +1,7 @@
 package avalon.usuarios.model.request;
 
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,23 +15,27 @@ import java.util.Date;
 @NoArgsConstructor
 public class CreateUsuarioRequest {
 
-	private String usuario;
-	private String contrasenia;
-	private String correoElectronico;
-	private String sobrenombre;
-	private String estado;
-	private String documentoIdentificacion;
+	@NotNull
 	private String nombres;
+	@NotNull
 	private String apellidos;
+	@NotNull
 	private Date fechaNacimiento;
-	private Double ubicacionLatitud;
-	private Double ubicacionLongitud;
-	private String telefono;
+	private Date lugarNacimiento;
+	private Date lugarResidencia;
+	@NotNull
+	private String correoElectronico;
+	@NotNull
+	private String numeroTelefono;
+	@NotNull
+	private String nombreUsuario;
+	@NotNull
+	private String contrasenia;
 	private String urlImagen;
-	private String urlFotoSenecytDoc;
-	private String urlFotoRecordPolicial;
-	private String referenciaPersonal;
-	private String direccion;
-	private Long idRol;
+	@NotNull
+	private String estado;
+	@NotNull
+	private Long rolId;
 
+	// Getters and setters
 }

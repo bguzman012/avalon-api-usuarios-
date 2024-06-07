@@ -38,7 +38,7 @@ public class AuthController {
 
             if (Objects.equals(usuarioEncontrado.getEstado(), "P")) return ResponseEntity.badRequest().body(new ApiResponse(false, "Su cuenta no se encuentra activa"));
 
-            String token = jwtTokenProvider.generateToken(service.findByUsuario(usuario));
+            String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
             return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId()));
         } else {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Credenciales inválidas"));

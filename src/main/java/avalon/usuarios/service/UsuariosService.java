@@ -14,6 +14,7 @@ public interface UsuariosService {
     Usuario createUsuario(CreateUsuarioRequest request);
     Usuario updateUsuario(Usuario usuario, UpdateUsuarioRequest request);
     Usuario partiallyUpdateEstadoUsuario(UpdateEstadoUsuario request, Long usuarioId);
-    Usuario validarCredenciales(String usuario, String contrasenia);
-    Usuario findByUsuario(String usuario);
+    Usuario validarCredenciales(String nombreUsuario, String contrasenia);
+    Usuario findByNombreUsuario(String nombreUsuario);
+    List<Usuario> getUsuariosByRol(Long rolId);
 }

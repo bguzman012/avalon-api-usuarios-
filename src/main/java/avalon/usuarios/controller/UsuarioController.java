@@ -78,4 +78,15 @@ public class UsuarioController {
 
     }
 
+    @GetMapping("/roles/{rolId}/usuarios")
+    public ResponseEntity<List<Usuario>> getUsuariosByRol(@PathVariable Long rolId) {
+        List<Usuario> usuarios = service.getUsuariosByRol(rolId);
+
+        if (!usuarios.isEmpty()) {
+            return ResponseEntity.ok(usuarios);
+        } else {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+    }
+
 }

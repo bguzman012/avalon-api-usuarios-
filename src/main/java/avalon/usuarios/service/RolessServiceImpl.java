@@ -35,7 +35,7 @@ public class RolessServiceImpl implements RolesService {
             if (rol == null) return null;
         }
         rol.setNombre(request.getNombre());
-        rol.setObservaciones(request.getObservaciones());
+        rol.setCodigo(request.getCodigo());
 
         return this.repository.save(rol);
     }

@@ -13,6 +13,6 @@ public class CreateRolRequest {
 
 	private Long id;
 	private String nombre;
-	private String observaciones;
+	private String codigo;
 
 }

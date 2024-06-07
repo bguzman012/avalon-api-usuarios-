@@ -11,21 +11,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class UsuariosServiceImpl implements UsuariosService {
 
     private final UsuarioRepository repository;
-    @Autowired
-    private RolRepository rolRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
+    private final RolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UsuariosServiceImpl(UsuarioRepository repository) {
+    public UsuariosServiceImpl(UsuarioRepository repository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.rolRepository = rolRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -39,39 +39,35 @@ public class UsuariosServiceImpl implements UsuariosService {
     }
 
     @Override
-    public Usuario updateUsuario(Usuario usuario, UpdateUsuarioRequest request) {
-        Rol rol = rolRepository.findById(request.getIdRol()).orElse(null);
+    public Usuario createUsuario(CreateUsuarioRequest request) {
+        Rol rol = rolRepository.findById(request.getRolId()).orElse(null);
         if (rol == null) return null;
 
-        usuario.setContrasenia(request.getContrasenia());
+        Usuario usuario = new Usuario();
+        usuario.setNombreUsuario(request.getNombreUsuario());
+        usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
+        usuario.setCorreoElectronico(request.getCorreoElectronico());
         usuario.setEstado(request.getEstado());
-        usuario.setReferenciaPersonal(request.getReferenciaPersonal());
-        usuario.setDireccion(request.getDireccion());
         usuario.setNombres(request.getNombres());
         usuario.setApellidos(request.getApellidos());
         usuario.setFechaNacimiento(request.getFechaNacimiento());
-        usuario.setTelefono(request.getTelefono());
+        usuario.setNumeroTelefono(request.getNumeroTelefono());
         usuario.setRol(rol);
-
 
         return repository.save(usuario);
     }
 
-    public Usuario createUsuario(CreateUsuarioRequest request) {
-        Rol rol = rolRepository.findById(request.getIdRol()).orElse(null);
+    @Override
+    public Usuario updateUsuario(Usuario usuario, UpdateUsuarioRequest request) {
+        Rol rol = rolRepository.findById(request.getRolId()).orElse(null);
         if (rol == null) return null;
 
-        Usuario usuario = new Usuario();
-        usuario.setUsuario(request.getUsuario());
-        usuario.setContrasenia(request.getContrasenia());
-        usuario.setCorreoElectronico(request.getCorreoElectronico());
-        usuario.setReferenciaPersonal(request.getReferenciaPersonal());
-        usuario.setDireccion(request.getDireccion());
+        usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
         usuario.setEstado(request.getEstado());
         usuario.setNombres(request.getNombres());
         usuario.setApellidos(request.getApellidos());
         usuario.setFechaNacimiento(request.getFechaNacimiento());
-        usuario.setTelefono(request.getTelefono());
+        usuario.setNumeroTelefono(request.getNumeroTelefono());
         usuario.setRol(rol);
 
         return repository.save(usuario);
@@ -80,29 +76,34 @@ public class UsuariosServiceImpl implements UsuariosService {
     @Override
     public Usuario partiallyUpdateEstadoUsuario(UpdateEstadoUsuario request, Long usuarioId) {
         Usuario usuario = repository.findById(usuarioId).orElse(null);
-
-        if (usuario == null)
-            return null;
+        if (usuario == null) return null;
 
         usuario.setEstado(request.getEstado());
-        repository.save(usuario);
-        return usuario;
+        return repository.save(usuario);
     }
 
     @Override
-    public Usuario validarCredenciales(String usuario, String contrasenia) {
-        Usuario usuarioEncontrado = findByUsuario(usuario);
-
-        if (usuarioEncontrado != null && contrasenia.equals(usuarioEncontrado.getContrasenia()))
+    public Usuario validarCredenciales(String nombreUsuario, String contrasenia) {
+        Usuario usuarioEncontrado = findByNombreUsuario(nombreUsuario);
+//        String contraseniaEncriptada = passwordEncoder.encode("admin");
+        if (usuarioEncontrado != null && passwordEncoder.matches(contrasenia, usuarioEncontrado.getContrasenia())) {
             return usuarioEncontrado;
-
-        // Verificar si el usuario existe y si la contraseña coincide
+        }
         return null;
     }
 
     @Override
-    public Usuario findByUsuario(String usuario) {
-        return repository.findByUsuario(usuario);
+    public Usuario findByNombreUsuario(String nombreUsuario) {
+        return repository.findByNombreUsuario(nombreUsuario);
+    }
+
+    @Override
+    public List<Usuario> getUsuariosByRol(Long rolId) {
+        Rol rol = rolRepository.findById(rolId).orElse(null);
+
+        if (rol == null) return Collections.emptyList();
+
+        return repository.findAllByRol(rol);
     }
 
 
