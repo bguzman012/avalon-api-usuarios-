@@ -19,7 +19,6 @@ public class CreateUsuarioRequest {
 	private String nombres;
 	@NotNull
 	private String apellidos;
-	@NotNull
 	private Date fechaNacimiento;
 	private Date lugarNacimiento;
 	private Date lugarResidencia;

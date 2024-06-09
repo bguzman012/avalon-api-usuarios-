@@ -31,7 +31,6 @@ public class Usuario extends AuditingData {
     @Column(name = "apellidos")
     private String apellidos;
 
-    @NotNull
     @Temporal(TemporalType.DATE)
     private Date fechaNacimiento;
 

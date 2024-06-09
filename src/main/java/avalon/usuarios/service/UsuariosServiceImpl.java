@@ -4,7 +4,7 @@ import avalon.usuarios.data.RolRepository;
 import avalon.usuarios.data.UsuarioRepository;
 import avalon.usuarios.model.pojo.Rol;
 import avalon.usuarios.model.request.CreateUsuarioRequest;
-import avalon.usuarios.model.request.UpdateEstadoUsuario;
+import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.request.UpdateUsuarioRequest;
 import avalon.usuarios.model.pojo.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,6 @@ public class UsuariosServiceImpl implements UsuariosService {
         Rol rol = rolRepository.findById(request.getRolId()).orElse(null);
         if (rol == null) return null;
 
-        usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
         usuario.setEstado(request.getEstado());
         usuario.setNombres(request.getNombres());
         usuario.setApellidos(request.getApellidos());
@@ -74,11 +73,16 @@ public class UsuariosServiceImpl implements UsuariosService {
     }
 
     @Override
-    public Usuario partiallyUpdateEstadoUsuario(UpdateEstadoUsuario request, Long usuarioId) {
+    public Usuario partiallyUpdateUsuario(PartiallyUpdateUsuario request, Long usuarioId) {
         Usuario usuario = repository.findById(usuarioId).orElse(null);
         if (usuario == null) return null;
 
-        usuario.setEstado(request.getEstado());
+        if (request.getEstado() != null)
+            usuario.setEstado(request.getEstado());
+
+        if (request.getContrasenia() != null)
+            usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
+
         return repository.save(usuario);
     }
 
@@ -98,12 +102,12 @@ public class UsuariosServiceImpl implements UsuariosService {
     }
 
     @Override
-    public List<Usuario> getUsuariosByRol(Long rolId) {
+    public List<Usuario> getUsuariosByRolAndEstado(Long rolId, String estado) {
         Rol rol = rolRepository.findById(rolId).orElse(null);
 
         if (rol == null) return Collections.emptyList();
 
-        return repository.findAllByRol(rol);
+        return repository.findAllByRolAndEstado(rol, estado);
     }
 
 

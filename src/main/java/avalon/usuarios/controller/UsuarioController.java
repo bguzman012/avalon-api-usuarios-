@@ -2,7 +2,7 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.CreateUsuarioRequest;
-import avalon.usuarios.model.request.UpdateEstadoUsuario;
+import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.request.UpdateUsuarioRequest;
 import avalon.usuarios.service.UsuariosServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -54,8 +54,8 @@ public class UsuarioController {
     }
 
     @PatchMapping("/usuarios/{usuarioId}")
-    public ResponseEntity<Usuario> partiallyUpdateUsuario(@RequestBody UpdateEstadoUsuario request, @PathVariable Long usuarioId) {
-        Usuario result = service.partiallyUpdateEstadoUsuario(request, usuarioId);
+    public ResponseEntity<Usuario> partiallyUpdateUsuario(@RequestBody PartiallyUpdateUsuario request, @PathVariable Long usuarioId) {
+        Usuario result = service.partiallyUpdateUsuario(request, usuarioId);
 
         if (result != null) {
             return ResponseEntity.ok(result);
@@ -79,8 +79,8 @@ public class UsuarioController {
     }
 
     @GetMapping("/roles/{rolId}/usuarios")
-    public ResponseEntity<List<Usuario>> getUsuariosByRol(@PathVariable Long rolId) {
-        List<Usuario> usuarios = service.getUsuariosByRol(rolId);
+    public ResponseEntity<List<Usuario>> getUsuariosByRol(@PathVariable Long rolId, @RequestParam(required = false) String estado) {
+        List<Usuario> usuarios = service.getUsuariosByRolAndEstado(rolId, estado);
 
         if (!usuarios.isEmpty()) {
             return ResponseEntity.ok(usuarios);
@@ -88,5 +88,7 @@ public class UsuarioController {
             return ResponseEntity.ok(Collections.emptyList());
         }
     }
+
+
 
 }

@@ -16,7 +16,7 @@ import java.util.Date;
 public class CreateAseguradoraRequest {
 
 	@NotNull
-	private String nombres;
+	private String nombre;
 
 	@NotNull
 	@Email

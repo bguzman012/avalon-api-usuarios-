@@ -3,6 +3,7 @@ package avalon.usuarios.controller;
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.*;
+import avalon.usuarios.model.response.CreateAseguradoraResponse;
 import avalon.usuarios.service.AseguradoraServiceImpl;
 import avalon.usuarios.service.UsuariosServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,19 @@ public class AseguradoraController {
     }
 
     @GetMapping("/aseguradoras")
-    public ResponseEntity<List<Aseguradora>> getAseguradoras() {
-        List<Aseguradora> aseguradoras = service.getAseguradoras();
+    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradoras(@RequestParam(required = false) String estado) {
+        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByEstado(estado);
+
+        if (!aseguradoras.isEmpty()) {
+            return ResponseEntity.ok(aseguradoras);
+        } else {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("/usuarios/{usuarioId}/aseguradoras")
+    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradorasByUsuario(@PathVariable Long usuarioId, @RequestParam(required = false) String estado) {
+        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByUsuarioAndEstado(usuarioId, estado);
 
         if (!aseguradoras.isEmpty()) {
             return ResponseEntity.ok(aseguradoras);
@@ -60,6 +72,17 @@ public class AseguradoraController {
         if (aseguradora != null) {
             Aseguradora aseguradoraUpdate = service.updateAseguradora(aseguradora, request);
             return aseguradoraUpdate != null ? ResponseEntity.ok(aseguradoraUpdate) : ResponseEntity.badRequest().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/aseguradoras/{aseguradoraId}")
+    public ResponseEntity<Aseguradora> partiallyUpdateAseguradora(@RequestBody PartiallyUpdateAseguradora request, @PathVariable Long aseguradoraId) {
+        Aseguradora result = service.partiallyUpdateAseguradora(request, aseguradoraId);
+
+        if (result != null) {
+            return ResponseEntity.ok(result);
         } else {
             return ResponseEntity.notFound().build();
         }

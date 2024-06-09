@@ -23,12 +23,16 @@ public class Aseguradora extends AuditingData {
     private Long id;
 
     @NotNull
-    @Column(name = "nombres")
-    private String nombres;
+    @Column(name = "nombre")
+    private String nombre;
 
     @NotNull
     @Column(name = "correo_electronico", unique = true)
     private String correoElectronico;
+
+    @NotNull
+    @Column(name = "estado")
+    private String estado;
 
     @JsonIgnore
     @OneToMany(mappedBy = "aseguradora", cascade = CascadeType.ALL)

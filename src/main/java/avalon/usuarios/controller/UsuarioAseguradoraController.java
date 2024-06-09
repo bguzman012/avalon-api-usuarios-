@@ -2,10 +2,7 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.UsuarioAseguradora;
-import avalon.usuarios.model.request.CreateAseguradoraRequest;
-import avalon.usuarios.model.request.CreateUsuarioAseguradoraRequest;
-import avalon.usuarios.model.request.UpdateAseguradoraRequest;
-import avalon.usuarios.model.request.UpdateUsuarioAseguradoraRequest;
+import avalon.usuarios.model.request.*;
 import avalon.usuarios.service.AseguradoraServiceImpl;
 import avalon.usuarios.service.UsuarioAseguradoraServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +23,20 @@ public class UsuarioAseguradoraController {
     private final UsuarioAseguradoraServiceImpl service;
 
     @PostMapping("/usuarioAseguradoras")
-    public ResponseEntity<UsuarioAseguradora> createUsuarioAseguradora(@RequestBody CreateUsuarioAseguradoraRequest request) {
+    public ResponseEntity<List<UsuarioAseguradora>> createUsuarioAseguradora(@RequestBody CreateListUsuarioAseguradoraRequest request) {
         try {
-            UsuarioAseguradora result = service.createUsuarioAseguradora(request);
-            return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
+            List<UsuarioAseguradora> result = service.createListUsuarioAseguradora(request);
+            return result.get(0).getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PutMapping("/usuarioAseguradoras")
+    public ResponseEntity<List<UsuarioAseguradora>> updateUsuariosAseguradoras(@RequestBody CreateListUsuarioAseguradoraRequest request,  @RequestParam(required = false) Long usuarioId) {
+        try {
+            List<UsuarioAseguradora> result = service.updateListUsuariosAseguradoras(request, usuarioId);
+            return result.get(0).getId() != null ? ResponseEntity.ok(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -52,18 +59,6 @@ public class UsuarioAseguradoraController {
 
         if (usuarioAseguradora != null) {
             return ResponseEntity.ok(usuarioAseguradora);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PutMapping("/usuarioAseguradoras/{usuarioAseguradoraId}")
-    public ResponseEntity<UsuarioAseguradora> updateUsuarioAseguradora(@PathVariable Long usuarioAseguradoraId, @RequestBody UpdateUsuarioAseguradoraRequest request) {
-        UsuarioAseguradora usuarioAseguradora = service.getUsuarioAseguradora(usuarioAseguradoraId);
-
-        if (usuarioAseguradora != null) {
-            UsuarioAseguradora usuarioAseguradoraUpdate = service.updateUsuarioAseguradora(usuarioAseguradora, request);
-            return usuarioAseguradoraUpdate != null ? ResponseEntity.ok(usuarioAseguradoraUpdate) : ResponseEntity.badRequest().build();
         } else {
             return ResponseEntity.notFound().build();
         }

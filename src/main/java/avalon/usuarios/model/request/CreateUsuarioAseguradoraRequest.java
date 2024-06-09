@@ -15,7 +15,6 @@ public class CreateUsuarioAseguradoraRequest {
 
 	@NotNull
 	private Long aseguradoraId;
-
 	@NotNull
 	private Long usuarioId;
 
