@@ -18,7 +18,6 @@ public class UpdateUsuarioRequest {
     private String nombres;
     @NotNull
     private String apellidos;
-    @NotNull
     private Date fechaNacimiento;
     private Date lugarNacimiento;
     private Date lugarResidencia;
@@ -26,7 +25,6 @@ public class UpdateUsuarioRequest {
     private String correoElectronico;
     @NotNull
     private String numeroTelefono;
-    @NotNull
     private String contrasenia;
     private String urlImagen;
     @NotNull
