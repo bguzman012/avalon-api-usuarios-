@@ -1,6 +1,7 @@
 package avalon.usuarios.service;
 
 import avalon.usuarios.data.RolRepository;
+import avalon.usuarios.data.UsuarioAseguradoraRepository;
 import avalon.usuarios.data.UsuarioRepository;
 import avalon.usuarios.model.pojo.Rol;
 import avalon.usuarios.model.request.CreateUsuarioRequest;
@@ -20,6 +21,9 @@ public class UsuariosServiceImpl implements UsuariosService {
     private final UsuarioRepository repository;
     private final RolRepository rolRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UsuarioAseguradoraRepository usuarioAseguradoraRepository;
 
     @Autowired
     public UsuariosServiceImpl(UsuarioRepository repository, RolRepository rolRepository, PasswordEncoder passwordEncoder) {
@@ -79,6 +83,10 @@ public class UsuariosServiceImpl implements UsuariosService {
 
         if (request.getEstado() != null)
             usuario.setEstado(request.getEstado());
+
+        if (request.getEstado() != null && request.getEstado().equals("I")){
+            usuarioAseguradoraRepository.deleteAllByUsuarioAseguradorByUsuario(usuario);
+        }
 
         if (request.getContrasenia() != null)
             usuario.setContrasenia(passwordEncoder.encode(request.getContrasenia()));

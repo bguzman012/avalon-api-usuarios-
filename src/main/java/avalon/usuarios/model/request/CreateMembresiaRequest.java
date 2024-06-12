@@ -15,10 +15,10 @@ public class CreateMembresiaRequest {
 
 	@NotNull
 	private String nombres;
-
 	private String detalle;
-
 	@NotNull
 	private String estado;
+	@NotNull
+	private Long aseguradoraId;
 
 }

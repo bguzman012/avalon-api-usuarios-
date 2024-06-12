@@ -34,6 +34,11 @@ public class Membresia extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "aseguradora_id")
+    private Aseguradora aseguradora;
+
     @JsonIgnore
     @OneToMany(mappedBy = "membresia", cascade = CascadeType.ALL)
     private List<UsuarioMembresia> usuarioMembresiaList;
