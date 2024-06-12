@@ -5,6 +5,7 @@ import avalon.usuarios.model.pojo.UsuarioMembresia;
 import avalon.usuarios.model.request.CreateUsuarioAseguradoraRequest;
 import avalon.usuarios.model.request.CreateUsuarioMembresiaRequest;
 import avalon.usuarios.model.request.UpdateUsuarioMembresiaRequest;
+import avalon.usuarios.model.response.UsuariosMembresiaResponse;
 import avalon.usuarios.service.UsuarioAseguradoraServiceImpl;
 import avalon.usuarios.service.UsuarioMembresiaServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,17 @@ public class UsuarioMembresiaController {
 
         if (!usuarioMembresias.isEmpty()) {
             return ResponseEntity.ok(usuarioMembresias);
+        } else {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("membresias/{membresiaId}/usuarioMembresias")
+    public ResponseEntity<List<UsuariosMembresiaResponse>> getUsuarioMembresiasByMembresia(@PathVariable Long membresiaId) {
+        List<UsuariosMembresiaResponse> usuarioMembresiasResponseList = service.getUsuariosMembresiasByMembresia(membresiaId);
+
+        if (!usuarioMembresiasResponseList.isEmpty()) {
+            return ResponseEntity.ok(usuarioMembresiasResponseList);
         } else {
             return ResponseEntity.ok(Collections.emptyList());
         }

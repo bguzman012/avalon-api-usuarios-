@@ -115,6 +115,9 @@ public class UsuariosServiceImpl implements UsuariosService {
 
         if (rol == null) return Collections.emptyList();
 
+        if (estado.equals("T"))
+            return repository.findAllByRol(rol);
+
         return repository.findAllByRolAndEstado(rol, estado);
     }
 

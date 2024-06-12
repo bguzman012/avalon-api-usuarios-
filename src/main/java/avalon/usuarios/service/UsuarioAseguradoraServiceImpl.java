@@ -1,13 +1,7 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.data.AseguradoraRepository;
-import avalon.usuarios.data.MembresiaRepository;
-import avalon.usuarios.data.UsuarioAseguradoraRepository;
-import avalon.usuarios.data.UsuarioRepository;
-import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.Membresia;
-import avalon.usuarios.model.pojo.Usuario;
-import avalon.usuarios.model.pojo.UsuarioAseguradora;
+import avalon.usuarios.data.*;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +20,9 @@ public class UsuarioAseguradoraServiceImpl implements UsuarioAseguradoraService 
     private AseguradoraRepository aseguradoraRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private RolRepository rolRepository;
+
 
     @Autowired
     public UsuarioAseguradoraServiceImpl(UsuarioAseguradoraRepository repository) {
@@ -103,6 +100,17 @@ public class UsuarioAseguradoraServiceImpl implements UsuarioAseguradoraService 
     @Override
     public List<UsuarioAseguradora> getUsuarioAseguradoras() {
         return repository.findAll();
+    }
+
+    @Override
+    public List<UsuarioAseguradora> getUsuarioAseguradorasByAseguradoraAndRol(Long aseguradorId, Long rolId, String estado) {
+        Rol rol = rolRepository.findById(rolId).orElse(null);
+        if (rol == null) return null;
+
+        Aseguradora aseguradora = aseguradoraRepository.findById(aseguradorId).orElse(null);
+        if (aseguradora == null) return null;
+
+        return repository.findAllByAseguradoraAndEstadoAndRol(estado, aseguradora, rol);
     }
 
     @Override

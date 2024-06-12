@@ -1,6 +1,7 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Aseguradora;
+import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.pojo.UsuarioAseguradora;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.service.AseguradoraServiceImpl;
@@ -33,7 +34,7 @@ public class UsuarioAseguradoraController {
     }
 
     @PutMapping("/usuarioAseguradoras")
-    public ResponseEntity<List<UsuarioAseguradora>> updateUsuariosAseguradoras(@RequestBody CreateListUsuarioAseguradoraRequest request,  @RequestParam(required = false) Long usuarioId) {
+    public ResponseEntity<List<UsuarioAseguradora>> updateUsuariosAseguradoras(@RequestBody CreateListUsuarioAseguradoraRequest request, @RequestParam(required = false) Long usuarioId) {
         try {
             List<UsuarioAseguradora> result = service.updateListUsuariosAseguradoras(request, usuarioId);
             return result.get(0).getId() != null ? ResponseEntity.ok(result) : ResponseEntity.badRequest().build();
@@ -50,6 +51,19 @@ public class UsuarioAseguradoraController {
             return ResponseEntity.ok(usuarioAseguradoras);
         } else {
             return ResponseEntity.ok(Collections.emptyList());
+        }
+    }
+
+    @GetMapping("/aseguradoras/{aseguradoraId}/usuarioAseguradoras")
+    public ResponseEntity<List<UsuarioAseguradora>> getUsuarioAseguradoraByAseguradoraAndRol(@PathVariable Long aseguradoraId,
+                                                                                  @RequestParam(required = false) Long rolId,
+                                                                                  @RequestParam(required = false) String estado) {
+        List<UsuarioAseguradora> usuarioAseguradora = service.getUsuarioAseguradorasByAseguradoraAndRol(aseguradoraId, rolId, estado );
+
+        if (usuarioAseguradora != null) {
+            return ResponseEntity.ok(usuarioAseguradora);
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
 
