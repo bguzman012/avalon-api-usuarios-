@@ -9,6 +9,10 @@ import java.util.List;
 public interface MembresiaService {
 
     List<Membresia> getMembresias();
+    List<Membresia> getMembresiasByAseguradora(Long aseguradoraId);
+
+    List<Membresia> getMembresiasByEstado(String estado);
+
     Membresia getMembresia(Long membresiaId);
     Membresia createMembresia(CreateMembresiaRequest request);
     Membresia updateMembresia(Membresia membresia, UpdateMembresiaRequest request);

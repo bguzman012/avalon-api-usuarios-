@@ -1,12 +1,13 @@
 ## Configuracion de Spring
 spring:
   application:
-    #    name: ms-store-products-fs.up.railway.app
     name: ms-usuarios
   datasource:
     url: jdbc:postgresql://149.56.110.32:8585/ms-usuarios
     username: avalon
     password: avalon_psw
+    hikari:
+      max-lifetime: 1800000  # 30 minutes in milliseconds
 
   jpa:
     show-sql: true
@@ -22,17 +23,11 @@ eureka:
     registerWithEureka: true
     fetchRegistry: true
     service-url:
-#      defaultZone: ${EUREKA_URL:http://167.114.68.106:8761/eureka}
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
   instance:
     preferIpAddress: true
     hostname: ms-usuarios
-#    non-secure-port-enabled: false
-#    secure-port-enabled: true
-#    non-secure-port: 80
-#    secure-port: 443
 
 jwt:
   secret: HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512HmacSHA512
-#  expiration: 300000 # Tiempo 5 minutos
   expiration: 31536000000  # Representaría 1,000 años en milisegundos

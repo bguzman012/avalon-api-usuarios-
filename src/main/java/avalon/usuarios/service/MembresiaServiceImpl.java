@@ -1,7 +1,9 @@
 package avalon.usuarios.service;
 
+import avalon.usuarios.data.AseguradoraRepository;
 import avalon.usuarios.data.MembresiaRepository;
 import avalon.usuarios.data.RolRepository;
+import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.pojo.Rol;
 import avalon.usuarios.model.request.CreateMembresiaRequest;
@@ -15,6 +17,8 @@ import java.util.List;
 @Service
 public class MembresiaServiceImpl implements MembresiaService {
 
+    @Autowired
+    private AseguradoraRepository aseguradoraRepository;
     private final MembresiaRepository repository;
 
     @Autowired
@@ -24,16 +28,33 @@ public class MembresiaServiceImpl implements MembresiaService {
 
     @Override
     public Membresia createMembresia(CreateMembresiaRequest request) {
+        Aseguradora aseguradora = this.aseguradoraRepository.findById(request.getAseguradoraId()).orElse(null);
+        if (aseguradora == null) return null;
+
         Membresia membresia = new Membresia();
         membresia.setNombres(request.getNombres());
         membresia.setDetalle(request.getDetalle());
-        membresia.setEstado(request.getEstado());
+        membresia.setEstado("A");
+        membresia.setAseguradora(aseguradora);
         return repository.save(membresia);
     }
 
     @Override
     public List<Membresia> getMembresias() {
         return repository.findAll();
+    }
+
+    @Override
+    public List<Membresia> getMembresiasByAseguradora(Long aseguradoraId) {
+        Aseguradora aseguradora = this.aseguradoraRepository.findById(aseguradoraId).orElse(null);
+        if (aseguradora == null) return null;
+
+        return repository.findAllByAseguradora(aseguradora);
+    }
+
+    @Override
+    public List<Membresia> getMembresiasByEstado(String estado) {
+        return this.repository.findAllByEstado(estado);
     }
 
     @Override
