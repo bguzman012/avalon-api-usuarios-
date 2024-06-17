@@ -19,6 +19,5 @@ public class CreateMembresiaRequest {
 	@NotNull
 	private String estado;
 	@NotNull
-	private Long aseguradoraId;
-
+	private Long vigenciaMeses;
 }

@@ -28,14 +28,12 @@ public class MembresiaServiceImpl implements MembresiaService {
 
     @Override
     public Membresia createMembresia(CreateMembresiaRequest request) {
-        Aseguradora aseguradora = this.aseguradoraRepository.findById(request.getAseguradoraId()).orElse(null);
-        if (aseguradora == null) return null;
 
         Membresia membresia = new Membresia();
         membresia.setNombres(request.getNombres());
         membresia.setDetalle(request.getDetalle());
         membresia.setEstado("A");
-        membresia.setAseguradora(aseguradora);
+        membresia.setVigenciaMeses(request.getVigenciaMeses());
         return repository.save(membresia);
     }
 
@@ -67,6 +65,7 @@ public class MembresiaServiceImpl implements MembresiaService {
         membresia.setNombres(request.getNombres());
         membresia.setDetalle(request.getDetalle());
         membresia.setEstado(request.getEstado());
+        membresia.setVigenciaMeses(request.getVigenciaMeses());
         return repository.save(membresia);
     }
 

@@ -17,10 +17,9 @@ public class CreateAseguradoraRequest {
 
 	@NotNull
 	private String nombre;
-
 	@NotNull
 	@Email
 	private String correoElectronico;
-
+	private Long tipoAseguradoraId;
 	// Getters and setters
 }

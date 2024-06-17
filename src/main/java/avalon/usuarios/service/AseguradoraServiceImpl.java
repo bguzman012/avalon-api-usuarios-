@@ -1,13 +1,7 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.data.AseguradoraRepository;
-import avalon.usuarios.data.RolRepository;
-import avalon.usuarios.data.UsuarioAseguradoraRepository;
-import avalon.usuarios.data.UsuarioRepository;
-import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.Rol;
-import avalon.usuarios.model.pojo.Usuario;
-import avalon.usuarios.model.pojo.UsuarioAseguradora;
+import avalon.usuarios.data.*;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.CreateAseguradoraResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +19,8 @@ public class AseguradoraServiceImpl implements AseguradoraService {
     @Autowired
     private UsuarioAseguradoraRepository usuarioAseguradoraRepository;
     @Autowired
+    private TipoAseguradoraRepository tipoAseguradoraRepository;
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -33,9 +29,11 @@ public class AseguradoraServiceImpl implements AseguradoraService {
     }
 
     @Override
-    public List<CreateAseguradoraResponse> getAseguradoraByEstado(String estado) {
+    public List<CreateAseguradoraResponse> getAseguradoraByEstado(String estado, Long tipoEmpresaId) {
+        TipoAseguradora tipoAseguradora = this.tipoAseguradoraRepository.findById(tipoEmpresaId).orElse(null);
+
         List <CreateAseguradoraResponse> createAseguradoraResponseList = new ArrayList<>();
-        for (Aseguradora aseg : repository.findAllByEstado(estado)
+        for (Aseguradora aseg : repository.findAllByEstadoAndTipoAseguradora(estado, tipoAseguradora)
         ) {
             CreateAseguradoraResponse createAseguradoraResponse = new CreateAseguradoraResponse();
             createAseguradoraResponse.setId(aseg.getId());
@@ -76,10 +74,14 @@ public class AseguradoraServiceImpl implements AseguradoraService {
 
     @Override
     public Aseguradora createAseguradora(CreateAseguradoraRequest request) {
+        TipoAseguradora tipoAseguradora = this.tipoAseguradoraRepository.findById(request.getTipoAseguradoraId()).orElse(null);
+
         Aseguradora aseguradora = new Aseguradora();
         aseguradora.setNombre(request.getNombre());
         aseguradora.setCorreoElectronico(request.getCorreoElectronico());
         aseguradora.setEstado("A");
+        aseguradora.setTipoAseguradora(tipoAseguradora);
+
         return repository.save(aseguradora);
     }
 

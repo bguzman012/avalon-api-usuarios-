@@ -56,6 +56,17 @@ public class UsuarioMembresiaController {
         }
     }
 
+    @GetMapping("usuarios/{usuarioId}/usuarioMembresias")
+    public ResponseEntity<List<UsuariosMembresiaResponse>> getUsuarioMembresiasByUsuario(@PathVariable Long usuarioId) {
+        List<UsuariosMembresiaResponse> usuarioMembresiasResponseList = service.getUsuariosMembresiasByUsuario(usuarioId);
+
+        if (!usuarioMembresiasResponseList.isEmpty()) {
+            return ResponseEntity.ok(usuarioMembresiasResponseList);
+        } else {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+    }
+
     @GetMapping("/usuarioMembresias/{usuarioMembresiaId}")
     public ResponseEntity<UsuarioMembresia> getUsuarioMembresia(@PathVariable Long usuarioMembresiaId) {
         UsuarioMembresia usuarioMembresia = service.getUsuarioMembresia(usuarioMembresiaId);

@@ -10,5 +10,6 @@ import java.util.List;
 public interface UsuarioMembresiaRepository extends JpaRepository<UsuarioMembresia, Long> {
 
     List<UsuarioMembresia> findAllByMembresia(Membresia membresia);
+    List<UsuarioMembresia> findAllByUsuario(Usuario usuario);
 
 }

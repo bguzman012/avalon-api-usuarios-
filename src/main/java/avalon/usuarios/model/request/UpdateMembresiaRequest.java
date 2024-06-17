@@ -19,7 +19,6 @@ public class UpdateMembresiaRequest {
     @NotNull
     private String estado;
     @NotNull
-    private Long aseguradoraId;
-
+    private Long vigenciaMeses;
 
 }

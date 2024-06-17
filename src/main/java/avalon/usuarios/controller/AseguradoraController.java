@@ -33,8 +33,8 @@ public class AseguradoraController {
     }
 
     @GetMapping("/aseguradoras")
-    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradoras(@RequestParam(required = false) String estado) {
-        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByEstado(estado);
+    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradoras(@RequestParam(required = false) String estado, @RequestParam(required = false) Long tipoEmpresaId) {
+        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByEstado(estado, tipoEmpresaId);
 
         if (!aseguradoras.isEmpty()) {
             return ResponseEntity.ok(aseguradoras);

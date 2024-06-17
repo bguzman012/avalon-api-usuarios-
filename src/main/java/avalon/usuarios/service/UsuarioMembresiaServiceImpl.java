@@ -49,6 +49,28 @@ public class UsuarioMembresiaServiceImpl implements UsuarioMembresiaService {
     }
 
     @Override
+    public List<UsuariosMembresiaResponse> getUsuariosMembresiasByUsuario(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        if (usuario == null) return null;
+
+        List<UsuarioMembresia> usuarioMembresiaList = this.repository.findAllByUsuario(usuario);
+        List<UsuariosMembresiaResponse> usuariosMembresiaResponseList = new ArrayList<>();
+        for (UsuarioMembresia usuarioMembresia : usuarioMembresiaList){
+            List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList =
+                    this.usuAseguradoraUsuMembresiaRepository.findAllByUsuarioMembresia(usuarioMembresia);
+
+            UsuariosMembresiaResponse usuariosMembresiaResponse
+                    = new UsuariosMembresiaResponse(usuarioMembresia.getUsuario(), usuarioMembresia.getMembresia(),
+                    usuarioMembresia.getMembresia().getAseguradora(), usuAseguradoraUsuMembresiaList);
+
+            usuariosMembresiaResponseList.add(usuariosMembresiaResponse);
+
+        }
+
+        return usuariosMembresiaResponseList;
+    }
+
+    @Override
     public List<UsuariosMembresiaResponse> getUsuariosMembresiasByMembresia(Long membresiaId) {
         Membresia membresia = membresiaRepository.findById(membresiaId).orElse(null);
         if (membresia == null) return null;

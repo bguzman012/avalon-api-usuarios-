@@ -15,6 +15,7 @@ public interface UsuarioMembresiaService {
     UsuarioMembresia createUsuarioMembresia(CreateUsuarioMembresiaRequest request);
     List<UsuarioMembresia> getUsuarioMembresias();
     List<UsuariosMembresiaResponse> getUsuariosMembresiasByMembresia(Long membresiaId);
+    List<UsuariosMembresiaResponse> getUsuariosMembresiasByUsuario(Long usuarioId);
     UsuarioMembresia getUsuarioMembresia(Long id);
     UsuarioMembresia updateUsuarioMembresia(UsuarioMembresia usuarioMembresia, UpdateUsuarioMembresiaRequest request);
     void deleteUsuarioMembresia(Long id);

@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface AseguradoraService {
 
-    List<CreateAseguradoraResponse> getAseguradoraByEstado(String estado);
+    List<CreateAseguradoraResponse> getAseguradoraByEstado(String estado, Long tipoEmpresaId);
     List<CreateAseguradoraResponse> getAseguradoraByUsuarioAndEstado(Long usuarioId, String estado);
 
     Aseguradora getAseguradora(Long aseguradoraId);

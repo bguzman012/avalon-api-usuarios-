@@ -34,8 +34,10 @@ public class Membresia extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "vigencia_meses")
+    private Long vigenciaMeses;
+
     @ManyToOne
-    @NotNull
     @JoinColumn(name = "aseguradora_id")
     private Aseguradora aseguradora;
 
