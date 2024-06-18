@@ -19,7 +19,6 @@ public class UsuariosMembresiaResponse {
 
 	private Usuario usuario;
 	private Membresia membresia;
-	private Aseguradora aseguradora;
-	private List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList;
+	private Usuario asesor;
 
 }

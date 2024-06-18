@@ -9,36 +9,35 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "usuarios_membresias")
+@Table(name = "polizas")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @ToString
-public class UsuarioMembresia extends AuditingData {
+public class Poliza extends AuditingData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @NotNull
+    @Column(name = "nombre")
+    private String nombre;
+    @NotNull
+    @Column(name = "descripcion")
+    private String descripcion;
+    @Column(name = "vigencia_meses")
+    private Long vigenciaMeses;
 
     @ManyToOne
     @NotNull
-    @JoinColumn(name = "membresia_id")
-    private Membresia membresia;
-
-    @ManyToOne
-    @NotNull
-    @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
-
-    @ManyToOne
-    @JoinColumn(name = "asesor_id")
-    private Usuario asesor;
+    @JoinColumn(name = "aseguradora_id")
+    private Aseguradora aseguradora;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "usuarioMembresia", cascade = CascadeType.ALL)
-    private List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList;
+    @OneToMany(mappedBy = "poliza", cascade = CascadeType.ALL)
+    private List<ClientePoliza> clientePolizaList;
 
 }
 

@@ -9,14 +9,14 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "usuarios_membresias")
+@Table(name = "clientes_polizas")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @ToString
-public class UsuarioMembresia extends AuditingData {
+public class ClientePoliza extends AuditingData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -24,21 +24,26 @@ public class UsuarioMembresia extends AuditingData {
 
     @ManyToOne
     @NotNull
-    @JoinColumn(name = "membresia_id")
-    private Membresia membresia;
-
-    @ManyToOne
-    @NotNull
-    @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
+    @JoinColumn(name = "cliente_id")
+    private Usuario cliente;
 
     @ManyToOne
     @JoinColumn(name = "asesor_id")
     private Usuario asesor;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "usuarioMembresia", cascade = CascadeType.ALL)
-    private List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList;
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "agente_id")
+    private Usuario agente;
+
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "poliza_id")
+    private Poliza poliza;
+
+    @NotNull
+    @Column(name = "estado")
+    private String estado;
 
 }
 

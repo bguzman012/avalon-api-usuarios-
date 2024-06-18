@@ -32,14 +32,16 @@ public class UsuarioMembresiaServiceImpl implements UsuarioMembresiaService {
     @Override
     public UsuarioMembresia createUsuarioMembresia(CreateUsuarioMembresiaRequest request) {
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId()).orElse(null);
+        Usuario asesor = usuarioRepository.findById(request.getAsesorId()).orElse(null);
         Membresia membresia = membresiaRepository.findById(request.getMembresiaId()).orElse(null);
 
-        if (usuario == null || membresia == null)
+        if (usuario == null || membresia == null || asesor == null)
             return null;
 
         UsuarioMembresia usuarioMembresia = new UsuarioMembresia();
         usuarioMembresia.setMembresia(membresia);
         usuarioMembresia.setUsuario(usuario);
+        usuarioMembresia.setAsesor(asesor);
         return repository.save(usuarioMembresia);
     }
 
@@ -56,12 +58,9 @@ public class UsuarioMembresiaServiceImpl implements UsuarioMembresiaService {
         List<UsuarioMembresia> usuarioMembresiaList = this.repository.findAllByUsuario(usuario);
         List<UsuariosMembresiaResponse> usuariosMembresiaResponseList = new ArrayList<>();
         for (UsuarioMembresia usuarioMembresia : usuarioMembresiaList){
-            List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList =
-                    this.usuAseguradoraUsuMembresiaRepository.findAllByUsuarioMembresia(usuarioMembresia);
 
             UsuariosMembresiaResponse usuariosMembresiaResponse
-                    = new UsuariosMembresiaResponse(usuarioMembresia.getUsuario(), usuarioMembresia.getMembresia(),
-                    usuarioMembresia.getMembresia().getAseguradora(), usuAseguradoraUsuMembresiaList);
+                    = new UsuariosMembresiaResponse(usuarioMembresia.getUsuario(), usuarioMembresia.getMembresia(), usuarioMembresia.getAsesor());
 
             usuariosMembresiaResponseList.add(usuariosMembresiaResponse);
 
@@ -78,12 +77,10 @@ public class UsuarioMembresiaServiceImpl implements UsuarioMembresiaService {
         List<UsuarioMembresia> usuarioMembresiaList = this.repository.findAllByMembresia(membresia);
         List<UsuariosMembresiaResponse> usuariosMembresiaResponseList = new ArrayList<>();
         for (UsuarioMembresia usuarioMembresia : usuarioMembresiaList){
-            List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList =
-                    this.usuAseguradoraUsuMembresiaRepository.findAllByUsuarioMembresia(usuarioMembresia);
 
             UsuariosMembresiaResponse usuariosMembresiaResponse
                     = new UsuariosMembresiaResponse(usuarioMembresia.getUsuario(), usuarioMembresia.getMembresia(),
-                    usuarioMembresia.getMembresia().getAseguradora(), usuAseguradoraUsuMembresiaList);
+                    usuarioMembresia.getAsesor());
 
             usuariosMembresiaResponseList.add(usuariosMembresiaResponse);
 
@@ -100,6 +97,7 @@ public class UsuarioMembresiaServiceImpl implements UsuarioMembresiaService {
     @Override
     public UsuarioMembresia updateUsuarioMembresia(UsuarioMembresia usuarioMembresia, UpdateUsuarioMembresiaRequest request) {
         Usuario usuario = usuarioRepository.findById(request.getUsuarioId()).orElse(null);
+        Usuario asesor = usuarioRepository.findById(request.getAsesorId()).orElse(null);
         Membresia membresia = membresiaRepository.findById(request.getMembresiaId()).orElse(null);
 
         if (usuario == null || membresia == null)
@@ -107,6 +105,7 @@ public class UsuarioMembresiaServiceImpl implements UsuarioMembresiaService {
 
         usuarioMembresia.setMembresia(membresia);
         usuarioMembresia.setUsuario(usuario);
+        usuarioMembresia.setAsesor(asesor);
 
         return repository.save(usuarioMembresia);
     }

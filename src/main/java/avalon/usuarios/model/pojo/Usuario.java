@@ -76,5 +76,21 @@ public class Usuario extends AuditingData {
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     private List<UsuarioMembresia> usuarioMembresiaList;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "asesor", cascade = CascadeType.ALL)
+    private List<UsuarioMembresia> asesorMembresiaList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "asesor", cascade = CascadeType.ALL)
+    private List<ClientePoliza> asesorPolizasList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "agente", cascade = CascadeType.ALL)
+    private List<ClientePoliza> clientePolizasList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "agente", cascade = CascadeType.ALL)
+    private List<ClientePoliza> agentePolizasList;
+
 }
 

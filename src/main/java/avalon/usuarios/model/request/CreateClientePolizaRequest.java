@@ -1,25 +1,28 @@
 package avalon.usuarios.model.request;
 
+import avalon.usuarios.model.pojo.Poliza;
+import avalon.usuarios.model.pojo.Usuario;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUsuarioMembresiaRequest {
+public class CreateClientePolizaRequest {
 
 	@NotNull
-	private Long membresiaId;
+	private Long clienteId;
 	@NotNull
-	private Long usuarioId;
 	private Long asesorId;
+	@NotNull
+	private Long agenteId;
+	@NotNull
+	private Long polizaId;
 
-
-	// Getters and setters
 }
