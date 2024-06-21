@@ -1,22 +1,22 @@
 package avalon.usuarios.model.pojo;
 
 import avalon.usuarios.model.auditing.AuditingData;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
-import java.util.List;
+import java.util.Date;
 
 @Entity
-@Table(name = "usuarios_membresias")
+@Table(name = "clientes_membresias")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @ToString
-public class UsuarioMembresia extends AuditingData {
+public class ClienteMembresia extends AuditingData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -29,16 +29,24 @@ public class UsuarioMembresia extends AuditingData {
 
     @ManyToOne
     @NotNull
-    @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
+    @JoinColumn(name = "cliente_id")
+    private Cliente cliente;
 
     @ManyToOne
     @JoinColumn(name = "asesor_id")
-    private Usuario asesor;
+    private Asesor asesor;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "usuarioMembresia", cascade = CascadeType.ALL)
-    private List<UsuAseguradoraUsuMembresia> usuAseguradoraUsuMembresiaList;
+    @CreatedDate
+    @Temporal(TemporalType.DATE)
+    private Date fechaInicio;
+
+    @CreatedDate
+    @Temporal(TemporalType.DATE)
+    private Date fechaFin;
+
+    @NotNull
+    @Column(name = "estado")
+    private String estado;
 
 }
 

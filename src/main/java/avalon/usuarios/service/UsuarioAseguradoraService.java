@@ -1,8 +1,5 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.model.pojo.Membresia;
-import avalon.usuarios.model.pojo.Usuario;
-import avalon.usuarios.model.pojo.UsuarioAseguradora;
 import avalon.usuarios.model.request.*;
 
 import java.util.List;

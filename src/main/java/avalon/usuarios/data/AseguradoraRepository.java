@@ -1,9 +1,6 @@
 package avalon.usuarios.data;
 
 import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.Rol;
-import avalon.usuarios.model.pojo.TipoAseguradora;
-import avalon.usuarios.model.pojo.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

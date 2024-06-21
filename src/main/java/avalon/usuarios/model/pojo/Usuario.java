@@ -6,11 +6,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -30,15 +30,6 @@ public class Usuario extends AuditingData {
     @NotNull
     @Column(name = "apellidos")
     private String apellidos;
-
-    @Temporal(TemporalType.DATE)
-    private Date fechaNacimiento;
-
-    @Column(name = "lugar_nacimiento")
-    private String lugarNacimiento;
-
-    @Column(name = "lugar_residencia")
-    private String lugarResidencia;
 
     @NotNull
     @Column(name = "correo_electronico", unique = true)
@@ -70,27 +61,11 @@ public class Usuario extends AuditingData {
 
     @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
-    private List<UsuarioAseguradora> usuarioAseguradoraList;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
-    private List<UsuarioMembresia> usuarioMembresiaList;
+    private List<ClienteMembresia> clienteMembresiaList;
 
     @JsonIgnore
     @OneToMany(mappedBy = "asesor", cascade = CascadeType.ALL)
-    private List<UsuarioMembresia> asesorMembresiaList;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "asesor", cascade = CascadeType.ALL)
-    private List<ClientePoliza> asesorPolizasList;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "agente", cascade = CascadeType.ALL)
-    private List<ClientePoliza> clientePolizasList;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "agente", cascade = CascadeType.ALL)
-    private List<ClientePoliza> agentePolizasList;
+    private List<ClienteMembresia> asesorMembresiaList;
 
 }
 

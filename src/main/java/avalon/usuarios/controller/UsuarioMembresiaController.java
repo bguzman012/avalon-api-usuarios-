@@ -1,13 +1,10 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.UsuarioAseguradora;
-import avalon.usuarios.model.pojo.UsuarioMembresia;
-import avalon.usuarios.model.request.CreateUsuarioAseguradoraRequest;
+import avalon.usuarios.model.pojo.ClienteMembresia;
 import avalon.usuarios.model.request.CreateUsuarioMembresiaRequest;
 import avalon.usuarios.model.request.UpdateUsuarioMembresiaRequest;
 import avalon.usuarios.model.response.UsuariosMembresiaResponse;
-import avalon.usuarios.service.UsuarioAseguradoraServiceImpl;
-import avalon.usuarios.service.UsuarioMembresiaServiceImpl;
+import avalon.usuarios.service.ClienteMembresiaServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,12 +19,12 @@ import java.util.List;
 @Slf4j
 public class UsuarioMembresiaController {
 
-    private final UsuarioMembresiaServiceImpl service;
+    private final ClienteMembresiaServiceImpl service;
 
     @PostMapping("/usuarioMembresias")
-    public ResponseEntity<UsuarioMembresia> createUsuarioMembresia(@RequestBody CreateUsuarioMembresiaRequest request) {
+    public ResponseEntity<ClienteMembresia> createUsuarioMembresia(@RequestBody CreateUsuarioMembresiaRequest request) {
         try {
-            UsuarioMembresia result = service.createUsuarioMembresia(request);
+            ClienteMembresia result = service.createUsuarioMembresia(request);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -35,11 +32,11 @@ public class UsuarioMembresiaController {
     }
 
     @GetMapping("/usuarioMembresias")
-    public ResponseEntity<List<UsuarioMembresia>> getUsuarioMembresias() {
-        List<UsuarioMembresia> usuarioMembresias = service.getUsuarioMembresias();
+    public ResponseEntity<List<ClienteMembresia>> getUsuarioMembresias() {
+        List<ClienteMembresia> clienteMembresias = service.getUsuarioMembresias();
 
-        if (!usuarioMembresias.isEmpty()) {
-            return ResponseEntity.ok(usuarioMembresias);
+        if (!clienteMembresias.isEmpty()) {
+            return ResponseEntity.ok(clienteMembresias);
         } else {
             return ResponseEntity.ok(Collections.emptyList());
         }
@@ -68,23 +65,23 @@ public class UsuarioMembresiaController {
     }
 
     @GetMapping("/usuarioMembresias/{usuarioMembresiaId}")
-    public ResponseEntity<UsuarioMembresia> getUsuarioMembresia(@PathVariable Long usuarioMembresiaId) {
-        UsuarioMembresia usuarioMembresia = service.getUsuarioMembresia(usuarioMembresiaId);
+    public ResponseEntity<ClienteMembresia> getUsuarioMembresia(@PathVariable Long usuarioMembresiaId) {
+        ClienteMembresia clienteMembresia = service.getUsuarioMembresia(usuarioMembresiaId);
 
-        if (usuarioMembresia != null) {
-            return ResponseEntity.ok(usuarioMembresia);
+        if (clienteMembresia != null) {
+            return ResponseEntity.ok(clienteMembresia);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
     @PutMapping("/usuarioMembresias/{usuarioMembresiaId}")
-    public ResponseEntity<UsuarioMembresia> updateUsuarioMembresia(@PathVariable Long usuarioMembresiaId, @RequestBody UpdateUsuarioMembresiaRequest request) {
-        UsuarioMembresia usuarioMembresia = service.getUsuarioMembresia(usuarioMembresiaId);
+    public ResponseEntity<ClienteMembresia> updateUsuarioMembresia(@PathVariable Long usuarioMembresiaId, @RequestBody UpdateUsuarioMembresiaRequest request) {
+        ClienteMembresia clienteMembresia = service.getUsuarioMembresia(usuarioMembresiaId);
 
-        if (usuarioMembresia != null) {
-            UsuarioMembresia usuarioMembresiaUpdate = service.updateUsuarioMembresia(usuarioMembresia, request);
-            return usuarioMembresiaUpdate != null ? ResponseEntity.ok(usuarioMembresiaUpdate) : ResponseEntity.badRequest().build();
+        if (clienteMembresia != null) {
+            ClienteMembresia clienteMembresiaUpdate = service.updateUsuarioMembresia(clienteMembresia, request);
+            return clienteMembresiaUpdate != null ? ResponseEntity.ok(clienteMembresiaUpdate) : ResponseEntity.badRequest().build();
         } else {
             return ResponseEntity.notFound().build();
         }

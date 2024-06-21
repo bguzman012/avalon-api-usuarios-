@@ -3,9 +3,7 @@ package avalon.usuarios.service;
 import avalon.usuarios.data.*;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.CreateUsuAseguradoraUsuMembresiaRequest;
-import avalon.usuarios.model.request.CreateUsuarioMembresiaRequest;
 import avalon.usuarios.model.request.UpdateUsuAseguradoraUsuMembresiaRequest;
-import avalon.usuarios.model.request.UpdateUsuarioMembresiaRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +16,7 @@ public class UsuAseguradoraUsuMembresiaServiceImpl implements UsuAseguradoraUsuM
     @Autowired
     private UsuarioAseguradoraRepository usuarioAseguradoraRepository;
     @Autowired
-    private UsuarioMembresiaRepository usuarioMembresiaRepository;
+    private ClienteMembresiaRepository usuarioMembresiaRepository;
 
     @Autowired
     public UsuAseguradoraUsuMembresiaServiceImpl(UsuAseguradoraUsuMembresiaRepository repository) {
@@ -28,14 +26,14 @@ public class UsuAseguradoraUsuMembresiaServiceImpl implements UsuAseguradoraUsuM
     @Override
     public UsuAseguradoraUsuMembresia createUsuAseguradoraUsuMembresia(CreateUsuAseguradoraUsuMembresiaRequest request) {
         UsuarioAseguradora usuarioAseguradora = usuarioAseguradoraRepository.findById(request.getUsuarioAseguradoraId()).orElse(null);
-        UsuarioMembresia usuarioMembresia = usuarioMembresiaRepository.findById(request.getUsuarioMembresiaId()).orElse(null);
+        ClienteMembresia clienteMembresia = usuarioMembresiaRepository.findById(request.getUsuarioMembresiaId()).orElse(null);
 
-        if (usuarioAseguradora == null || usuarioMembresia == null)
+        if (usuarioAseguradora == null || clienteMembresia == null)
             return null;
 
         UsuAseguradoraUsuMembresia usuAseguradoraUsuMembresia = new UsuAseguradoraUsuMembresia();
         usuAseguradoraUsuMembresia.setUsuarioAseguradora(usuarioAseguradora);
-        usuAseguradoraUsuMembresia.setUsuarioMembresia(usuarioMembresia);
+        usuAseguradoraUsuMembresia.setUsuarioMembresia(clienteMembresia);
 
         return repository.save(usuAseguradoraUsuMembresia);
     }
@@ -53,13 +51,13 @@ public class UsuAseguradoraUsuMembresiaServiceImpl implements UsuAseguradoraUsuM
     @Override
     public UsuAseguradoraUsuMembresia updateUsuAseguradoraUsuMembresia(UsuAseguradoraUsuMembresia usuAseguradoraUsuMembresia, UpdateUsuAseguradoraUsuMembresiaRequest request) {
         UsuarioAseguradora usuarioAseguradora = usuarioAseguradoraRepository.findById(request.getUsuarioAseguradoraId()).orElse(null);
-        UsuarioMembresia usuarioMembresia = usuarioMembresiaRepository.findById(request.getUsuarioMembresiaId()).orElse(null);
+        ClienteMembresia clienteMembresia = usuarioMembresiaRepository.findById(request.getUsuarioMembresiaId()).orElse(null);
 
-        if (usuarioAseguradora == null || usuarioMembresia == null)
+        if (usuarioAseguradora == null || clienteMembresia == null)
             return null;
 
         usuAseguradoraUsuMembresia.setUsuarioAseguradora(usuarioAseguradora);
-        usuAseguradoraUsuMembresia.setUsuarioMembresia(usuarioMembresia);
+        usuAseguradoraUsuMembresia.setUsuarioMembresia(clienteMembresia);
 
         return repository.save(usuAseguradoraUsuMembresia);
     }

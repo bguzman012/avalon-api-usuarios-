@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -25,21 +27,29 @@ public class ClientePoliza extends AuditingData {
     @ManyToOne
     @NotNull
     @JoinColumn(name = "cliente_id")
-    private Usuario cliente;
+    private Cliente cliente;
 
     @ManyToOne
     @JoinColumn(name = "asesor_id")
-    private Usuario asesor;
+    private Asesor asesor;
 
     @ManyToOne
     @NotNull
     @JoinColumn(name = "agente_id")
-    private Usuario agente;
+    private Agente agente;
 
     @ManyToOne
     @NotNull
     @JoinColumn(name = "poliza_id")
     private Poliza poliza;
+
+    @CreatedDate
+    @Temporal(TemporalType.DATE)
+    private Date fechaInicio;
+
+    @CreatedDate
+    @Temporal(TemporalType.DATE)
+    private Date fechaFin;
 
     @NotNull
     @Column(name = "estado")

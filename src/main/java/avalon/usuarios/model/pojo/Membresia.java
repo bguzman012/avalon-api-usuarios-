@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -37,13 +36,9 @@ public class Membresia extends AuditingData {
     @Column(name = "vigencia_meses")
     private Long vigenciaMeses;
 
-    @ManyToOne
-    @JoinColumn(name = "aseguradora_id")
-    private Aseguradora aseguradora;
-
     @JsonIgnore
     @OneToMany(mappedBy = "membresia", cascade = CascadeType.ALL)
-    private List<UsuarioMembresia> usuarioMembresiaList;
+    private List<ClienteMembresia> clienteMembresiaList;
 
 }
 
