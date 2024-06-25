@@ -1,23 +1,22 @@
 package avalon.usuarios.model.request;
 
-import jakarta.validation.constraints.Email;
+import avalon.usuarios.model.pojo.Usuario;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateUsuarioMembresiaRequest {
+public class ClienteRequest extends UsuarioRequest {
 
-    @NotNull
-    private Long membresiaId;
-
-    @NotNull
-    private Long usuarioId;
-    private Long asesorId;
+	private Date fechaNacimiento;
+	private String lugarNacimiento;
+	private String lugarResidencia;
 
 }

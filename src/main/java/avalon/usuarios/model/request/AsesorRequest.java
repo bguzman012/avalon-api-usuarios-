@@ -1,6 +1,5 @@
 package avalon.usuarios.model.request;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,14 +10,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateMembresiaRequest {
-
-    @NotNull
-    private String nombres;
-    private String detalle;
-    @NotNull
-    private String estado;
-    @NotNull
-    private Long vigenciaMeses;
+public class AsesorRequest extends UsuarioRequest{
 
 }

@@ -1,14 +1,15 @@
 package avalon.usuarios.data;
 
 import avalon.usuarios.model.pojo.Aseguradora;
+import avalon.usuarios.model.pojo.Broker;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface AseguradoraRepository extends JpaRepository<Aseguradora, Long> {
+public interface BrokerRepository extends JpaRepository<Broker, Long> {
 
-    List<Aseguradora> findAllByEstado(String estado);
+    List<Broker> findAllByEstado(String estado);
 
 }

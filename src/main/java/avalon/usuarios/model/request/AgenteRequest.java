@@ -6,20 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUsuarioMembresiaRequest {
+public class AgenteRequest extends UsuarioRequest{
 
 	@NotNull
-	private Long membresiaId;
-	@NotNull
-	private Long usuarioId;
-	private Long asesorId;
-
+	private Long brokerId;
 
 	// Getters and setters
 }

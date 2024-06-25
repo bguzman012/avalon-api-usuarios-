@@ -1,27 +1,21 @@
 package avalon.usuarios.model.request;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateUsuarioRequest {
+public class UsuarioRequest {
 
 	@NotNull
 	private String nombres;
 	@NotNull
 	private String apellidos;
-	private Date fechaNacimiento;
-	private Date lugarNacimiento;
-	private Date lugarResidencia;
 	@NotNull
 	private String correoElectronico;
 	@NotNull

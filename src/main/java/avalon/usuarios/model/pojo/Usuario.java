@@ -55,7 +55,7 @@ public class Usuario extends AuditingData {
     private String estado;
 
     @ManyToOne
-    @NotNull
+    @NotNull(message = "Rol no puede ser nulo")
     @JoinColumn(name = "rol_id")
     private Rol rol;
 

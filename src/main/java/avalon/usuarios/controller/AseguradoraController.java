@@ -1,11 +1,10 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.CreateAseguradoraResponse;
+import avalon.usuarios.service.AseguradoraService;
 import avalon.usuarios.service.AseguradoraServiceImpl;
-import avalon.usuarios.service.UsuariosServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,21 +19,23 @@ import java.util.List;
 @Slf4j
 public class AseguradoraController {
 
-    private final AseguradoraServiceImpl service;
+    private final AseguradoraService service;
 
     @PostMapping("/aseguradoras")
-    public ResponseEntity<Aseguradora> createAseguradora(@RequestBody CreateAseguradoraRequest request) {
+    public ResponseEntity<Aseguradora> createAseguradora(@RequestBody AseguradoraRequest request) {
         try {
-            Aseguradora result = service.createAseguradora(request);
-            return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
+            Aseguradora aseguradora = this.mapToAseguradora(request);
+            aseguradora.setEstado("A");
+            service.createAseguradora(aseguradora);
+            return aseguradora.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(aseguradora) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
     @GetMapping("/aseguradoras")
-    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradoras(@RequestParam(required = false) String estado, @RequestParam(required = false) Long tipoEmpresaId) {
-        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByEstado(estado, tipoEmpresaId);
+    public ResponseEntity<List<Aseguradora>> getAseguradoras(@RequestParam(required = false) String estado) {
+        List<Aseguradora> aseguradoras = service.getAseguradoraByEstado(estado);
 
         if (!aseguradoras.isEmpty()) {
             return ResponseEntity.ok(aseguradoras);
@@ -43,16 +44,16 @@ public class AseguradoraController {
         }
     }
 
-    @GetMapping("/usuarios/{usuarioId}/aseguradoras")
-    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradorasByUsuario(@PathVariable Long usuarioId, @RequestParam(required = false) String estado) {
-        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByUsuarioAndEstado(usuarioId, estado);
-
-        if (!aseguradoras.isEmpty()) {
-            return ResponseEntity.ok(aseguradoras);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
-    }
+//    @GetMapping("/usuarios/{usuarioId}/aseguradoras")
+//    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradorasByUsuario(@PathVariable Long usuarioId, @RequestParam(required = false) String estado) {
+//        List<CreateAseguradoraResponse> aseguradoras = service.getAseguradoraByUsuarioAndEstado(usuarioId, estado);
+//
+//        if (!aseguradoras.isEmpty()) {
+//            return ResponseEntity.ok(aseguradoras);
+//        } else {
+//            return ResponseEntity.ok(Collections.emptyList());
+//        }
+//    }
 
     @GetMapping("/aseguradoras/{aseguradoraId}")
     public ResponseEntity<Aseguradora> getAseguradora(@PathVariable Long aseguradoraId) {
@@ -66,7 +67,7 @@ public class AseguradoraController {
     }
 
     @PutMapping("/aseguradoras/{aseguradoraId}")
-    public ResponseEntity<Aseguradora> updateAseguradora(@PathVariable Long aseguradoraId, @RequestBody UpdateAseguradoraRequest request) {
+    public ResponseEntity<Aseguradora> updateAseguradora(@PathVariable Long aseguradoraId, @RequestBody AseguradoraRequest request) {
         Aseguradora aseguradora = service.getAseguradora(aseguradoraId);
 
         if (aseguradora != null) {
@@ -92,6 +93,13 @@ public class AseguradoraController {
     public ResponseEntity<Void> deleteAseguradora(@PathVariable Long aseguradoraId) {
         service.deleteAseguradora(aseguradoraId);
         return ResponseEntity.noContent().build();
+    }
+
+    private Aseguradora mapToAseguradora(AseguradoraRequest request) {
+        return Aseguradora.builder()
+                .nombre(request.getNombre())
+                .correoElectronico(request.getCorreoElectronico())
+                .build();
     }
 
 }

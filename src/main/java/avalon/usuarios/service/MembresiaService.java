@@ -5,6 +5,7 @@ import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.*;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MembresiaService {
 
@@ -13,8 +14,7 @@ public interface MembresiaService {
 
     List<Membresia> getMembresiasByEstado(String estado);
 
-    Membresia getMembresia(Long membresiaId);
-    Membresia createMembresia(CreateMembresiaRequest request);
-    Membresia updateMembresia(Membresia membresia, UpdateMembresiaRequest request);
+    Optional<Membresia> getMembresia(Long membresiaId);
+    Membresia saveMembresia(Membresia membresia);
     void deleteMembresia(Long membresiaId);
 }

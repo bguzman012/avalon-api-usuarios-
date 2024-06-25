@@ -2,17 +2,13 @@ package avalon.usuarios.service;
 
 import avalon.usuarios.data.AseguradoraRepository;
 import avalon.usuarios.data.MembresiaRepository;
-import avalon.usuarios.data.RolRepository;
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.Membresia;
-import avalon.usuarios.model.pojo.Rol;
-import avalon.usuarios.model.request.CreateMembresiaRequest;
-import avalon.usuarios.model.request.CreateRolRequest;
-import avalon.usuarios.model.request.UpdateMembresiaRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class MembresiaServiceImpl implements MembresiaService {
@@ -27,13 +23,7 @@ public class MembresiaServiceImpl implements MembresiaService {
     }
 
     @Override
-    public Membresia createMembresia(CreateMembresiaRequest request) {
-
-        Membresia membresia = new Membresia();
-        membresia.setNombres(request.getNombres());
-        membresia.setDetalle(request.getDetalle());
-        membresia.setEstado("A");
-        membresia.setVigenciaMeses(request.getVigenciaMeses());
+    public Membresia saveMembresia(Membresia membresia) {
         return repository.save(membresia);
     }
 
@@ -56,17 +46,8 @@ public class MembresiaServiceImpl implements MembresiaService {
     }
 
     @Override
-    public Membresia getMembresia(Long id) {
-        return repository.findById(id).orElse(null);
-    }
-
-    @Override
-    public Membresia updateMembresia(Membresia membresia, UpdateMembresiaRequest request) {
-        membresia.setNombres(request.getNombres());
-        membresia.setDetalle(request.getDetalle());
-        membresia.setEstado(request.getEstado());
-        membresia.setVigenciaMeses(request.getVigenciaMeses());
-        return repository.save(membresia);
+    public Optional<Membresia> getMembresia(Long id) {
+        return repository.findById(id);
     }
 
     @Override

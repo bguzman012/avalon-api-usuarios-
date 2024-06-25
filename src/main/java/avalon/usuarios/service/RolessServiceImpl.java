@@ -51,4 +51,10 @@ public class RolessServiceImpl implements RolesService {
         return Boolean.TRUE;
     }
 
+    @Override
+    public Rol findById(Long rolId) {
+        return this.repository.findById(rolId).orElseThrow(() -> new IllegalArgumentException("Rol no encontrado"));
+    }
+
+
 }

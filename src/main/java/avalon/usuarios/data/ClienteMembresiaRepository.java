@@ -10,6 +10,6 @@ import java.util.List;
 public interface ClienteMembresiaRepository extends JpaRepository<ClienteMembresia, Long> {
 
     List<ClienteMembresia> findAllByMembresia(Membresia membresia);
-    List<ClienteMembresia> findAllByUsuario(Usuario usuario);
+    List<ClienteMembresia> findAllByCliente(Cliente cliente);
 
 }

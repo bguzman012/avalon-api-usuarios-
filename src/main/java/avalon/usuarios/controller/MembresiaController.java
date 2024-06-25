@@ -1,10 +1,10 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.Membresia;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.CreateAseguradoraResponse;
 import avalon.usuarios.service.AseguradoraServiceImpl;
+import avalon.usuarios.service.MembresiaService;
 import avalon.usuarios.service.MembresiaServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +20,13 @@ import java.util.List;
 @Slf4j
 public class MembresiaController {
 
-    private final MembresiaServiceImpl service;
+    private final MembresiaService service;
 
     @PostMapping("/membresias")
-    public ResponseEntity<Membresia> createMembresia(@RequestBody CreateMembresiaRequest request) {
+    public ResponseEntity<Membresia> createMembresia(@RequestBody MembresiaRequest request) {
         try {
-            Membresia result = service.createMembresia(request);
+            Membresia membresia = this.mapToMembresia(request, new Membresia());
+            Membresia result = service.saveMembresia(membresia);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -68,7 +69,7 @@ public class MembresiaController {
 
     @GetMapping("/membresias/{membresiaId}")
     public ResponseEntity<Membresia> getMembresia(@PathVariable Long membresiaId) {
-        Membresia membresia = service.getMembresia(membresiaId);
+        Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));;
 
         if (membresia != null) {
             return ResponseEntity.ok(membresia);
@@ -78,15 +79,11 @@ public class MembresiaController {
     }
 
     @PutMapping("/membresias/{membresiaId}")
-    public ResponseEntity<Membresia> updateMembresia(@PathVariable Long membresiaId, @RequestBody UpdateMembresiaRequest request) {
-        Membresia membresia = service.getMembresia(membresiaId);
-
-        if (membresia != null) {
-            Membresia membresiaUpdate = service.updateMembresia(membresia, request);
-            return membresiaUpdate != null ? ResponseEntity.ok(membresiaUpdate) : ResponseEntity.badRequest().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Membresia> updateMembresia(@PathVariable Long membresiaId, @RequestBody MembresiaRequest request) {
+        Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));;
+        Membresia membresiaMapped = this.mapToMembresia(request, membresia);
+        this.service.saveMembresia(membresiaMapped);
+        return membresiaMapped != null ? ResponseEntity.ok(membresiaMapped) : ResponseEntity.badRequest().build();
     }
 
 //    @PatchMapping("/aseguradoras/{aseguradoraId}")
@@ -105,5 +102,12 @@ public class MembresiaController {
         service.deleteMembresia(membresiaId);
         return ResponseEntity.noContent().build();
     }
+    private Membresia mapToMembresia(MembresiaRequest request, Membresia membresia) {
+        membresia.setNombres(request.getNombres());
+        membresia.setDetalle(request.getDetalle());
+        membresia.setVigenciaMeses(request.getVigenciaMeses());
+        return membresia;
+    }
+
 
 }

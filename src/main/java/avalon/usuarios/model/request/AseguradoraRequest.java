@@ -11,13 +11,12 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateAseguradoraRequest {
+public class AseguradoraRequest {
 
-    @NotNull
-    private String nombre;
-
-    @NotNull
-    @Email
-    private String correoElectronico;
-
+	@NotNull
+	private String nombre;
+	@NotNull
+	@Email
+	private String correoElectronico;
+	// Getters and setters
 }

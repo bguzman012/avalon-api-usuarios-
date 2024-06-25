@@ -1,12 +1,8 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.pojo.Poliza;
-import avalon.usuarios.model.request.CreateMembresiaRequest;
 import avalon.usuarios.model.request.CreatePolizaRequest;
-import avalon.usuarios.model.request.UpdateMembresiaRequest;
 import avalon.usuarios.model.request.UpdatePolizaRequest;
-import avalon.usuarios.service.MembresiaServiceImpl;
 import avalon.usuarios.service.PolizasServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

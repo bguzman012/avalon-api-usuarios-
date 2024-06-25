@@ -1,7 +1,6 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.request.*;
-import avalon.usuarios.service.UsuarioAseguradoraServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

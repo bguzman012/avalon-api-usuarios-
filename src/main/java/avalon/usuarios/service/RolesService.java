@@ -10,5 +10,6 @@ public interface RolesService {
     List<Rol> getRoles();
     Rol saveRol(CreateRolRequest request);
     Boolean deleteRol(Long rolId);
+    Rol findById(Long rolId);
 
 }

@@ -7,19 +7,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Date;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateAseguradoraRequest {
+public class BrokerRequest {
 
 	@NotNull
 	private String nombre;
 	@NotNull
 	@Email
 	private String correoElectronico;
-	private Long tipoAseguradoraId;
+	private String estado;
 	// Getters and setters
 }

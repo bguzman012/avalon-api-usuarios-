@@ -1,14 +1,10 @@
 package avalon.usuarios.service;
 
 import avalon.usuarios.data.AseguradoraRepository;
-import avalon.usuarios.data.MembresiaRepository;
 import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.pojo.Poliza;
-import avalon.usuarios.model.request.CreateMembresiaRequest;
 import avalon.usuarios.model.request.CreatePolizaRequest;
-import avalon.usuarios.model.request.UpdateMembresiaRequest;
 import avalon.usuarios.model.request.UpdatePolizaRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
