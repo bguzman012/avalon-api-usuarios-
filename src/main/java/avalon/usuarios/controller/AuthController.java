@@ -5,10 +5,12 @@ import avalon.usuarios.config.JwtTokenProvider;
 import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.LoginRequest;
 import avalon.usuarios.model.response.ApiResponse;
+import avalon.usuarios.service.UsuariosService;
 import avalon.usuarios.service.UsuariosServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,13 +19,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Objects;
 
 @RestController
-@RequiredArgsConstructor
 @Slf4j
 public class AuthController {
 
-    private final UsuariosServiceImpl service;
+    private final UsuariosService service;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    public AuthController(@Qualifier("usuariosServiceImpl") UsuariosService service) {
+        this.service = service;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {

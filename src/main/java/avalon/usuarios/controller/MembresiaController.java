@@ -26,6 +26,7 @@ public class MembresiaController {
     public ResponseEntity<Membresia> createMembresia(@RequestBody MembresiaRequest request) {
         try {
             Membresia membresia = this.mapToMembresia(request, new Membresia());
+            membresia.setEstado("A");
             Membresia result = service.saveMembresia(membresia);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -36,17 +37,6 @@ public class MembresiaController {
     @GetMapping("/membresias")
     public ResponseEntity<List<Membresia>> getMembresias(@RequestParam(required = false) String estado) {
         List<Membresia> aseguradoras = service.getMembresiasByEstado(estado);
-
-        if (!aseguradoras.isEmpty()) {
-            return ResponseEntity.ok(aseguradoras);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
-    }
-
-    @GetMapping("/aseguradoras/{aseguradoraId}/membresias")
-    public ResponseEntity<List<Membresia>> getMembresiasByAseguradora(@PathVariable Long aseguradoraId) {
-        List<Membresia> aseguradoras = service.getMembresiasByAseguradora(aseguradoraId);
 
         if (!aseguradoras.isEmpty()) {
             return ResponseEntity.ok(aseguradoras);

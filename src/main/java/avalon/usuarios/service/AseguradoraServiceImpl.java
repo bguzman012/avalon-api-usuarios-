@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AseguradoraServiceImpl implements AseguradoraService {
@@ -26,19 +27,12 @@ public class AseguradoraServiceImpl implements AseguradoraService {
     }
 
     @Override
-    public Aseguradora getAseguradora(Long aseguradoraId) {
-        return repository.findById(aseguradoraId).orElse(null);
+    public Optional<Aseguradora> getAseguradora(Long aseguradoraId) {
+        return repository.findById(aseguradoraId);
     }
 
     @Override
     public Aseguradora createAseguradora(Aseguradora aseguradora) {
-        return repository.save(aseguradora);
-    }
-
-    @Override
-    public Aseguradora updateAseguradora(Aseguradora aseguradora, AseguradoraRequest request) {
-        aseguradora.setNombre(request.getNombre());
-        aseguradora.setCorreoElectronico(request.getCorreoElectronico());
         return repository.save(aseguradora);
     }
 

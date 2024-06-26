@@ -12,7 +12,6 @@ import java.util.List;
 public interface MembresiaRepository extends JpaRepository<Membresia, Long> {
 
     List<Membresia> findAllByEstado(String estado);
-    List<Membresia> findAllByAseguradora(Aseguradora aseguradora);
 
 
 }

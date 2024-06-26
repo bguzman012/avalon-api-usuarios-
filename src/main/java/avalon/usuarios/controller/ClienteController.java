@@ -1,15 +1,10 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.mapper.UsuarioMapper;
-import avalon.usuarios.model.pojo.Asesor;
 import avalon.usuarios.model.pojo.Cliente;
-import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
-import avalon.usuarios.model.request.UpdateUsuarioRequest;
-import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.ClienteService;
-import avalon.usuarios.service.UsuariosServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +39,7 @@ public class ClienteController {
     @GetMapping("/clientes")
     public ResponseEntity<List<Cliente>> getClientes(@RequestParam(required = false) String estado) {
         List<Cliente> clientes;
-        if (estado == null)
+        if (estado == null || estado.isBlank())
             clientes = service.findAll();
         else
             clientes = service.findAllByEstado(estado);

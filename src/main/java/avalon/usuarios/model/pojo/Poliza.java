@@ -27,9 +27,11 @@ public class Poliza extends AuditingData {
     @NotNull
     @Column(name = "descripcion")
     private String descripcion;
+    @NotNull
+    @Column(name = "estado")
+    private String estado;
     @Column(name = "vigencia_meses")
     private Long vigenciaMeses;
-
     @ManyToOne
     @NotNull
     @JoinColumn(name = "aseguradora_id")

@@ -1,13 +1,9 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.mapper.UsuarioMapper;
-import avalon.usuarios.model.pojo.Agente;
 import avalon.usuarios.model.pojo.Asesor;
-import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.AsesorRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
-import avalon.usuarios.model.request.UpdateUsuarioRequest;
-import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

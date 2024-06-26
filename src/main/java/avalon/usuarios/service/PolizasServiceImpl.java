@@ -4,12 +4,11 @@ import avalon.usuarios.data.AseguradoraRepository;
 import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.Poliza;
-import avalon.usuarios.model.request.CreatePolizaRequest;
-import avalon.usuarios.model.request.UpdatePolizaRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PolizasServiceImpl implements PolizaService {
@@ -39,39 +38,18 @@ public class PolizasServiceImpl implements PolizaService {
     }
 
     @Override
-    public Poliza getPoliza(Long polizaId) {
-        return this.repository.findById(polizaId).orElse(null);
+    public Optional<Poliza> getPoliza(Long polizaId) {
+        return this.repository.findById(polizaId);
     }
 
     @Override
-    public Poliza createPoliza(CreatePolizaRequest request) {
-        Aseguradora aseguradora = this.aseguradoraRepository.findById(request.getAseguradoraId()).orElse(null);
-        if (aseguradora == null) return null;
-
-        Poliza poliza = new Poliza();
-        poliza.setNombre(request.getNombre());
-        poliza.setDescripcion(request.getDescripcion());
-        poliza.setVigenciaMeses(request.getVigenciaMeses());
-        poliza.setAseguradora(aseguradora);
+    public Poliza savePoliza(Poliza poliza) {
         return this.repository.save(poliza);
-    }
-
-    @Override
-    public Poliza updatePoliza(Poliza poliza, UpdatePolizaRequest request) {
-        Aseguradora aseguradora = this.aseguradoraRepository.findById(request.getAseguradoraId()).orElse(null);
-        if (aseguradora == null) return null;
-
-        poliza.setNombre(request.getNombre());
-        poliza.setDescripcion(request.getDescripcion());
-        poliza.setVigenciaMeses(request.getVigenciaMeses());
-        poliza.setAseguradora(aseguradora);
-        return this.repository.save(poliza);
-
     }
 
     @Override
     public void deletePoliza(Long polizaId) {
-        Poliza poliza = this.getPoliza(polizaId);
+        Poliza poliza = this.getPoliza(polizaId).orElseThrow(() -> new IllegalArgumentException("Poliza no encontrada"));
         this.repository.delete(poliza);
 
     }

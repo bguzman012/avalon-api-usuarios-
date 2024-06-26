@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository("baseUsuarioRepository")
 public interface BaseUsuarioRepository <T extends Usuario> extends JpaRepository<T, Long> {
 
     List<T> findAllByEstado(String estado);

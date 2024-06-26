@@ -3,23 +3,16 @@ package avalon.usuarios.controller;
 import avalon.usuarios.mapper.UsuarioMapper;
 import avalon.usuarios.model.pojo.Agente;
 import avalon.usuarios.model.pojo.Broker;
-import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.AgenteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
-import avalon.usuarios.model.request.UpdateUsuarioRequest;
-import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.AgenteService;
 import avalon.usuarios.service.BrokerService;
-import avalon.usuarios.service.UsuariosService;
-import avalon.usuarios.service.UsuariosServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 

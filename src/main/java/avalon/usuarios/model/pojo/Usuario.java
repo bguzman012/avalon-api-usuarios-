@@ -59,13 +59,5 @@ public class Usuario extends AuditingData {
     @JoinColumn(name = "rol_id")
     private Rol rol;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
-    private List<ClienteMembresia> clienteMembresiaList;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "asesor", cascade = CascadeType.ALL)
-    private List<ClienteMembresia> asesorMembresiaList;
-
 }
 

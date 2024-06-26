@@ -13,13 +13,9 @@ public class ClienteMembresiaServiceImpl implements ClienteMembresiaService {
 
     private final ClienteMembresiaRepository repository;
     @Autowired
-    private MembresiaRepository membresiaRepository;
-    @Autowired
     private ClienteService clienteService;
     @Autowired
     private MembresiaService membresiaService;
-    @Autowired
-    private AsesorService asesorService;
 
     @Autowired
     public ClienteMembresiaServiceImpl(ClienteMembresiaRepository repository) {

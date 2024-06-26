@@ -16,7 +16,5 @@ public class MembresiaRequest {
 	private String nombres;
 	private String detalle;
 	@NotNull
-	private String estado;
-	@NotNull
 	private Long vigenciaMeses;
 }

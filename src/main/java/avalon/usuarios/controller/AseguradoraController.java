@@ -57,7 +57,7 @@ public class AseguradoraController {
 
     @GetMapping("/aseguradoras/{aseguradoraId}")
     public ResponseEntity<Aseguradora> getAseguradora(@PathVariable Long aseguradoraId) {
-        Aseguradora aseguradora = service.getAseguradora(aseguradoraId);
+        Aseguradora aseguradora = service.getAseguradora(aseguradoraId).orElseThrow(() -> new IllegalArgumentException("Aseguradora no encontrada"));
 
         if (aseguradora != null) {
             return ResponseEntity.ok(aseguradora);
@@ -68,14 +68,12 @@ public class AseguradoraController {
 
     @PutMapping("/aseguradoras/{aseguradoraId}")
     public ResponseEntity<Aseguradora> updateAseguradora(@PathVariable Long aseguradoraId, @RequestBody AseguradoraRequest request) {
-        Aseguradora aseguradora = service.getAseguradora(aseguradoraId);
+        Aseguradora aseguradora = service.getAseguradora(aseguradoraId).orElseThrow(() -> new IllegalArgumentException("Aseguradora no encontrada"));
+        aseguradora.setNombre(request.getNombre());
+        aseguradora.setCorreoElectronico(request.getCorreoElectronico());
+        service.createAseguradora(aseguradora);
 
-        if (aseguradora != null) {
-            Aseguradora aseguradoraUpdate = service.updateAseguradora(aseguradora, request);
-            return aseguradoraUpdate != null ? ResponseEntity.ok(aseguradoraUpdate) : ResponseEntity.badRequest().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return aseguradora != null ? ResponseEntity.ok(aseguradora) : ResponseEntity.badRequest().build();
     }
 
     @PatchMapping("/aseguradoras/{aseguradoraId}")

@@ -13,12 +13,13 @@ public interface UsuariosService<T extends Usuario> {
     List<T> findAll();
     List<T> findAllByEstado(String estado);
     void deleteById(Long id);
-//    List<Usuario> getUsuarios();
+    //    List<Usuario> getUsuarios();
 //    Usuario getUsuario(Long usuarioId);
 //    Usuario createUsuario(CreateUsuarioRequest request);
 //    Usuario updateUsuario(Usuario usuario, UpdateUsuarioRequest request);
     T partiallyUpdateUsuario(PartiallyUpdateUsuario request, T entity);
-//    Usuario validarCredenciales(String nombreUsuario, String contrasenia);
-//    Usuario findByNombreUsuario(String nombreUsuario);
+    Usuario validarCredenciales(String nombreUsuario, String contrasenia);
+    Usuario findByNombreUsuario(String nombreUsuario);
+        Usuario getUsuario(Long usuarioId);
 //    List<Usuario> getUsuariosByRolAndEstado(Long rolId, String estado);
 }

@@ -33,14 +33,6 @@ public class MembresiaServiceImpl implements MembresiaService {
     }
 
     @Override
-    public List<Membresia> getMembresiasByAseguradora(Long aseguradoraId) {
-        Aseguradora aseguradora = this.aseguradoraRepository.findById(aseguradoraId).orElse(null);
-        if (aseguradora == null) return null;
-
-        return repository.findAllByAseguradora(aseguradora);
-    }
-
-    @Override
     public List<Membresia> getMembresiasByEstado(String estado) {
         return this.repository.findAllByEstado(estado);
     }

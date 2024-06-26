@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository("usuarioRepository")
 public interface UsuarioRepository  extends BaseUsuarioRepository<Usuario> {
     Usuario findByNombreUsuario(String nombreUsuario);
     List<Usuario> findAllByRolAndEstado(Rol rol, String estado);

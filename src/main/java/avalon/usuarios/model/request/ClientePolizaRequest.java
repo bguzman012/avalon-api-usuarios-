@@ -1,9 +1,5 @@
 package avalon.usuarios.model.request;
 
-import avalon.usuarios.model.pojo.Poliza;
-import avalon.usuarios.model.pojo.Usuario;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateClientePolizaRequest {
+public class ClientePolizaRequest {
 
 	@NotNull
 	private Long clienteId;
