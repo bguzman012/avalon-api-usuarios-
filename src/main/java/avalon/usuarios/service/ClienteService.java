@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ClienteService extends UsuariosService<Cliente> {
     List<Cliente> findAllByEstado(String estado);
+    List<Cliente> findAll();
 }

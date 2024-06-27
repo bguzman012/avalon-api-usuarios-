@@ -100,6 +100,8 @@ public class ClienteMembresiaController {
         Membresia membresia = this.membresiaService.getMembresia(request.getMembresiaId()).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrado"));
         Asesor asesor = this.asesorService.findById(request.getAsesorId()).orElseThrow(() -> new IllegalArgumentException("Asesor no encontrado"));
 
+        request.calcularFechaFin(membresia.getVigenciaMeses());
+
         clienteMembresiaReference.setCliente(cliente);
         clienteMembresiaReference.setMembresia(membresia);
         clienteMembresiaReference.setAsesor(asesor);

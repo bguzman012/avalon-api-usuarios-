@@ -20,4 +20,9 @@ public class ClienteServiceImpl extends UsuariosServiceImpl<Cliente> implements 
         return clienteRepository.findAllByEstado(estado);
     }
 
+    @Override
+    public List<Cliente> findAll() {
+        return clienteRepository.findAll();
+    }
+
 }
