@@ -40,5 +40,9 @@ public class Membresia extends AuditingData {
     @OneToMany(mappedBy = "membresia", cascade = CascadeType.ALL)
     private List<ClienteMembresia> clienteMembresiaList;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "membresia", cascade = CascadeType.ALL)
+    private List<Beneficio> beneficioList;
+
 }
 

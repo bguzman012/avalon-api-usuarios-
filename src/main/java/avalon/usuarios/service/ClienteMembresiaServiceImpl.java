@@ -40,7 +40,7 @@ public class ClienteMembresiaServiceImpl implements ClienteMembresiaService {
 
     @Override
     public List<ClienteMembresia> getClientesMembresiasByCliente(Long clienteId) {
-        Cliente cliente = clienteService.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Membresia no encontrada"));
+        Cliente cliente = clienteService.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrada"));
         return this.repository.findAllByCliente(cliente);
     }
 

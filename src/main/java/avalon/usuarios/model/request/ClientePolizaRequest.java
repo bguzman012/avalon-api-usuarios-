@@ -1,10 +1,14 @@
 package avalon.usuarios.model.request;
 
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Date;
 
 @Getter
 @Setter
@@ -20,5 +24,11 @@ public class ClientePolizaRequest {
 	private Long agenteId;
 	@NotNull
 	private Long polizaId;
+	@NotNull
+	@Temporal(TemporalType.DATE)
+	private Date fechaInicio;
+	@NotNull
+	@Temporal(TemporalType.DATE)
+	private Date fechaFin;
 
 }

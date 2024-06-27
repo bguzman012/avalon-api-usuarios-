@@ -30,6 +30,7 @@ public class ClienteMembresiaController {
     public ResponseEntity<ClienteMembresia> createClienteMembresia(@RequestBody ClienteMembresiaRequest request) {
         try {
             ClienteMembresia clienteMembresia = this.mapToClienteMembresia(request, new ClienteMembresia());
+            clienteMembresia.setEstado("A");
             ClienteMembresia result = service.saveClienteMembresia(clienteMembresia);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -99,8 +100,6 @@ public class ClienteMembresiaController {
         Cliente cliente = this.clienteService.findById(request.getClienteId()).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
         Membresia membresia = this.membresiaService.getMembresia(request.getMembresiaId()).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrado"));
         Asesor asesor = this.asesorService.findById(request.getAsesorId()).orElseThrow(() -> new IllegalArgumentException("Asesor no encontrado"));
-
-        request.calcularFechaFin(membresia.getVigenciaMeses());
 
         clienteMembresiaReference.setCliente(cliente);
         clienteMembresiaReference.setMembresia(membresia);

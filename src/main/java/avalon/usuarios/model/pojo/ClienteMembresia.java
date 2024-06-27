@@ -36,11 +36,9 @@ public class ClienteMembresia extends AuditingData {
     @JoinColumn(name = "asesor_id")
     private Asesor asesor;
 
-    @CreatedDate
     @Temporal(TemporalType.DATE)
     private Date fechaInicio;
 
-    @CreatedDate
     @Temporal(TemporalType.DATE)
     private Date fechaFin;
 

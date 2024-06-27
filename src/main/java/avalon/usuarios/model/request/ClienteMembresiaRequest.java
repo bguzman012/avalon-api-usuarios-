@@ -31,11 +31,4 @@ public class ClienteMembresiaRequest {
     @NotNull
     @Temporal(TemporalType.DATE)
     private Date fechaFin;
-
-    public void calcularFechaFin(Long vigenciaMeses) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(this.fechaInicio);
-        calendar.add(Calendar.MONTH, vigenciaMeses.intValue());
-        this.fechaFin = calendar.getTime();
-    }
 }

@@ -43,11 +43,9 @@ public class ClientePoliza extends AuditingData {
     @JoinColumn(name = "poliza_id")
     private Poliza poliza;
 
-    @CreatedDate
     @Temporal(TemporalType.DATE)
     private Date fechaInicio;
 
-    @CreatedDate
     @Temporal(TemporalType.DATE)
     private Date fechaFin;
 

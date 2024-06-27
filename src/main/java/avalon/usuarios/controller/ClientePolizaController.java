@@ -32,6 +32,7 @@ public class ClientePolizaController {
     public ResponseEntity<ClientePoliza> create(@RequestBody ClientePolizaRequest request) {
         try {
             ClientePoliza clientePoliza = this.mapToClientePoliza(request, new ClientePoliza());
+            clientePoliza.setEstado("A");
             ClientePoliza result = service.savePoliza(clientePoliza);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -97,6 +98,8 @@ public class ClientePolizaController {
         clientePolizaeference.setAsesor(asesor);
         clientePolizaeference.setAgente(agente);
         clientePolizaeference.setPoliza(poliza);
+        clientePolizaeference.setFechaInicio(request.getFechaInicio());
+        clientePolizaeference.setFechaFin(request.getFechaFin());
         return clientePolizaeference;
     }
 
