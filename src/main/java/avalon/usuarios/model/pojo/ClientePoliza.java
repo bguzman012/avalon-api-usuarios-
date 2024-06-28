@@ -53,5 +53,9 @@ public class ClientePoliza extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
+    private List<CargaFamiliar> cargaFamiliarList;
+
 }
 

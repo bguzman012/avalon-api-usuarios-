@@ -1,8 +1,10 @@
 package avalon.usuarios.service;
 
 import avalon.usuarios.data.ClientePolizaRepository;
+import avalon.usuarios.data.ClienteRepository;
 import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.data.UsuarioRepository;
+import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.Poliza;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
     @Autowired
     private PolizaRepository polizaRepository;
+    @Autowired
+    private ClienteRepository clienteRepository;
     private final ClientePolizaRepository repository;
 
     @Autowired
@@ -36,6 +40,15 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         if (poliza == null) return null;
 
         return this.repository.findAllByPoliza(poliza);
+    }
+
+    @Override
+    public List<ClientePoliza> getClientesPolizasByCliente(Long clienteId) {
+        Cliente cliente = this.clienteRepository.findById(clienteId).orElse(null);
+
+        if (cliente == null) return null;
+
+        return this.repository.findAllByCliente(cliente);
     }
 
     @Override

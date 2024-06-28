@@ -62,6 +62,17 @@ public class ClientePolizaController {
         }
     }
 
+    @GetMapping("/clientes/{clienteId}/clientesPolizas")
+    public ResponseEntity<List<ClientePoliza>> getClientesPolizasByCliente(@PathVariable Long clienteId) {
+        List<ClientePoliza> clientesPolizas = service.getClientesPolizasByCliente(clienteId);
+
+        if (!clientesPolizas.isEmpty()) {
+            return ResponseEntity.ok(clientesPolizas);
+        } else {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+    }
+
     @GetMapping("/clientesPolizas/{clientePolizaId}")
     public ResponseEntity<ClientePoliza> getClientePoliza(@PathVariable Long clientePolizaId) {
         ClientePoliza clientePoliza = service.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));;

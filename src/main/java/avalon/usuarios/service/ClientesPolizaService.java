@@ -10,6 +10,7 @@ public interface ClientesPolizaService {
 
     List<ClientePoliza> getClientesPolizas();
     List<ClientePoliza> getClientesPolizasByPoliza(Long polizaId);
+    List<ClientePoliza> getClientesPolizasByCliente(Long clienteId);
     Optional<ClientePoliza> getClientePoliza(Long clientePolizaId);
     ClientePoliza savePoliza(ClientePoliza request);
     void deleteClientePoliza(Long clientePolizaId);
