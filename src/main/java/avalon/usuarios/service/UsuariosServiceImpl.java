@@ -32,7 +32,7 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
     public T save(T entity) {
         Usuario usuario = new Usuario();
         usuario.setNombreUsuario(entity.getNombreUsuario());
-        usuario.setContrasenia(passwordEncoder.encode(entity.getContrasenia()));
+        usuario.setContrasenia(entity.getContrasenia());
         usuario.setCorreoElectronico(entity.getCorreoElectronico());
         usuario.setEstado(entity.getEstado());
         usuario.setNombres(entity.getNombres());
@@ -77,7 +77,6 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
     @Override
     public Usuario validarCredenciales(String nombreUsuario, String contrasenia) {
         Usuario usuarioEncontrado = findByNombreUsuario(nombreUsuario);
-//        String contraseniaEncriptada = passwordEncoder.encode("admin");
         if (usuarioEncontrado != null && passwordEncoder.matches(contrasenia, usuarioEncontrado.getContrasenia())) {
             return usuarioEncontrado;
         }
