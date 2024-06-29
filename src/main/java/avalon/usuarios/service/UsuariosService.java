@@ -20,6 +20,6 @@ public interface UsuariosService<T extends Usuario> {
     T partiallyUpdateUsuario(PartiallyUpdateUsuario request, T entity);
     Usuario validarCredenciales(String nombreUsuario, String contrasenia);
     Usuario findByNombreUsuario(String nombreUsuario);
-        Usuario getUsuario(Long usuarioId);
+    Usuario getUsuario(Long usuarioId);
 //    List<Usuario> getUsuariosByRolAndEstado(Long rolId, String estado);
 }
