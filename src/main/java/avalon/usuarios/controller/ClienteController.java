@@ -2,6 +2,7 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.mapper.UsuarioMapper;
 import avalon.usuarios.model.pojo.Cliente;
+import avalon.usuarios.model.pojo.Direccion;
 import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.service.ClienteService;
@@ -28,7 +29,7 @@ public class ClienteController {
     @PostMapping("/clientes")
     public ResponseEntity<Cliente> createCliente(@RequestBody ClienteRequest request) {
         try {
-            Cliente cliente = usuarioMapper.mapToUsuario(request, new Cliente());
+            Cliente cliente = usuarioMapper.mapToUsuario(request, new Cliente(), new Direccion());
             Cliente result = service.save(cliente);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -78,9 +79,10 @@ public class ClienteController {
     @PutMapping("/clientes/{clienteId}")
     public ResponseEntity<Cliente> updateCliente(@PathVariable Long clienteId, @RequestBody ClienteRequest request) {
         Cliente cliente = service.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
-        Cliente clienteUpdate = usuarioMapper.mapToUsuario(request, cliente);
+        Cliente clienteUpdate = usuarioMapper.mapToUsuario(request, cliente, cliente.getDireccion());
 
         service.save(clienteUpdate);
         return clienteUpdate != null ? ResponseEntity.ok(clienteUpdate) : ResponseEntity.badRequest().build();
     }
+
 }

@@ -1,9 +1,10 @@
 package avalon.usuarios.mapper;
 
-import avalon.usuarios.model.pojo.Cliente;
-import avalon.usuarios.model.pojo.Usuario;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.UsuarioRequest;
+import avalon.usuarios.service.EstadosService;
+import avalon.usuarios.service.PaisService;
 import avalon.usuarios.service.RolesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Component;
 public class UsuarioMapper {
 
     private final RolesService rolService;
+    @Autowired
+    private PaisService paisService;
+    @Autowired
+    private EstadosService estadosService;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -36,11 +41,24 @@ public class UsuarioMapper {
         return usuario;
     }
 
-    public Cliente mapToUsuario(ClienteRequest request, Cliente cliente) {
+    public Cliente mapToUsuario(ClienteRequest request, Cliente cliente, Direccion direccion) {
         mapToUsuario((UsuarioRequest) request, cliente);
+        Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
+        Estado estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
+
         cliente.setFechaNacimiento(request.getFechaNacimiento());
         cliente.setLugarNacimiento(request.getLugarNacimiento());
         cliente.setLugarResidencia(request.getLugarResidencia());
+
+        direccion.setDireccionUno(request.getDireccion().getDireccionUno());
+        direccion.setDireccionDos(request.getDireccion().getDireccionDos());
+        direccion.setCodigoPostal(request.getDireccion().getCodigoPostal());
+        direccion.setPais(pais);
+        direccion.setState(estado);
+        direccion.setCiudad(request.getDireccion().getCiudad());
+
+        cliente.setDireccion(direccion);
+
         return cliente;
     }
 

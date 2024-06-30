@@ -18,5 +18,6 @@ public class ClienteRequest extends UsuarioRequest {
 	private Date fechaNacimiento;
 	private String lugarNacimiento;
 	private String lugarResidencia;
+	private DireccionRequest direccion;
 
 }

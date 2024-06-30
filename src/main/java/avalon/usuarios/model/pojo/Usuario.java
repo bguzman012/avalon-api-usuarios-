@@ -50,6 +50,9 @@ public class Usuario extends AuditingData {
     @Column(name = "url_imagen")
     private String urlImagen;
 
+    @Embedded
+    private Direccion direccion;
+
     @NotNull
     @Column(name = "estado")
     private String estado;

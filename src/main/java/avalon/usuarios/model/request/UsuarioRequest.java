@@ -25,6 +25,7 @@ public class UsuarioRequest {
 	@NotNull
 	private String contrasenia;
 	private String urlImagen;
+	private DireccionRequest direccionRequest;
 	@NotNull
 	private String estado;
 	@NotNull
