@@ -47,7 +47,7 @@ public class ComentarioController {
 
     @GetMapping("/reclamaciones/{reclamacionId}/comentarios")
     public ResponseEntity<List<Comentario>> getComentariosByReclamacion(@PathVariable Long reclamacionId) {
-        Reclamacion reclamacion = reclamacionService.getReclamacion(reclamacionId).orElseThrow(() -> new IllegalArgumentException("Reclamación no encontrada"));
+        Reclamacion reclamacion = reclamacionService.findByIdWithoutImage(reclamacionId).orElseThrow(() -> new IllegalArgumentException("Reclamación no encontrada"));
         List<Comentario> comentarios = comentarioService.getComentariosByReclamacion(reclamacion);
 
         if (!comentarios.isEmpty()) {

@@ -15,6 +15,13 @@ import lombok.*;
 @Builder
 public class Comentario extends AuditingData {
 
+    public Comentario(Long id, String contenido, Usuario usuarioComenta, String estado) {
+        this.id = id;
+        this.contenido = contenido;
+        this.usuarioComenta = usuarioComenta;
+        this.estado = estado;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

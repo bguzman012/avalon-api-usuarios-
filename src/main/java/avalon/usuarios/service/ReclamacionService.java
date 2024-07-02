@@ -13,6 +13,7 @@ public interface ReclamacionService {
     List<Reclamacion> getReclamaciones();
     List<Reclamacion> getReclamacionesByClientePoliza(ClientePoliza clientePoliza);
     Optional<Reclamacion> getReclamacion(Long reclamacionId);
+    Optional<Reclamacion> findByIdWithoutImage(Long reclamacionId);
     Reclamacion saveReclamacion(Reclamacion reclamacion);
     Reclamacion partiallyUpdateReclamacion(PartiallyUpdateReclamacionRequest request, Long reclamacionId);
     void deleteReclamacion(Long reclamacionId);
