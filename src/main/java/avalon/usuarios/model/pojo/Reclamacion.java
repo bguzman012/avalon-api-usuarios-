@@ -1,4 +1,5 @@
 package avalon.usuarios.model.pojo;
+import avalon.usuarios.model.auditing.AuditingData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -13,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Reclamacion {
+public class Reclamacion extends AuditingData {
 
     public Reclamacion(Long id, String razon, String estado, ClientePoliza clientePoliza) {
         this.id = id;
@@ -30,11 +31,9 @@ public class Reclamacion {
     @Column(name = "razon")
     private String razon;
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "foto_reclamo")
-    private byte[] fotoReclamo;
 
+    @Column(name = "imagen_id")
+    private long imagenId;
     @NotNull
     @Column(name = "estado")
     private String estado;
