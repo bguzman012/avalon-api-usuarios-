@@ -62,11 +62,11 @@ public class ImagenController {
             Imagen imagenMapped = this.mapToImagen(request, imagen);
 
             if (!documento.isEmpty()) {
-                imagen.setDocumento(documento.getBytes());
+                imagenMapped.setDocumento(documento.getBytes());
             }
 
-            service.saveImagen(imagen);
-            return imagen.getId() != null ? ResponseEntity.ok(imagen) : ResponseEntity.badRequest().build();
+            service.saveImagen(imagenMapped);
+            return imagenMapped.getId() != null ? ResponseEntity.ok(imagenMapped) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

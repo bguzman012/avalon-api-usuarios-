@@ -2,6 +2,7 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.ClientePoliza;
+import avalon.usuarios.model.pojo.Imagen;
 import avalon.usuarios.model.pojo.Reclamacion;
 import avalon.usuarios.model.request.AseguradoraRequest;
 import avalon.usuarios.model.request.PartiallyUpdateAseguradora;
@@ -9,6 +10,7 @@ import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
 import avalon.usuarios.model.request.ReclamacionRequest;
 import avalon.usuarios.service.AseguradoraService;
 import avalon.usuarios.service.ClientesPolizaService;
+import avalon.usuarios.service.ImagenService;
 import avalon.usuarios.service.ReclamacionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,9 @@ public class ReclamoController {
     private final ReclamacionService service;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
+    @Autowired
+    private ImagenService imagenService;
+    private String TOPICO = "IMAGEN_RECLAMO";
 
     @PostMapping("/reclamaciones")
     public ResponseEntity<Reclamacion> createReclamacion(@RequestPart("reclamacion") ReclamacionRequest request,
@@ -37,9 +42,10 @@ public class ReclamoController {
         try {
             ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
             Reclamacion reclamacion = this.mapToReclamacion(request, clientePoliza);
-
             if (!fotoReclamo.isEmpty()) {
-                reclamacion.setFotoReclamo(fotoReclamo.getBytes());
+                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                reclamacion.setImagenId(imagen.getId());
             }
 
             reclamacion.setEstado("N");
@@ -55,10 +61,10 @@ public class ReclamoController {
         try {
             List<Reclamacion> reclamaciones = new ArrayList<>();
 
-            if (!clientePolizaId.isBlank()){
+            if (!clientePolizaId.isBlank()) {
                 ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId)).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
                 reclamaciones = service.getReclamacionesByClientePoliza(clientePoliza);
-            }else if(estado.isBlank()){
+            } else if (estado.isBlank()) {
                 reclamaciones = service.getReclamaciones();
             }
 
@@ -90,11 +96,19 @@ public class ReclamoController {
         try {
             ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
             Reclamacion reclamacion = service.getReclamacion(reclamacionId).orElseThrow(() -> new IllegalArgumentException("Reclamacion no encontrada"));
-
             reclamacion.setRazon(request.getRazon());
+
+            if (reclamacion.getImagenId() != null)
+                this.imagenService.deleteImagen(reclamacion.getImagenId());
+
+            reclamacion.setImagenId(null);
+
             if (!fotoReclamo.isEmpty()) {
-                reclamacion.setFotoReclamo(fotoReclamo.getBytes());
+                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                reclamacion.setImagenId(imagen.getId());
             }
+
             reclamacion.setEstado(request.getEstado());
             reclamacion.setClientePoliza(clientePoliza);
             service.saveReclamacion(reclamacion);
@@ -104,6 +118,7 @@ public class ReclamoController {
             return ResponseEntity.badRequest().build();
         }
     }
+
     @PatchMapping("/reclamaciones/{reclamacionId}")
     public ResponseEntity<Reclamacion> partiallyUpdateReclamacion(@RequestBody PartiallyUpdateReclamacionRequest request, @PathVariable Long reclamacionId) {
         Reclamacion result = service.partiallyUpdateReclamacion(request, reclamacionId);

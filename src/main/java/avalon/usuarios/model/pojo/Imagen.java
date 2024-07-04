@@ -19,6 +19,11 @@ import java.util.List;
 @ToString
 public class Imagen extends AuditingData {
 
+    public Imagen(byte[] documento, String topico, String nombreDocumento) {
+        this.documento = documento;
+        this.topico = topico;
+        this.nombreDocumento = nombreDocumento;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -31,9 +31,9 @@ public class Reclamacion extends AuditingData {
     @Column(name = "razon")
     private String razon;
 
-
     @Column(name = "imagen_id")
-    private long imagenId;
+    private Long imagenId;
+
     @NotNull
     @Column(name = "estado")
     private String estado;

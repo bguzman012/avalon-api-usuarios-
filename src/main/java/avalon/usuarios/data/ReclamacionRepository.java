@@ -15,16 +15,8 @@ import java.util.Optional;
 public interface ReclamacionRepository extends JpaRepository<Reclamacion, Long> {
     List<Reclamacion> findAllByEstado(String estado);
 
-    @Query("SELECT new avalon.usuarios.model.pojo.Reclamacion(r.id, r.razon, r.estado, r.clientePoliza) " +
+    @Query("SELECT r " +
             "FROM Reclamacion r WHERE r.clientePoliza = :clientePoliza")
     List<Reclamacion> findByClientePoliza(ClientePoliza clientePoliza);
-
-    @Query("SELECT new avalon.usuarios.model.pojo.Reclamacion(r.id, r.razon, r.estado, r.clientePoliza) " +
-            "FROM Reclamacion r")
-    List<Reclamacion> findAll();
-
-    @Query("SELECT new avalon.usuarios.model.pojo.Reclamacion(r.id, r.razon, r.estado, r.clientePoliza) " +
-            "FROM Reclamacion r WHERE r.id = :reclamacionId")
-    Optional<Reclamacion> findByIdWithoutImage(Long reclamacionId);
 
 }

@@ -16,6 +16,7 @@ public class ReclamacionRequest {
 	@NotNull
 	private String razon;
 	private String estado;
+	private String nombreDocumento;
 	@NotNull
 	private Long clientePolizaId;
 

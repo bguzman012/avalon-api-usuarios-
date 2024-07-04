@@ -46,11 +46,6 @@ public class ReclamacionServiceImpl implements ReclamacionService {
     }
 
     @Override
-    public Optional<Reclamacion> findByIdWithoutImage(Long reclamacionId) {
-        return repository.findByIdWithoutImage(reclamacionId);
-    }
-
-    @Override
     public Reclamacion saveReclamacion(Reclamacion reclamacion) {
         return repository.save(reclamacion);
     }
