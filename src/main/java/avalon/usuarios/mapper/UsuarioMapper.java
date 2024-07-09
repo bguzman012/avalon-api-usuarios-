@@ -30,7 +30,9 @@ public class UsuarioMapper {
         String contrasenia = passwordEncoder.encode(request.getContrasenia());
 
         usuario.setNombres(request.getNombres());
+        usuario.setNombresDos(request.getNombresDos());
         usuario.setApellidos(request.getApellidos());
+        usuario.setApellidosDos(request.getApellidosDos());
         usuario.setCorreoElectronico(request.getCorreoElectronico());
         usuario.setNumeroTelefono(request.getNumeroTelefono());
         usuario.setNombreUsuario(request.getNombreUsuario());

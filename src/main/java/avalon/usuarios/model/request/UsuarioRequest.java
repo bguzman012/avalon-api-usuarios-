@@ -14,8 +14,10 @@ public class UsuarioRequest {
 
 	@NotNull
 	private String nombres;
+	private String nombresDos;
 	@NotNull
 	private String apellidos;
+	private String apellidosDos;
 	@NotNull
 	private String correoElectronico;
 	@NotNull
