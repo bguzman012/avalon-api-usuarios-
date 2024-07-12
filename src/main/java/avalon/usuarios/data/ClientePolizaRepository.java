@@ -1,5 +1,6 @@
 package avalon.usuarios.data;
 
+import avalon.usuarios.model.pojo.Agente;
 import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.Poliza;
