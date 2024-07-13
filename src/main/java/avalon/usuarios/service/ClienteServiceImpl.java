@@ -5,6 +5,8 @@ import avalon.usuarios.model.pojo.Asesor;
 import avalon.usuarios.model.pojo.Cliente;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,13 +18,13 @@ public class ClienteServiceImpl extends UsuariosServiceImpl<Cliente> implements 
     private ClienteRepository clienteRepository;
 
     @Override
-    public List<Cliente> findAllByEstado(String estado) {
-        return clienteRepository.findAllByEstado(estado);
+    public Page<Cliente> findAll(Pageable pageable) {
+        return clienteRepository.findAll(pageable);
     }
 
     @Override
-    public List<Cliente> findAll() {
-        return clienteRepository.findAll();
+    public Page<Cliente> findAllByEstado(String estado, Pageable pageable) {
+        return clienteRepository.findAllByEstado(estado, pageable);
     }
 
 }

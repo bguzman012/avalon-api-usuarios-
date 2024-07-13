@@ -2,14 +2,19 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.mapper.UsuarioMapper;
 import avalon.usuarios.model.pojo.Agente;
+import avalon.usuarios.model.pojo.Asesor;
 import avalon.usuarios.model.pojo.Broker;
 import avalon.usuarios.model.request.AgenteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.AgenteService;
 import avalon.usuarios.service.BrokerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,18 +48,23 @@ public class AgenteController {
     }
 
     @GetMapping("/agentes")
-    public ResponseEntity<List<Agente>> getAgentes(@RequestParam(required = false) String estado) {
-        List<Agente> agentes;
-        if (estado == null)
-            agentes = service.findAll();
-        else
-            agentes = service.findAllByEstado(estado);
+    public ResponseEntity<PaginatedResponse<Agente>> getAgentes(@RequestParam(required = false) String estado,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Agente> agentePage;
 
-        if (!agentes.isEmpty()) {
-            return ResponseEntity.ok(agentes);
+        if (estado == null || estado.isBlank()) {
+            agentePage = service.findAll(pageable);
         } else {
-            return ResponseEntity.ok(Collections.emptyList());
+            agentePage = service.findAllByEstado(estado, pageable);
         }
+
+        List<Agente> agentes = agentePage.getContent();
+        long totalRecords = agentePage.getTotalElements();
+
+        PaginatedResponse<Agente> response = new PaginatedResponse<>(agentes, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
 

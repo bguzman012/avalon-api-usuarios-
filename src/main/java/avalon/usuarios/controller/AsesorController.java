@@ -2,12 +2,17 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.mapper.UsuarioMapper;
 import avalon.usuarios.model.pojo.Asesor;
+import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.request.AsesorRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,18 +42,22 @@ public class AsesorController {
     }
 
     @GetMapping("/asesores")
-    public ResponseEntity<List<Asesor>> getAsesores(@RequestParam(required = false) String estado) {
-        List<Asesor> asesores;
-        if (estado == null)
-            asesores = service.findAll();
-        else
-            asesores = service.findAllByEstado(estado);
+    public ResponseEntity<PaginatedResponse<Asesor>> getAsesores(@RequestParam(required = false) String estado,
+                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Asesor> asesorPage;
 
-        if (!asesores.isEmpty()) {
-            return ResponseEntity.ok(asesores);
+        if (estado == null || estado.isBlank()) {
+            asesorPage = service.findAll(pageable);
         } else {
-            return ResponseEntity.ok(Collections.emptyList());
+            asesorPage = service.findAllByEstado(estado, pageable);
         }
+        List<Asesor> asesores = asesorPage.getContent();
+        long totalRecords = asesorPage.getTotalElements();
+
+        PaginatedResponse<Asesor> response = new PaginatedResponse<>(asesores, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/asesores/{asesorId}")

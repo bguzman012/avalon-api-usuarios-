@@ -8,6 +8,8 @@ import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.AgenteRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,8 +21,12 @@ public class AgenteServiceImpl extends UsuariosServiceImpl<Agente> implements Ag
     private AgenteRepository agenteRepository;
 
     @Override
-    public List<Agente> findAllByEstado(String estado) {
-        return agenteRepository.findAllByEstado(estado);
+    public Page<Agente> findAll(Pageable pageable) {
+        return agenteRepository.findAll(pageable);
     }
 
+    @Override
+    public Page<Agente> findAllByEstado(String estado, Pageable pageable) {
+        return agenteRepository.findAllByEstado(estado, pageable);
+    }
 }

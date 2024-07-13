@@ -5,14 +5,19 @@ import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.Direccion;
 import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Page;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,18 +43,24 @@ public class ClienteController {
     }
 
     @GetMapping("/clientes")
-    public ResponseEntity<List<Cliente>> getClientes(@RequestParam(required = false) String estado) {
-        List<Cliente> clientes;
-        if (estado == null || estado.isBlank())
-            clientes = service.findAll();
-        else
-            clientes = service.findAllByEstado(estado);
+    public ResponseEntity<PaginatedResponse<Cliente>> getClientes(@RequestParam(required = false) String estado,
+                                                                  @RequestParam(required = false) String busqueda,
+                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Cliente> clientesPage;
 
-        if (!clientes.isEmpty()) {
-            return ResponseEntity.ok(clientes);
+        if (estado == null || estado.isBlank()) {
+            clientesPage = service.findAll(pageable);
         } else {
-            return ResponseEntity.ok(Collections.emptyList());
+            clientesPage = service.findAllByEstado(estado, pageable);
         }
+
+        List<Cliente> clientes = clientesPage.getContent();
+        long totalRecords = clientesPage.getTotalElements();
+
+        PaginatedResponse<Cliente> response = new PaginatedResponse<>(clientes, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/clientes/{clienteId}")
