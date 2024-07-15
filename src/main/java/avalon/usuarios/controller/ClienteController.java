@@ -48,13 +48,7 @@ public class ClienteController {
                                                                   @RequestParam(defaultValue = "0") int page,
                                                                   @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Cliente> clientesPage;
-
-        if (estado == null || estado.isBlank()) {
-            clientesPage = service.findAll(pageable);
-        } else {
-            clientesPage = service.findAllByEstado(estado, pageable);
-        }
+        Page<Cliente> clientesPage = service.searchClientes(estado, busqueda, pageable);
 
         List<Cliente> clientes = clientesPage.getContent();
         long totalRecords = clientesPage.getTotalElements();
@@ -62,6 +56,27 @@ public class ClienteController {
         PaginatedResponse<Cliente> response = new PaginatedResponse<>(clientes, totalRecords);
         return ResponseEntity.ok(response);
     }
+
+//    @GetMapping("/clientes")
+//    public ResponseEntity<PaginatedResponse<Cliente>> getClientes(@RequestParam(required = false) String estado,
+//                                                                  @RequestParam(required = false) String busqueda,
+//                                                                  @RequestParam(defaultValue = "0") int page,
+//                                                                  @RequestParam(defaultValue = "10") int size) {
+//        Pageable pageable = PageRequest.of(page, size);
+//        Page<Cliente> clientesPage;
+//
+//        if (estado == null || estado.isBlank()) {
+//            clientesPage = service.findAll(pageable);
+//        } else {
+//            clientesPage = service.findAllByEstado(estado, pageable);
+//        }
+//
+//        List<Cliente> clientes = clientesPage.getContent();
+//        long totalRecords = clientesPage.getTotalElements();
+//
+//        PaginatedResponse<Cliente> response = new PaginatedResponse<>(clientes, totalRecords);
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/clientes/{clienteId}")
     public ResponseEntity<Cliente> getCliente(@PathVariable Long clienteId) {
