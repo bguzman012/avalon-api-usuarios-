@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-
+import org.springframework.security.core.Authentication;
 import javax.servlet.http.HttpServletResponse;
 
 @Component
@@ -41,6 +41,12 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
 
         // Verificar el token
         if (isValidToken(token)) {
+            String username = getUsernameFromToken(token);
+            if (username != null) {
+                // Almacenar el nombre de usuario en el contexto de seguridad
+                Authentication authentication = new JwtAuthentication(username);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
             return true;  // Continuar con la ejecución del controlador
         } else {
             // Token no válido, enviar respuesta de error o redirigir a la página de inicio de sesión
@@ -79,4 +85,59 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
             return false;
         }
     }
+    private String getUsernameFromToken(String token) {
+        try {
+            return Jwts.parser()
+                    .setSigningKey(secret)
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static class JwtAuthentication implements Authentication {
+        private final String username;
+
+        JwtAuthentication(String username) {
+            this.username = username;
+        }
+
+        @Override
+        public String getName() {
+            return username;
+        }
+
+        @Override
+        public Object getCredentials() {
+            return null;
+        }
+
+        @Override
+        public Object getDetails() {
+            return null;
+        }
+
+        @Override
+        public Object getPrincipal() {
+            return username;
+        }
+
+        @Override
+        public boolean isAuthenticated() {
+            return true;
+        }
+
+        @Override
+        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+            // No es necesario implementar esto para nuestro caso
+        }
+
+        @Override
+        public java.util.Collection<? extends GrantedAuthority> getAuthorities() {
+            return null;
+        }
+    }
+
 }

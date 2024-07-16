@@ -10,9 +10,7 @@ import avalon.usuarios.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,8 +44,12 @@ public class ClienteController {
     public ResponseEntity<PaginatedResponse<Cliente>> getClientes(@RequestParam(required = false) String estado,
                                                                   @RequestParam(required = false) String busqueda,
                                                                   @RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
+                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                  @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                  @RequestParam(defaultValue = "desc") String sortOrder) {
+
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
         Page<Cliente> clientesPage = service.searchClientes(estado, busqueda, pageable);
 
         List<Cliente> clientes = clientesPage.getContent();

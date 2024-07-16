@@ -5,15 +5,13 @@ import avalon.usuarios.model.pojo.Asesor;
 import avalon.usuarios.model.pojo.Cliente;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -49,6 +47,11 @@ public class ClienteServiceImpl extends UsuariosServiceImpl<Cliente> implements 
         List<Predicate> predicates = buildPredicates(cb, root, estado, busqueda);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        // Aplicar ordenación del pageable
+        Sort.Order sortOrder = pageable.getSort().iterator().next();
+        Order order = sortOrder.isAscending() ? cb.asc(root.get(sortOrder.getProperty())) : cb.desc(root.get(sortOrder.getProperty()));
+        query.orderBy(order);
 
         List<Cliente> clientes = entityManager.createQuery(query)
                 .setFirstResult((int) pageable.getOffset())
