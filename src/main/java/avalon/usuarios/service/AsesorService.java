@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface AsesorService extends UsuariosService<Asesor> {
     Page<Asesor> findAll(Pageable pageable);
     Page<Asesor> findAllByEstado(String estado, Pageable pageable);
+    Page<Asesor> searchAsesores(String estado, String busqueda, Pageable pageable);
 }

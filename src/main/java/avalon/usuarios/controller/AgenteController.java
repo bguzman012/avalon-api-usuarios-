@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,21 +50,21 @@ public class AgenteController {
 
     @GetMapping("/agentes")
     public ResponseEntity<PaginatedResponse<Agente>> getAgentes(@RequestParam(required = false) String estado,
+                                                                @RequestParam(required = false) String busqueda,
                                                                 @RequestParam(defaultValue = "0") int page,
-                                                                @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Agente> agentePage;
+                                                                @RequestParam(defaultValue = "10") int size,
+                                                                @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                @RequestParam(defaultValue = "desc") String sortOrder
+    ) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (estado == null || estado.isBlank()) {
-            agentePage = service.findAll(pageable);
-        } else {
-            agentePage = service.findAllByEstado(estado, pageable);
-        }
+        Page<Agente> asesorPage = service.searchAgentes(estado, busqueda, pageable);
 
-        List<Agente> agentes = agentePage.getContent();
-        long totalRecords = agentePage.getTotalElements();
+        List<Agente> asesores = asesorPage.getContent();
+        long totalRecords = asesorPage.getTotalElements();
 
-        PaginatedResponse<Agente> response = new PaginatedResponse<>(agentes, totalRecords);
+        PaginatedResponse<Agente> response = new PaginatedResponse<>(asesores, totalRecords);
         return ResponseEntity.ok(response);
     }
 

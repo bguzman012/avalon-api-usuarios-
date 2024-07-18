@@ -10,4 +10,5 @@ import java.util.List;
 public interface AgenteService extends UsuariosService<Agente> {
     Page<Agente> findAll(Pageable pageable);
     Page<Agente> findAllByEstado(String estado, Pageable pageable);
+    Page<Agente> searchAgentes(String estado, String busqueda, Pageable pageable);
 }

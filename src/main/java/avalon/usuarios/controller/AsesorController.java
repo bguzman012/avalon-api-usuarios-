@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,16 +44,18 @@ public class AsesorController {
 
     @GetMapping("/asesores")
     public ResponseEntity<PaginatedResponse<Asesor>> getAsesores(@RequestParam(required = false) String estado,
-                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Asesor> asesorPage;
+                                                                 @RequestParam(required = false) String busqueda,
+                                                                 @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                 @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                 @RequestParam(defaultValue = "desc") String sortOrder
+                                                                 ) {
 
-        if (estado == null || estado.isBlank()) {
-            asesorPage = service.findAll(pageable);
-        } else {
-            asesorPage = service.findAllByEstado(estado, pageable);
-        }
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Asesor> asesorPage = service.searchAsesores(estado, busqueda, pageable);
+
         List<Asesor> asesores = asesorPage.getContent();
         long totalRecords = asesorPage.getTotalElements();
 
