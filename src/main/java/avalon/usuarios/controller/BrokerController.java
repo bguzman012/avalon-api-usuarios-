@@ -5,9 +5,14 @@ import avalon.usuarios.model.pojo.Broker;
 import avalon.usuarios.model.request.BrokerRequest;
 import avalon.usuarios.model.request.PartiallyUpdateAseguradora;
 import avalon.usuarios.model.request.PartiallyUpdateBroker;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.BrokerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,14 +40,22 @@ public class BrokerController {
     }
 
     @GetMapping("/brokers")
-    public ResponseEntity<List<Broker>> getBrokers(@RequestParam(required = false) String estado) {
-        List<Broker> brokers = service.getBrokersByEstado(estado);
+    public ResponseEntity<PaginatedResponse<Broker>> getBrokers(@RequestParam(required = false) String estado,
+                                                   @RequestParam(required = false) String busqueda,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size,
+                                                   @RequestParam(defaultValue = "createdDate") String sortField,
+                                                   @RequestParam(defaultValue = "asc") String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!brokers.isEmpty()) {
-            return ResponseEntity.ok(brokers);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Page<Broker> brokerPage = service.searchBrokers(estado, busqueda, pageable);
+
+        List<Broker> brokers = brokerPage.getContent();
+        long totalRecords = brokerPage.getTotalElements();
+
+        PaginatedResponse<Broker> response = new PaginatedResponse<>(brokers, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/brokers/{brokerId}")

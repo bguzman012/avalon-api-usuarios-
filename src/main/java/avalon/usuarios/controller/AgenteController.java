@@ -69,6 +69,32 @@ public class AgenteController {
     }
 
 
+    @GetMapping("/brokers/{brokerId}/agentes")
+    public ResponseEntity<PaginatedResponse<Agente>> getAgentesByBroker(@PathVariable Long brokerId,
+                                                                @RequestParam(required = false) String estado,
+                                                                @RequestParam(required = false) String busqueda,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size,
+                                                                @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                @RequestParam(defaultValue = "desc") String sortOrder
+    ) {
+        Broker broker = brokerService.getBroker(brokerId);
+        if (broker == null)
+            return ResponseEntity.notFound().build();
+
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Agente> asesorPage = service.searchAgentesByBroker(estado, busqueda, pageable, broker);
+
+        List<Agente> asesores = asesorPage.getContent();
+        long totalRecords = asesorPage.getTotalElements();
+
+        PaginatedResponse<Agente> response = new PaginatedResponse<>(asesores, totalRecords);
+        return ResponseEntity.ok(response);
+    }
+
+
     @GetMapping("/agentes/{agenteId}")
     public ResponseEntity<Agente> getAgente(@PathVariable Long agenteId) {
         Agente agente = service.findById(agenteId).orElseThrow(() -> new IllegalArgumentException("Agente no encontrado"));

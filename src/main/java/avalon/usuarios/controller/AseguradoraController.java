@@ -1,12 +1,18 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Aseguradora;
+import avalon.usuarios.model.pojo.Broker;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.CreateAseguradoraResponse;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.AseguradoraService;
 import avalon.usuarios.service.AseguradoraServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,15 +40,24 @@ public class AseguradoraController {
     }
 
     @GetMapping("/aseguradoras")
-    public ResponseEntity<List<Aseguradora>> getAseguradoras(@RequestParam(required = false) String estado) {
-        List<Aseguradora> aseguradoras = service.getAseguradoraByEstado(estado);
+    public ResponseEntity<PaginatedResponse<Aseguradora>> getAseguradoras(@RequestParam(required = false) String estado,
+                                                                @RequestParam(required = false) String busqueda,
+                                                                @RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size,
+                                                                @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                @RequestParam(defaultValue = "asc") String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!aseguradoras.isEmpty()) {
-            return ResponseEntity.ok(aseguradoras);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Page<Aseguradora> aseguradoraPage = service.searchAseguradoras(estado, busqueda, pageable);
+
+        List<Aseguradora> aseguradoras = aseguradoraPage.getContent();
+        long totalRecords = aseguradoraPage.getTotalElements();
+
+        PaginatedResponse<Aseguradora> response = new PaginatedResponse<>(aseguradoras, totalRecords);
+        return ResponseEntity.ok(response);
     }
+
 
 //    @GetMapping("/usuarios/{usuarioId}/aseguradoras")
 //    public ResponseEntity<List<CreateAseguradoraResponse>> getAseguradorasByUsuario(@PathVariable Long usuarioId, @RequestParam(required = false) String estado) {

@@ -56,12 +56,43 @@ public class AgenteServiceImpl extends UsuariosServiceImpl<Agente> implements Ag
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countAgentees(estado, busqueda);
+        Long totalRecords = countAgentees(estado, busqueda, null);
 
         return new PageImpl<>(agentes, pageable, totalRecords);
     }
 
-    private Long countAgentees(String estado, String busqueda) {
+    @Override
+    public Page<Agente> searchAgentesByBroker(String estado, String busqueda, Pageable pageable, Broker broker) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // Consulta principal para los resultados paginados
+        CriteriaQuery<Agente> query = cb.createQuery(Agente.class);
+        Root<Agente> root = query.from(Agente.class);
+
+        List<Predicate> predicates = buildPredicates(cb, root, estado, busqueda);
+
+        if (broker != null) {
+            predicates.add(cb.equal(root.get("broker"), broker));
+        }
+
+        query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        // Aplicar ordenación del pageable
+        Sort.Order sortOrder = pageable.getSort().iterator().next();
+        Order order = sortOrder.isAscending() ? cb.asc(root.get(sortOrder.getProperty())) : cb.desc(root.get(sortOrder.getProperty()));
+        query.orderBy(order);
+
+        List<Agente> agentes = entityManager.createQuery(query)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+        Long totalRecords = countAgentees(estado, busqueda, broker);
+
+        return new PageImpl<>(agentes, pageable, totalRecords);
+    }
+
+    private Long countAgentees(String estado, String busqueda, Broker broker) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -70,6 +101,9 @@ public class AgenteServiceImpl extends UsuariosServiceImpl<Agente> implements Ag
         countQuery.select(cb.count(countRoot));
 
         List<Predicate> countPredicates = buildPredicates(cb, countRoot, estado, busqueda);
+        if (broker != null) {
+            countPredicates.add(cb.equal(countRoot.get("broker"), broker));
+        }
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -83,6 +117,7 @@ public class AgenteServiceImpl extends UsuariosServiceImpl<Agente> implements Ag
 
     private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Agente> root, String estado, String busqueda) {
         List<Predicate> predicates = new ArrayList<>();
+
 
         if (estado != null && !estado.isEmpty()) {
             predicates.add(cb.equal(root.get("estado"), estado));

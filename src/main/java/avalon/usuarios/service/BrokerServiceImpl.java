@@ -4,6 +4,8 @@ import avalon.usuarios.data.*;
 import avalon.usuarios.model.pojo.Broker;
 import avalon.usuarios.model.request.BrokerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +30,11 @@ public class BrokerServiceImpl implements BrokerService {
     @Override
     public List<Broker> getBrokersByEstado(String estado) {
         return repository.findAllByEstado(estado);
+    }
+
+    @Override
+    public Page<Broker> searchBrokers(String estado, String busqueda, Pageable pageable) {
+        return repository.searchBrokers(estado, busqueda, pageable);
     }
 
     @Override

@@ -4,6 +4,8 @@ import avalon.usuarios.data.*;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,9 +23,10 @@ public class AseguradoraServiceImpl implements AseguradoraService {
         this.repository = repository;
     }
 
+
     @Override
-    public List<Aseguradora> getAseguradoraByEstado(String estado) {
-        return repository.findAllByEstado(estado);
+    public Page<Aseguradora> searchAseguradoras(String estado, String busqueda, Pageable pageable) {
+        return repository.searchAseguradoras(estado, busqueda, pageable);
     }
 
     @Override
