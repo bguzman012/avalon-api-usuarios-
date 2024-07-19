@@ -5,6 +5,8 @@ import avalon.usuarios.data.MembresiaRepository;
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.Membresia;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +37,11 @@ public class MembresiaServiceImpl implements MembresiaService {
     @Override
     public List<Membresia> getMembresiasByEstado(String estado) {
         return this.repository.findAllByEstado(estado);
+    }
+
+    @Override
+    public Page<Membresia> searchMembresias(String estado, String busqueda, Pageable pageable) {
+        return this.repository.searchMembresias(estado, busqueda, pageable);
     }
 
     @Override

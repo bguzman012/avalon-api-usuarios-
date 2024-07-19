@@ -8,6 +8,8 @@ import avalon.usuarios.model.pojo.Beneficio;
 import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.request.PartiallyUpdateAseguradora;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,6 +33,11 @@ public class BeneficioServiceImpl implements BeneficioService {
     @Override
     public List<Beneficio> getBeneficiosByMembresia(Membresia membresia) {
         return repository.findAllByMembresia(membresia);
+    }
+
+    @Override
+    public Page<Beneficio> searchBeneficiosByMembresia(String busqueda, Pageable pageable, Membresia membresia) {
+        return repository.searchBeneficiosByMembresia(busqueda, membresia, pageable);
     }
 
     @Override

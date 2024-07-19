@@ -3,12 +3,17 @@ package avalon.usuarios.controller;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.CreateAseguradoraResponse;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.AseguradoraServiceImpl;
 import avalon.usuarios.service.MembresiaService;
 import avalon.usuarios.service.MembresiaServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,14 +41,22 @@ public class MembresiaController {
     }
 
     @GetMapping("/membresias")
-    public ResponseEntity<List<Membresia>> getMembresias(@RequestParam(required = false) String estado) {
-        List<Membresia> aseguradoras = service.getMembresiasByEstado(estado);
+    public ResponseEntity<PaginatedResponse<Membresia>> searchMembresias(@RequestParam(required = false) String estado,
+                                                                         @RequestParam(required = false) String busqueda,
+                                                                         @RequestParam(defaultValue = "0") int page,
+                                                                         @RequestParam(defaultValue = "10") int size,
+                                                                         @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                         @RequestParam(defaultValue = "desc") String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!aseguradoras.isEmpty()) {
-            return ResponseEntity.ok(aseguradoras);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Page<Membresia> membresiaPage = service.searchMembresias(estado, busqueda, pageable);
+
+        List<Membresia> membresias = membresiaPage.getContent();
+        long totalRecords = membresiaPage.getTotalElements();
+
+        PaginatedResponse<Membresia> response = new PaginatedResponse<>(membresias, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
 
@@ -60,7 +73,8 @@ public class MembresiaController {
 
     @GetMapping("/membresias/{membresiaId}")
     public ResponseEntity<Membresia> getMembresia(@PathVariable Long membresiaId) {
-        Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));;
+        Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));
+        ;
 
         if (membresia != null) {
             return ResponseEntity.ok(membresia);
@@ -71,7 +85,8 @@ public class MembresiaController {
 
     @PutMapping("/membresias/{membresiaId}")
     public ResponseEntity<Membresia> updateMembresia(@PathVariable Long membresiaId, @RequestBody MembresiaRequest request) {
-        Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));;
+        Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));
+        ;
         Membresia membresiaMapped = this.mapToMembresia(request, membresia);
         this.service.saveMembresia(membresiaMapped);
         return membresiaMapped != null ? ResponseEntity.ok(membresiaMapped) : ResponseEntity.badRequest().build();
@@ -93,6 +108,7 @@ public class MembresiaController {
         service.deleteMembresia(membresiaId);
         return ResponseEntity.noContent().build();
     }
+
     private Membresia mapToMembresia(MembresiaRequest request, Membresia membresia) {
         membresia.setNombres(request.getNombres());
         membresia.setDetalle(request.getDetalle());
