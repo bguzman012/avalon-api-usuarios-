@@ -7,12 +7,17 @@ import avalon.usuarios.model.pojo.Reclamacion;
 import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import avalon.usuarios.model.request.ReclamacionRequest;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.ClientesPolizaService;
 import avalon.usuarios.service.CitaMedicaService;
 import avalon.usuarios.service.ImagenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,25 +60,30 @@ public class CitaMedicaController {
     }
 
     @GetMapping("/citasMedicas")
-    public ResponseEntity<List<CitaMedica>> getCitasMedicas(@RequestParam(required = false) String estado, @RequestParam(required = false) String clientePolizaId) {
-        try {
-            List<CitaMedica> citasMedicas = new ArrayList<>();
+    public ResponseEntity<PaginatedResponse<CitaMedica>> getCitasMedicas(@RequestParam(required = false) String estado,
+                                                            @RequestParam(required = false) String clientePolizaId,
+                                                            @RequestParam(required = false) String busqueda,
+                                                            @RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size,
+                                                            @RequestParam(defaultValue = "createdDate") String sortField,
+                                                            @RequestParam(defaultValue = "desc") String sortOrder) {
+        ClientePoliza clientePoliza = null;
 
-            if (!clientePolizaId.isBlank()) {
-                ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId)).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-                citasMedicas = service.getCitasMedicasByClientePoliza(clientePoliza);
-            } else if (estado.isBlank()) {
-                citasMedicas = service.getCitasMedicas();
-            }
-
-            if (!citasMedicas.isEmpty()) {
-                return ResponseEntity.ok(citasMedicas);
-            } else {
-                return ResponseEntity.ok(Collections.emptyList());
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        if (!clientePolizaId.isBlank()) {
+            clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId))
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         }
+
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<CitaMedica> citaMedicaPage = service.searchCitasMedicas(busqueda, estado, pageable, clientePoliza);
+
+        List<CitaMedica> citasMedicas = citaMedicaPage.getContent();
+        long totalRecords = citaMedicaPage.getTotalElements();
+
+        PaginatedResponse<CitaMedica> response = new PaginatedResponse<>(citasMedicas, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/citasMedicas/{citaMedicaId}")

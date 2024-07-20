@@ -2,10 +2,15 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,41 +46,68 @@ public class ClientePolizaController {
     }
 
     @GetMapping("/clientesPolizas")
-    public ResponseEntity<List<ClientePoliza>> getPolizas() {
-        List<ClientePoliza> clientesPolizas = service.getClientesPolizas();
+    public ResponseEntity<PaginatedResponse<ClientePoliza>> getPolizas(@RequestParam(required = false) String busqueda,
+                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "10") int size,
+                                                                       @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                       @RequestParam(defaultValue = "desc") String sortOrder) {
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!clientesPolizas.isEmpty()) {
-            return ResponseEntity.ok(clientesPolizas);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, null);
+
+        List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
+        long totalRecords = clientePolizaPage.getTotalElements();
+
+        PaginatedResponse<ClientePoliza> response = new PaginatedResponse<>(clientePolizas, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/polizas/{polizaId}/clientesPolizas")
-    public ResponseEntity<List<ClientePoliza>> getClientesPolizasByPoliza(@PathVariable Long polizaId) {
-        List<ClientePoliza> clientesPolizas = service.getClientesPolizasByPoliza(polizaId);
+    public ResponseEntity<PaginatedResponse<ClientePoliza>> getClientesPolizasByPoliza(@PathVariable Long polizaId,
+                                                                                       @RequestParam(required = false) String busqueda,
+                                                                                       @RequestParam(defaultValue = "0") int page,
+                                                                                       @RequestParam(defaultValue = "10") int size,
+                                                                                       @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                                       @RequestParam(defaultValue = "desc") String sortOrder) {
+        Poliza poliza = this.polizaService.getPoliza(polizaId).orElseThrow(() -> new IllegalArgumentException("Poliza no encontrado"));
 
-        if (!clientesPolizas.isEmpty()) {
-            return ResponseEntity.ok(clientesPolizas);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, poliza);
+
+        List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
+        long totalRecords = clientePolizaPage.getTotalElements();
+
+        PaginatedResponse<ClientePoliza> response = new PaginatedResponse<>(clientePolizas, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/clientes/{clienteId}/clientesPolizas")
-    public ResponseEntity<List<ClientePoliza>> getClientesPolizasByCliente(@PathVariable Long clienteId) {
-        List<ClientePoliza> clientesPolizas = service.getClientesPolizasByCliente(clienteId);
+    public ResponseEntity<PaginatedResponse<ClientePoliza>> getClientesPolizasByCliente(@PathVariable Long clienteId,
+                                                                                        @RequestParam(required = false) String busqueda,
+                                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                                        @RequestParam(defaultValue = "10") int size,
+                                                                                        @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                                        @RequestParam(defaultValue = "desc") String sortOrder) {
+        Cliente cliente = this.clienteService.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
 
-        if (!clientesPolizas.isEmpty()) {
-            return ResponseEntity.ok(clientesPolizas);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, cliente, null);
+
+        List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
+        long totalRecords = clientePolizaPage.getTotalElements();
+
+        PaginatedResponse<ClientePoliza> response = new PaginatedResponse<>(clientePolizas, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/clientesPolizas/{clientePolizaId}")
     public ResponseEntity<ClientePoliza> getClientePoliza(@PathVariable Long clientePolizaId) {
-        ClientePoliza clientePoliza = service.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));;
+        ClientePoliza clientePoliza = service.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
 
         if (clientePoliza != null) {
             return ResponseEntity.ok(clientePoliza);
@@ -87,7 +119,7 @@ public class ClientePolizaController {
     @PutMapping("/clientesPolizas/{clientePolizaId}")
     public ResponseEntity<ClientePoliza> updateClientePoliza(@PathVariable Long clientePolizaId, @RequestBody ClientePolizaRequest request) {
         ClientePoliza clientePoliza = service.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-        ClientePoliza clientePolizaMapped  = this.mapToClientePoliza(request, clientePoliza);
+        ClientePoliza clientePolizaMapped = this.mapToClientePoliza(request, clientePoliza);
         this.service.savePoliza(clientePolizaMapped);
 
         return clientePolizaMapped != null ? ResponseEntity.ok(clientePolizaMapped) : ResponseEntity.badRequest().build();

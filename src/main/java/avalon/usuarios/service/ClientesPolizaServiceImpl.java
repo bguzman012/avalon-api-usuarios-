@@ -122,33 +122,10 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         }
 
         if (poliza != null) {
-            predicates.add(cb.equal(cmRoot.get("poliza"), cliente));
+            predicates.add(cb.equal(cmRoot.get("poliza"), poliza));
         }
 
         return predicates;
-    }
-
-    @Override
-    public List<ClientePoliza> getClientesPolizas() {
-        return this.repository.findAll();
-    }
-
-    @Override
-    public List<ClientePoliza> getClientesPolizasByPoliza(Long polizaId) {
-        Poliza poliza = this.polizaRepository.findById(polizaId).orElse(null);
-
-        if (poliza == null) return null;
-
-        return this.repository.findAllByPoliza(poliza);
-    }
-
-    @Override
-    public List<ClientePoliza> getClientesPolizasByCliente(Long clienteId) {
-        Cliente cliente = this.clienteRepository.findById(clienteId).orElse(null);
-
-        if (cliente == null) return null;
-
-        return this.repository.findAllByCliente(cliente);
     }
 
     @Override

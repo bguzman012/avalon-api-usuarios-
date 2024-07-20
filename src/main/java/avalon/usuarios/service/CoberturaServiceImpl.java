@@ -5,6 +5,8 @@ import avalon.usuarios.model.pojo.Cobertura;
 import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.pojo.Poliza;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,6 +30,11 @@ public class CoberturaServiceImpl implements CoberturaService {
     @Override
     public List<Cobertura> getCoberturasByPoliza(Poliza poliza) {
         return repository.findAllByPoliza(poliza);
+    }
+
+    @Override
+    public Page<Cobertura> searchCoberturasByPoliza(String busqueda, Pageable pageable, Poliza poliza) {
+        return repository.searchCoberturasByPoliza(busqueda, poliza, pageable);
     }
 
     @Override

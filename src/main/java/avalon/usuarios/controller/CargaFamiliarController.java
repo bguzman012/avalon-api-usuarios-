@@ -6,6 +6,7 @@ import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.request.BeneficioRequest;
 import avalon.usuarios.model.request.CargaFamiliarRequest;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.BeneficioService;
 import avalon.usuarios.service.CargaFamiliarService;
 import avalon.usuarios.service.ClientesPolizaService;
@@ -13,6 +14,10 @@ import avalon.usuarios.service.MembresiaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,15 +57,23 @@ public class CargaFamiliarController {
     }
 
     @GetMapping("/clientesPolizas/{clientePolizaId}/cargasFamiliares")
-    public ResponseEntity<List<CargaFamiliar>> getCargaFamiliarByClientePoliza(@PathVariable Long clientePolizaId) {
+    public ResponseEntity<PaginatedResponse<CargaFamiliar>> getCargaFamiliarByClientePoliza(@PathVariable Long clientePolizaId,
+                                                                               @RequestParam(required = false) String busqueda,
+                                                                               @RequestParam(defaultValue = "0") int page,
+                                                                               @RequestParam(defaultValue = "10") int size,
+                                                                               @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                               @RequestParam(defaultValue = "desc") String sortOrder) {
         ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-        List<CargaFamiliar> cargasFamiliares = service.findAllByClientePoliza(clientePoliza);
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!cargasFamiliares.isEmpty()) {
-            return ResponseEntity.ok(cargasFamiliares);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Page<CargaFamiliar> cargaFamiliarPage = service.searchCargasByClientePoliza(busqueda, clientePoliza, pageable);
+
+        List<CargaFamiliar> cargasFamiliares = cargaFamiliarPage.getContent();
+        long totalRecords = cargaFamiliarPage.getTotalElements();
+
+        PaginatedResponse<CargaFamiliar> response = new PaginatedResponse<>(cargasFamiliares, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/cargasFamiliares/{cargaFamiliarId}")
@@ -93,7 +106,9 @@ public class CargaFamiliarController {
         ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
 
         cargaFamiliar.setNombres(request.getNombres());
+        cargaFamiliar.setNombresDos(request.getNombresDos());
         cargaFamiliar.setApellidos(request.getApellidos());
+        cargaFamiliar.setApellidosDos(request.getApellidosDos());
         cargaFamiliar.setParentesco(request.getParentesco());
         cargaFamiliar.setCorreoElectronico(request.getCorreoElectronico());
         cargaFamiliar.setNumeroTelefono(request.getNumeroTelefono());

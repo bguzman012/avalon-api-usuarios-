@@ -6,6 +6,7 @@ import avalon.usuarios.model.pojo.Membresia;
 import avalon.usuarios.model.pojo.Poliza;
 import avalon.usuarios.model.request.BeneficioRequest;
 import avalon.usuarios.model.request.CoberturaRequest;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.BeneficioService;
 import avalon.usuarios.service.CoberturaService;
 import avalon.usuarios.service.MembresiaService;
@@ -13,6 +14,10 @@ import avalon.usuarios.service.PolizaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,15 +57,23 @@ public class CoberturaController {
     }
 
     @GetMapping("/polizas/{polizaId}/coberturas")
-    public ResponseEntity<List<Cobertura>> getCoberturaByMembresia(@PathVariable Long polizaId) {
+    public ResponseEntity<PaginatedResponse<Cobertura>> getCoberturaByMembresia(@PathVariable Long polizaId,
+                                                                   @RequestParam(required = false) String busqueda,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "10") int size,
+                                                                   @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                   @RequestParam(defaultValue = "desc") String sortOrder) {
         Poliza poliza = polizaService.getPoliza(polizaId).orElseThrow(() -> new IllegalArgumentException("Poliza no encontrada"));
-        List<Cobertura> coberturas = service.getCoberturasByPoliza(poliza);
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!coberturas.isEmpty()) {
-            return ResponseEntity.ok(coberturas);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
+        Page<Cobertura> coberturaPage = service.searchCoberturasByPoliza(busqueda, pageable, poliza);
+
+        List<Cobertura> coberturas = coberturaPage.getContent();
+        long totalRecords = coberturaPage.getTotalElements();
+
+        PaginatedResponse<Cobertura> response = new PaginatedResponse<>(coberturas, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/coberturas/{coberturaId}")

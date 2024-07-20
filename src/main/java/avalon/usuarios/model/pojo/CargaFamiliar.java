@@ -24,9 +24,15 @@ public class CargaFamiliar extends AuditingData {
     @Column(name = "nombres")
     private String nombres;
 
+    @Column(name = "nombres_dos")
+    private String nombresDos;
+
     @NotNull
     @Column(name = "apellidos")
     private String apellidos;
+
+    @Column(name = "apellidos_dos")
+    private String apellidosDos;
 
     @NotNull
     @Column(name = "parentesco")

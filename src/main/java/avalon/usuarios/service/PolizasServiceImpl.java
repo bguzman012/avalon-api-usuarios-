@@ -5,6 +5,8 @@ import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.model.pojo.Aseguradora;
 import avalon.usuarios.model.pojo.Poliza;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,6 +37,11 @@ public class PolizasServiceImpl implements PolizaService {
         if (aseguradora == null) return null;
 
         return this.repository.findAllByAseguradora(aseguradora);
+    }
+
+    @Override
+    public Page<Poliza> searchPolizasByAseguradora(String busqueda, Pageable pageable, Aseguradora aseguradora) {
+        return this.repository.searchPolizasByAseguradora(busqueda, aseguradora, pageable);
     }
 
     @Override

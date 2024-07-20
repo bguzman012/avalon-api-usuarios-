@@ -1,13 +1,11 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.Aseguradora;
-import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.Imagen;
-import avalon.usuarios.model.pojo.Reclamacion;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.AseguradoraRequest;
 import avalon.usuarios.model.request.PartiallyUpdateAseguradora;
 import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
 import avalon.usuarios.model.request.ReclamacionRequest;
+import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.AseguradoraService;
 import avalon.usuarios.service.ClientesPolizaService;
 import avalon.usuarios.service.ImagenService;
@@ -15,6 +13,10 @@ import avalon.usuarios.service.ReclamacionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -57,25 +59,31 @@ public class ReclamoController {
     }
 
     @GetMapping("/reclamaciones")
-    public ResponseEntity<List<Reclamacion>> getReclamaciones(@RequestParam(required = false) String estado, @RequestParam(required = false) String clientePolizaId) {
-        try {
-            List<Reclamacion> reclamaciones = new ArrayList<>();
+    public ResponseEntity<PaginatedResponse<Reclamacion>> getReclamaciones(@RequestParam(required = false) String estado,
+                                                                           @RequestParam(required = false) String clientePolizaId,
+                                                                           @RequestParam(required = false) String busqueda,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "10") int size,
+                                                                           @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                           @RequestParam(defaultValue = "desc") String sortOrder) {
 
-            if (!clientePolizaId.isBlank()) {
-                ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId)).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-                reclamaciones = service.getReclamacionesByClientePoliza(clientePoliza);
-            } else if (estado.isBlank()) {
-                reclamaciones = service.getReclamaciones();
-            }
+        ClientePoliza clientePoliza = null;
 
-            if (!reclamaciones.isEmpty()) {
-                return ResponseEntity.ok(reclamaciones);
-            } else {
-                return ResponseEntity.ok(Collections.emptyList());
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+        if (!clientePolizaId.isBlank()) {
+            clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId))
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         }
+
+        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Reclamacion> reclamacionPage = service.searchReclamaciones(busqueda, estado, pageable, clientePoliza);
+
+        List<Reclamacion> reclamaciones = reclamacionPage.getContent();
+        long totalRecords = reclamacionPage.getTotalElements();
+
+        PaginatedResponse<Reclamacion> response = new PaginatedResponse<>(reclamaciones, totalRecords);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/reclamaciones/{reclamacionId}")
