@@ -1,13 +1,9 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.data.AseguradoraRepository;
-import avalon.usuarios.data.ReclamacionRepository;
-import avalon.usuarios.data.UsuarioRepository;
-import avalon.usuarios.model.pojo.Aseguradora;
+import avalon.usuarios.data.CasoRepository;
+import avalon.usuarios.model.pojo.Caso;
 import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.Reclamacion;
-import avalon.usuarios.model.request.PartiallyUpdateAseguradora;
-import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
+import avalon.usuarios.model.request.PartiallyUpdateCasoRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -24,50 +20,50 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ReclamacionServiceImpl implements ReclamacionService {
+public class CasoServiceImpl implements CasoService {
 
-    private final ReclamacionRepository repository;
+    private final CasoRepository repository;
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    public ReclamacionServiceImpl(ReclamacionRepository repository) {
+    public CasoServiceImpl(CasoRepository repository) {
         this.repository = repository;
     }
 
     @Override
-    public Optional<Reclamacion> getReclamacion(Long reclamacionId) {
-        return repository.findById(reclamacionId);
+    public Optional<Caso> getCaso(Long casoId) {
+        return repository.findById(casoId);
     }
 
     @Override
-    public Reclamacion saveReclamacion(Reclamacion reclamacion) {
-        if (reclamacion.getCodigo() == null) {
-            reclamacion.setCodigo(this.generarNuevoCodigo());
+    public Caso saveCaso(Caso caso) {
+        if (caso.getCodigo() == null) {
+            caso.setCodigo(this.generarNuevoCodigo());
         }
-        return repository.save(reclamacion);
+        return repository.save(caso);
     }
 
     @Override
-    public Reclamacion partiallyUpdateReclamacion(PartiallyUpdateReclamacionRequest request, Long reclamacionId) {
-        Reclamacion reclamacion = repository.findById(reclamacionId).orElse(null);
-        if (reclamacion == null) return null;
+    public Caso partiallyUpdateCaso(PartiallyUpdateCasoRequest request, Long casoId) {
+        Caso caso = repository.findById(casoId).orElse(null);
+        if (caso == null) return null;
 
         if (request.getEstado() != null)
-            reclamacion.setEstado(request.getEstado());
+            caso.setEstado(request.getEstado());
 
-        return repository.save(reclamacion);
+        return repository.save(caso);
     }
 
     @Override
-    public void deleteReclamacion(Long reclamacionId) {
-        repository.deleteById(reclamacionId);
+    public void deleteCaso(Long casoId) {
+        repository.deleteById(casoId);
     }
 
     @Override
     public String generarNuevoCodigo() {
         try {
-            String ultimoCodigo = (String) entityManager.createQuery("SELECT r.codigo FROM Reclamacion r ORDER BY r.codigo DESC")
+            String ultimoCodigo = (String) entityManager.createQuery("SELECT c.codigo FROM Caso c ORDER BY c.codigo DESC")
                     .setMaxResults(1)
                     .getSingleResult();
 
@@ -79,13 +75,13 @@ public class ReclamacionServiceImpl implements ReclamacionService {
         }
     }
 
-    public Page<Reclamacion> searchReclamaciones(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
+    public Page<Caso> searchCasos(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
-        CriteriaQuery<Reclamacion> query = cb.createQuery(Reclamacion.class);
-        Root<Reclamacion> rRoot = query.from(Reclamacion.class);
-        Join<Reclamacion, ClientePoliza> cpJoin = rRoot.join("clientePoliza");
+        CriteriaQuery<Caso> query = cb.createQuery(Caso.class);
+        Root<Caso> rRoot = query.from(Caso.class);
+        Join<Caso, ClientePoliza> cpJoin = rRoot.join("clientePoliza");
 
         List<Predicate> predicates = buildPredicates(cb, rRoot, cpJoin, busqueda, estado, clientePoliza);
 
@@ -96,25 +92,25 @@ public class ReclamacionServiceImpl implements ReclamacionService {
         Order order = sortOrder.isAscending() ? cb.asc(rRoot.get(sortOrder.getProperty())) : cb.desc(rRoot.get(sortOrder.getProperty()));
         query.orderBy(order);
 
-        List<Reclamacion> resultList = entityManager.createQuery(query)
+        List<Caso> resultList = entityManager.createQuery(query)
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countReclamaciones(busqueda, estado, clientePoliza);
+        Long totalRecords = countCasos(busqueda, estado, clientePoliza);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countReclamaciones(String busqueda, String estado, ClientePoliza clientePoliza) {
+    private Long countCasos(String busqueda, String estado, ClientePoliza clientePoliza) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<Reclamacion> countRoot = countQuery.from(Reclamacion.class);
+        Root<Caso> countRoot = countQuery.from(Caso.class);
         countQuery.select(cb.count(countRoot));
 
-        Join<Reclamacion, ClientePoliza> cpJoin = countRoot.join("clientePoliza");
+        Join<Caso, ClientePoliza> cpJoin = countRoot.join("clientePoliza");
 
         List<Predicate> countPredicates = buildPredicates(cb, countRoot, cpJoin, busqueda, estado, clientePoliza);
 
@@ -128,7 +124,7 @@ public class ReclamacionServiceImpl implements ReclamacionService {
         }
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Reclamacion> rRoot, Join<Reclamacion, ClientePoliza> cpJoin, String busqueda, String estado, ClientePoliza clientePoliza) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Caso> rRoot, Join<Caso, ClientePoliza> cpJoin, String busqueda, String estado, ClientePoliza clientePoliza) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {

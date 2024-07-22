@@ -11,9 +11,7 @@ import java.util.Optional;
 
 public interface ReclamacionService {
 
-    List<Reclamacion> getReclamacionByEstado(String estado);
-    List<Reclamacion> getReclamaciones();
-    List<Reclamacion> getReclamacionesByClientePoliza(ClientePoliza clientePoliza);
+    String generarNuevoCodigo();
     Page<Reclamacion> searchReclamaciones(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza);
     Optional<Reclamacion> getReclamacion(Long reclamacionId);
     Reclamacion saveReclamacion(Reclamacion reclamacion);

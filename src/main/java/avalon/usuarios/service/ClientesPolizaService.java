@@ -10,6 +10,7 @@ import java.util.Optional;
 
 public interface ClientesPolizaService {
 
+    String generarNuevoCodigo();
     Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza);
     Optional<ClientePoliza> getClientePoliza(Long clientePolizaId);
     ClientePoliza savePoliza(ClientePoliza request);

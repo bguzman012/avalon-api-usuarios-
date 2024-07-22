@@ -1,22 +1,20 @@
 package avalon.usuarios.model.pojo;
 import avalon.usuarios.model.auditing.AuditingData;
-import avalon.usuarios.service.ReclamacionService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @Entity
-@Table(name = "reclamaciones")
+@Table(name = "casos")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Reclamacion extends AuditingData {
+public class Caso extends AuditingData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +40,6 @@ public class Reclamacion extends AuditingData {
     private ClientePoliza clientePoliza;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "reclamacion", cascade = CascadeType.ALL)
-    private List<Comentario> comentarioList;
-
+    @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL)
+    private List<ComentarioCasos> comentarioCasosList;
 }

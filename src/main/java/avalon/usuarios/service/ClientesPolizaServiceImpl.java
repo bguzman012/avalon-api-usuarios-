@@ -37,6 +37,20 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         this.repository = repository;
     }
 
+    @Override
+    public String generarNuevoCodigo() {
+        String ultimoCodigo = (String) entityManager.createQuery("SELECT cp.codigo FROM ClientePoliza cp ORDER BY cp.codigo DESC")
+                .setMaxResults(1)
+                .getSingleResult();
+
+        if (ultimoCodigo == null) {
+            return "0000001";
+        }
+
+        int nuevoCodigoInt = Integer.parseInt(ultimoCodigo) + 1;
+        return String.format("%07d", nuevoCodigoInt);
+    }
+
 
     @Override
     public Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza) {
@@ -112,6 +126,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                     cb.like(cb.lower(aJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(agJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(pJoin.get("nombre")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaFin"), cb.literal("yyyy-MM-dd")), likePattern)
             ));
@@ -135,6 +150,10 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
     @Override
     public ClientePoliza savePoliza(ClientePoliza clientePoliza) {
+        if (clientePoliza.getCodigo() == null) {
+            clientePoliza.setCodigo(this.generarNuevoCodigo());
+        }
+
         return this.repository.save(clientePoliza);
     }
 

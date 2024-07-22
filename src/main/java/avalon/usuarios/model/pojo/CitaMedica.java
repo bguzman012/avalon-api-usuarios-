@@ -16,16 +16,12 @@ import java.util.List;
 @Builder
 public class CitaMedica extends AuditingData {
 
-    public CitaMedica(Long id, String razon, String estado, ClientePoliza clientePoliza) {
-        this.id = id;
-        this.razon = razon;
-        this.estado = estado;
-        this.clientePoliza = clientePoliza;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "codigo", unique = true, updatable = false)
+    private String codigo;
 
     @NotNull
     @Column(name = "razon")

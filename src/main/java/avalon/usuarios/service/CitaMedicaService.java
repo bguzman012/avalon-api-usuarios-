@@ -12,9 +12,7 @@ import java.util.Optional;
 
 public interface CitaMedicaService {
 
-    List<CitaMedica> getCitaMedicaByEstado(String estado);
-    List<CitaMedica> getCitasMedicas();
-    List<CitaMedica> getCitasMedicasByClientePoliza(ClientePoliza clientePoliza);
+    String generarNuevoCodigo();
     Page<CitaMedica> searchCitasMedicas(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza);
     Optional<CitaMedica> getCitaMedica(Long citaMedicaId);
     CitaMedica saveCitaMedica(CitaMedica citaMedica);

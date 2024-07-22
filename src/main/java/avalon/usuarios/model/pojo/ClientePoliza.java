@@ -24,6 +24,9 @@ public class ClientePoliza extends AuditingData {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "codigo", unique = true, updatable = false)
+    private String codigo;
+
     @ManyToOne
     @NotNull
     @JoinColumn(name = "cliente_id")

@@ -6,6 +6,7 @@ import avalon.usuarios.model.pojo.CitaMedica;
 import avalon.usuarios.model.pojo.Reclamacion;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,27 +33,15 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     }
 
     @Override
-    public List<CitaMedica> getCitasMedicasByClientePoliza(ClientePoliza clientePoliza) {
-        return repository.findByClientePoliza(clientePoliza);
-    }
-
-    @Override
-    public List<CitaMedica> getCitaMedicaByEstado(String estado) {
-        return repository.findAllByEstado(estado);
-    }
-
-    @Override
-    public List<CitaMedica> getCitasMedicas() {
-        return repository.findAll();
-    }
-
-    @Override
     public Optional<CitaMedica> getCitaMedica(Long citaMedicaId) {
         return repository.findById(citaMedicaId);
     }
 
     @Override
     public CitaMedica saveCitaMedica(CitaMedica citaMedica) {
+        if (citaMedica.getCodigo() == null) {
+            citaMedica.setCodigo(this.generarNuevoCodigo());
+        }
         return repository.save(citaMedica);
     }
 
@@ -70,6 +59,21 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     @Override
     public void deleteCitaMedica(Long citaMedicaId) {
         repository.deleteById(citaMedicaId);
+    }
+
+    @Override
+    public String generarNuevoCodigo() {
+        try {
+            String ultimoCodigo = (String) entityManager.createQuery("SELECT c.codigo FROM CitaMedica c ORDER BY c.codigo DESC")
+                    .setMaxResults(1)
+                    .getSingleResult();
+
+            int nuevoCodigoInt = Integer.parseInt(ultimoCodigo) + 1;
+            return String.format("%07d", nuevoCodigoInt);
+        } catch (NoResultException e) {
+            // Si no hay resultados, se devuelve el primer código
+            return "0000001";
+        }
     }
 
     public Page<CitaMedica> searchCitasMedicas(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
@@ -127,9 +131,10 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
-            predicates.add(
-                    cb.like(cb.lower(rRoot.get("razon")), likePattern)
-            );
+            predicates.add(cb.or(
+                    cb.like(cb.lower(rRoot.get("razon")), likePattern),
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern)
+            ));
         }
 
         if (estado != null && !estado.isEmpty()) {
