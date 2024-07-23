@@ -10,13 +10,15 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CasoRequest {
+public class ComentarioEmergenciaRequest {
 
 	@NotNull
-	private String razon;
-	private String estado;
-	private String nombreDocumento;
+	private Long emergenciaId;
 	@NotNull
-	private Long clientePolizaId;
+	private String contenido;
+	@NotNull
+	private Long usuarioComentaId;
+	@NotNull
+	private String estado;
 
 }

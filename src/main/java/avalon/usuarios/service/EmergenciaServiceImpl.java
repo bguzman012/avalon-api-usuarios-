@@ -1,9 +1,9 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.data.CasoRepository;
-import avalon.usuarios.model.pojo.Caso;
+import avalon.usuarios.data.EmergenciaRepository;
+import avalon.usuarios.model.pojo.Emergencia;
 import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.request.PartiallyUpdateCasoRequest;
+import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -20,50 +20,50 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CasoServiceImpl implements CasoService {
+public class EmergenciaServiceImpl implements EmergenciaService {
 
-    private final CasoRepository repository;
+    private final EmergenciaRepository repository;
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    public CasoServiceImpl(CasoRepository repository) {
+    public EmergenciaServiceImpl(EmergenciaRepository repository) {
         this.repository = repository;
     }
 
     @Override
-    public Optional<Caso> getCaso(Long casoId) {
+    public Optional<Emergencia> getEmergencia(Long casoId) {
         return repository.findById(casoId);
     }
 
     @Override
-    public Caso saveCaso(Caso caso) {
-        if (caso.getCodigo() == null) {
-            caso.setCodigo(this.generarNuevoCodigo());
+    public Emergencia saveEmergencia(Emergencia emergencia) {
+        if (emergencia.getCodigo() == null) {
+            emergencia.setCodigo(this.generarNuevoCodigo());
         }
-        return repository.save(caso);
+        return repository.save(emergencia);
     }
 
     @Override
-    public Caso partiallyUpdateCaso(PartiallyUpdateCasoRequest request, Long casoId) {
-        Caso caso = repository.findById(casoId).orElse(null);
-        if (caso == null) return null;
+    public Emergencia partiallyUpdateEmergencia(PartiallyUpdateEmergenciasRequest request, Long casoId) {
+        Emergencia emergencia = repository.findById(casoId).orElse(null);
+        if (emergencia == null) return null;
 
         if (request.getEstado() != null)
-            caso.setEstado(request.getEstado());
+            emergencia.setEstado(request.getEstado());
 
-        return repository.save(caso);
+        return repository.save(emergencia);
     }
 
     @Override
-    public void deleteCaso(Long casoId) {
+    public void deleteEmergencia(Long casoId) {
         repository.deleteById(casoId);
     }
 
     @Override
     public String generarNuevoCodigo() {
         try {
-            String ultimoCodigo = (String) entityManager.createQuery("SELECT c.codigo FROM Caso c ORDER BY c.codigo DESC")
+            String ultimoCodigo = (String) entityManager.createQuery("SELECT e.codigo FROM Emergencia e ORDER BY e.codigo DESC")
                     .setMaxResults(1)
                     .getSingleResult();
 
@@ -75,13 +75,13 @@ public class CasoServiceImpl implements CasoService {
         }
     }
 
-    public Page<Caso> searchCasos(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
+    public Page<Emergencia> searchEmergencias(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
-        CriteriaQuery<Caso> query = cb.createQuery(Caso.class);
-        Root<Caso> rRoot = query.from(Caso.class);
-        Join<Caso, ClientePoliza> cpJoin = rRoot.join("clientePoliza");
+        CriteriaQuery<Emergencia> query = cb.createQuery(Emergencia.class);
+        Root<Emergencia> rRoot = query.from(Emergencia.class);
+        Join<Emergencia, ClientePoliza> cpJoin = rRoot.join("clientePoliza");
 
         List<Predicate> predicates = buildPredicates(cb, rRoot, cpJoin, busqueda, estado, clientePoliza);
 
@@ -92,25 +92,25 @@ public class CasoServiceImpl implements CasoService {
         Order order = sortOrder.isAscending() ? cb.asc(rRoot.get(sortOrder.getProperty())) : cb.desc(rRoot.get(sortOrder.getProperty()));
         query.orderBy(order);
 
-        List<Caso> resultList = entityManager.createQuery(query)
+        List<Emergencia> resultList = entityManager.createQuery(query)
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countCasos(busqueda, estado, clientePoliza);
+        Long totalRecords = countEmergencias(busqueda, estado, clientePoliza);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countCasos(String busqueda, String estado, ClientePoliza clientePoliza) {
+    private Long countEmergencias(String busqueda, String estado, ClientePoliza clientePoliza) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<Caso> countRoot = countQuery.from(Caso.class);
+        Root<Emergencia> countRoot = countQuery.from(Emergencia.class);
         countQuery.select(cb.count(countRoot));
 
-        Join<Caso, ClientePoliza> cpJoin = countRoot.join("clientePoliza");
+        Join<Emergencia, ClientePoliza> cpJoin = countRoot.join("clientePoliza");
 
         List<Predicate> countPredicates = buildPredicates(cb, countRoot, cpJoin, busqueda, estado, clientePoliza);
 
@@ -124,7 +124,7 @@ public class CasoServiceImpl implements CasoService {
         }
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Caso> rRoot, Join<Caso, ClientePoliza> cpJoin, String busqueda, String estado, ClientePoliza clientePoliza) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Emergencia> rRoot, Join<Emergencia, ClientePoliza> cpJoin, String busqueda, String estado, ClientePoliza clientePoliza) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {

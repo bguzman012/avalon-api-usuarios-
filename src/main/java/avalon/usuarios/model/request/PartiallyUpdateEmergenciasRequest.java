@@ -1,6 +1,5 @@
 package avalon.usuarios.model.request;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,15 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ComentarioCasoRequest {
+public class PartiallyUpdateEmergenciasRequest {
 
-	@NotNull
-	private Long casoId;
-	@NotNull
-	private String contenido;
-	@NotNull
-	private Long usuarioComentaId;
-	@NotNull
 	private String estado;
-
 }

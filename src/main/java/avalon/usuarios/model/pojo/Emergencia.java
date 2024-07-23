@@ -8,13 +8,13 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "casos")
+@Table(name = "emergencias")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Caso extends AuditingData {
+public class Emergencia extends AuditingData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +40,6 @@ public class Caso extends AuditingData {
     private ClientePoliza clientePoliza;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL)
-    private List<ComentarioCasos> comentarioCasosList;
+    @OneToMany(mappedBy = "emergencia", cascade = CascadeType.ALL)
+    private List<ComentarioEmergencia> comentarioEmergenciaList;
 }

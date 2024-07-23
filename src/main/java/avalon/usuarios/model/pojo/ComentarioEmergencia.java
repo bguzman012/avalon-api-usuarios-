@@ -6,15 +6,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Entity
-@Table(name = "comentarios_casos")
+@Table(name = "comentarios_emergencias")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ComentarioCasos extends AuditingData {
+public class ComentarioEmergencia extends AuditingData {
 
-    public ComentarioCasos(Long id, String contenido, Usuario usuarioComenta, String estado) {
+    public ComentarioEmergencia(Long id, String contenido, Usuario usuarioComenta, String estado) {
         this.id = id;
         this.contenido = contenido;
         this.usuarioComenta = usuarioComenta;
@@ -31,8 +31,8 @@ public class ComentarioCasos extends AuditingData {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "caso_id", nullable = false)
-    private Caso caso;
+    @JoinColumn(name = "emergencia_id", nullable = false)
+    private Emergencia emergencia;
 
     @NotNull
     @ManyToOne
