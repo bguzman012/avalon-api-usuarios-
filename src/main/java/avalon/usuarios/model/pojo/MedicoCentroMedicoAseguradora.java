@@ -5,10 +5,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.Date;
-
 @Entity
-@Table(name = "clientes_membresias")
+@Table(name = "medico_centr_med_aseg")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,27 +21,18 @@ public class MedicoCentroMedicoAseguradora extends AuditingData {
 
     @ManyToOne
     @NotNull
-    @JoinColumn(name = "membresia_id")
-    private Membresia membresia;
+    @JoinColumn(name = "aseguradora_id")
+    private Aseguradora aseguradora;
 
     @ManyToOne
     @NotNull
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+    @JoinColumn(name = "medico_id")
+    private Medico medico;
 
     @ManyToOne
-    @JoinColumn(name = "asesor_id")
-    private Asesor asesor;
-
-    @Temporal(TemporalType.DATE)
-    private Date fechaInicio;
-
-    @Temporal(TemporalType.DATE)
-    private Date fechaFin;
-
     @NotNull
-    @Column(name = "estado")
-    private String estado;
+    @JoinColumn(name = "centro_medico_id")
+    private CentroMedico centroMedico;
 
 }
 

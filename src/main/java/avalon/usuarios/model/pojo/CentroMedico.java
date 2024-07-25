@@ -36,5 +36,9 @@ public class CentroMedico extends AuditingData {
     @Embedded
     private Direccion direccion;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "centroMedico", cascade = CascadeType.ALL)
+    private List<MedicoCentroMedicoAseguradora> medicoCentroMedicoAseguradoraList;
+
 }
 

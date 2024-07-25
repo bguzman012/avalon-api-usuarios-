@@ -1,9 +1,12 @@
 package avalon.usuarios.model.pojo;
 
 import avalon.usuarios.model.auditing.AuditingData;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Table(name = "medicos")
@@ -56,5 +59,8 @@ public class Medico extends AuditingData {
     @JoinColumn(name = "especialidad_id")
     private Especialidad especialidad;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL)
+    private List<MedicoCentroMedicoAseguradora> medicoCentroMedicoAseguradoraList;
 }
 
