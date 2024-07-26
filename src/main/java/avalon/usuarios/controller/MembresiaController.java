@@ -86,7 +86,6 @@ public class MembresiaController {
     @PutMapping("/membresias/{membresiaId}")
     public ResponseEntity<Membresia> updateMembresia(@PathVariable Long membresiaId, @RequestBody MembresiaRequest request) {
         Membresia membresia = service.getMembresia(membresiaId).orElseThrow(() -> new IllegalArgumentException("Membresía no encontrada"));
-        ;
         Membresia membresiaMapped = this.mapToMembresia(request, membresia);
         this.service.saveMembresia(membresiaMapped);
         return membresiaMapped != null ? ResponseEntity.ok(membresiaMapped) : ResponseEntity.badRequest().build();
