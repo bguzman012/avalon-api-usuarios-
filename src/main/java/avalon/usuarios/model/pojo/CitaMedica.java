@@ -35,6 +35,11 @@ public class CitaMedica extends AuditingData {
     private String estado;
 
     @ManyToOne
+//    @NotNull
+    @JoinColumn(name = "medico_centro_medico_aseguradora_id")
+    private MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora;
+
+    @ManyToOne
     @NotNull
     @JoinColumn(name = "cliente_poliza_id")
     private ClientePoliza clientePoliza;

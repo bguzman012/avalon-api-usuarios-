@@ -62,5 +62,14 @@ public class Medico extends AuditingData {
     @JsonIgnore
     @OneToMany(mappedBy = "medico", cascade = CascadeType.ALL)
     private List<MedicoCentroMedicoAseguradora> medicoCentroMedicoAseguradoraList;
+
+    // Campo no persistente para concatenar nombres y apellidos
+    @Transient
+    public String getNombreCompleto() {
+        return (nombres != null ? nombres + " " : "") +
+                (nombresDos != null ? nombresDos + " " : "") +
+                (apellidos != null ? apellidos + " " : "") +
+                (apellidosDos != null ? apellidosDos : "");
+    }
 }
 

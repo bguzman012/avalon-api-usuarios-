@@ -15,7 +15,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 @ToString
-public class MedicoCentroMedicoAseguradora extends AuditingData {
+public class ClienteMembresia extends AuditingData {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

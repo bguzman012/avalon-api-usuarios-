@@ -1,9 +1,6 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.Imagen;
-import avalon.usuarios.model.pojo.CitaMedica;
-import avalon.usuarios.model.pojo.Reclamacion;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import avalon.usuarios.model.request.ReclamacionRequest;
@@ -11,6 +8,7 @@ import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.ClientesPolizaService;
 import avalon.usuarios.service.CitaMedicaService;
 import avalon.usuarios.service.ImagenService;
+import avalon.usuarios.service.MedicoCentroMedicoAseguradoraService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +34,8 @@ public class CitaMedicaController {
     @Autowired
     private ClientesPolizaService clientesPolizaService;
     @Autowired
+    private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
+    @Autowired
     private ImagenService imagenService;
     private String TOPICO = "IMAGEN_CITA_MEDICA";
 
@@ -44,7 +44,10 @@ public class CitaMedicaController {
                                                        @RequestPart("fotoCitaMedica") MultipartFile fotoCitaMedica) {
         try {
             ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-            CitaMedica citaMedica = this.mapToCitaMedica(request, clientePoliza);
+            MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+
+            CitaMedica citaMedica = this.mapToCitaMedica(request, clientePoliza, medicoCentroMedicoAseguradora);
             if (!fotoCitaMedica.isEmpty()) {
                 Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
                 this.imagenService.saveImagen(imagen);
@@ -61,12 +64,12 @@ public class CitaMedicaController {
 
     @GetMapping("/citasMedicas")
     public ResponseEntity<PaginatedResponse<CitaMedica>> getCitasMedicas(@RequestParam(required = false) String estado,
-                                                            @RequestParam(required = false) String clientePolizaId,
-                                                            @RequestParam(required = false) String busqueda,
-                                                            @RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int size,
-                                                            @RequestParam(defaultValue = "createdDate") String sortField,
-                                                            @RequestParam(defaultValue = "desc") String sortOrder) {
+                                                                         @RequestParam(required = false) String clientePolizaId,
+                                                                         @RequestParam(required = false) String busqueda,
+                                                                         @RequestParam(defaultValue = "0") int page,
+                                                                         @RequestParam(defaultValue = "10") int size,
+                                                                         @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                         @RequestParam(defaultValue = "desc") String sortOrder) {
         ClientePoliza clientePoliza = null;
 
         if (!clientePolizaId.isBlank()) {
@@ -107,10 +110,13 @@ public class CitaMedicaController {
 
     @PutMapping("/citasMedicas/{citaMedicaId}")
     public ResponseEntity<CitaMedica> updateCitaMedica(@PathVariable Long citaMedicaId,
-                                                         @RequestPart("reclamacion") CitaMedicaRequest request,
-                                                         @RequestPart("fotoReclamo") MultipartFile fotoReclamo) {
+                                                       @RequestPart("reclamacion") CitaMedicaRequest request,
+                                                       @RequestPart("fotoReclamo") MultipartFile fotoReclamo) {
         try {
             ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+            MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+
             CitaMedica citaMedica = service.getCitaMedica(citaMedicaId).orElseThrow(() -> new IllegalArgumentException("CitaMedica no encontrada"));
             citaMedica.setRazon(request.getRazon());
 
@@ -127,6 +133,7 @@ public class CitaMedicaController {
 
             citaMedica.setEstado(request.getEstado());
             citaMedica.setClientePoliza(clientePoliza);
+            citaMedica.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
             service.saveCitaMedica(citaMedica);
 
             return citaMedica.getId() != null ? ResponseEntity.ok(citaMedica) : ResponseEntity.badRequest().build();
@@ -145,11 +152,12 @@ public class CitaMedicaController {
         }
     }
 
-    private CitaMedica mapToCitaMedica(CitaMedicaRequest request, ClientePoliza clientePoliza) {
+    private CitaMedica mapToCitaMedica(CitaMedicaRequest request, ClientePoliza clientePoliza, MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora) {
         return CitaMedica.builder()
                 .razon(request.getRazon())
                 .estado(request.getEstado())
                 .clientePoliza(clientePoliza)
+                .medicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora)
                 .build();
     }
 }

@@ -18,5 +18,7 @@ public class CitaMedicaRequest {
 	private String nombreDocumento;
 	@NotNull
 	private Long clientePolizaId;
+	@NotNull
+	private Long medicoCentroMedicoAseguradoraId;
 
 }

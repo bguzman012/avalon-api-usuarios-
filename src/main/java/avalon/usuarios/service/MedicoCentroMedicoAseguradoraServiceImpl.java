@@ -20,10 +20,6 @@ import java.util.Optional;
 public class MedicoCentroMedicoAseguradoraServiceImpl implements MedicoCentroMedicoAseguradoraService {
 
     private final MedicoCentroMedicoAseguradoraRepository repository;
-    @Autowired
-    private ClienteService clienteService;
-    @Autowired
-    private MembresiaService membresiaService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -38,17 +34,18 @@ public class MedicoCentroMedicoAseguradoraServiceImpl implements MedicoCentroMed
         return repository.save(clienteMembresia);
     }
 
-    public Page<MedicoCentroMedicoAseguradora> searchMedicoCentroMedicoAseguradoras(String busqueda, Pageable pageable, Medico medico, Aseguradora aseguradora) {
+    public Page<MedicoCentroMedicoAseguradora> searchMedicoCentroMedicoAseguradoras(String busqueda,
+                                                                                    Pageable pageable,
+                                                                                    Medico medico,
+                                                                                    Aseguradora aseguradora,
+                                                                                    CentroMedico centroMedico) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
         CriteriaQuery<MedicoCentroMedicoAseguradora> query = cb.createQuery(MedicoCentroMedicoAseguradora.class);
         Root<MedicoCentroMedicoAseguradora> cmRoot = query.from(MedicoCentroMedicoAseguradora.class);
-        Join<MedicoCentroMedicoAseguradora, Membresia> mJoin = cmRoot.join("membresia");
-        Join<MedicoCentroMedicoAseguradora, Cliente> cJoin = cmRoot.join("cliente");
-        Join<MedicoCentroMedicoAseguradora, Asesor> aJoin = cmRoot.join("asesor");
 
-        List<Predicate> predicates = buildPredicates(cb, cmRoot, mJoin, cJoin, aJoin, busqueda, cliente, membresia);
+        List<Predicate> predicates = buildPredicates(cb, cmRoot, busqueda, medico, centroMedico, aseguradora);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -61,12 +58,15 @@ public class MedicoCentroMedicoAseguradoraServiceImpl implements MedicoCentroMed
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countClientesMembresias(busqueda, cliente, membresia);
+        Long totalRecords = countClientesMembresias(busqueda, medico, aseguradora, centroMedico);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countClientesMembresias(String busqueda, Cliente cliente, Membresia membresia) {
+    private Long countClientesMembresias(String busqueda,
+                                         Medico medico,
+                                         Aseguradora aseguradora,
+                                         CentroMedico centroMedico) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -74,11 +74,7 @@ public class MedicoCentroMedicoAseguradoraServiceImpl implements MedicoCentroMed
         Root<MedicoCentroMedicoAseguradora> countRoot = countQuery.from(MedicoCentroMedicoAseguradora.class);
         countQuery.select(cb.count(countRoot));
 
-        Join<MedicoCentroMedicoAseguradora, Membresia> mJoin = countRoot.join("membresia");
-        Join<MedicoCentroMedicoAseguradora, Cliente> cJoin = countRoot.join("cliente");
-        Join<MedicoCentroMedicoAseguradora, Asesor> aJoin = countRoot.join("asesor");
-
-        List<Predicate> countPredicates = buildPredicates(cb, countRoot, mJoin, cJoin, aJoin, busqueda, cliente, membresia);
+        List<Predicate> countPredicates = buildPredicates(cb, countRoot, busqueda, medico, centroMedico, aseguradora);
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -92,29 +88,37 @@ public class MedicoCentroMedicoAseguradoraServiceImpl implements MedicoCentroMed
 
     private List<Predicate> buildPredicates(CriteriaBuilder cb,
                                             Root<MedicoCentroMedicoAseguradora> cmRoot,
-                                            Join<MedicoCentroMedicoAseguradora, Membresia> mJoin,
-                                            Join<MedicoCentroMedicoAseguradora, Cliente> cJoin,
-                                            Join<MedicoCentroMedicoAseguradora, Asesor> aJoin, String busqueda, Cliente cliente, Membresia membresia) {
+                                            String busqueda,
+                                            Medico medico,
+                                            CentroMedico centroMedico,
+                                            Aseguradora aseguradora) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
             predicates.add(cb.or(
-                    cb.like(cb.lower(cJoin.get("nombreUsuario")), likePattern),
-                    cb.like(cb.lower(mJoin.get("nombres")), likePattern),
-                    cb.like(cb.lower(aJoin.get("nombreUsuario")), likePattern),
-                    cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
-                    cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaFin"), cb.literal("yyyy-MM-dd")), likePattern)
+                    cb.like(cb.lower(cmRoot.get("aseguradora").get("nombre")), likePattern),
+
+                    cb.like(cb.lower(cmRoot.get("medico").get("nombres")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("medico").get("nombresDos")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("medico").get("apellidos")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("medico").get("apellidosDos")), likePattern),
+
+                    cb.like(cb.lower(cmRoot.get("centroMedico").get("nombre")), likePattern)
             ));
         }
 
-        if (cliente != null) {
-            predicates.add(cb.equal(cmRoot.get("cliente"), cliente));
+        if (medico != null) {
+            predicates.add(cb.equal(cmRoot.get("medico"), medico));
         }
 
-        if (membresia != null) {
-            predicates.add(cb.equal(cmRoot.get("membresia"), membresia));
+        if (aseguradora != null) {
+            predicates.add(cb.equal(cmRoot.get("aseguradora"), aseguradora));
+        }
+
+        if (centroMedico != null) {
+            predicates.add(cb.equal(cmRoot.get("centroMedico"), centroMedico));
         }
 
         return predicates;
