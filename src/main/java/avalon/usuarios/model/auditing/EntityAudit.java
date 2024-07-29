@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "entity_audit")
 @Getter
 @Setter
-public class EntityAudit {
+public class EntityAudit extends AuditingData{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,12 +27,6 @@ public class EntityAudit {
 
     @Column(name = "new_value", columnDefinition = "TEXT")
     private String newValue;
-
-    @Column(name = "modified_by")
-    private String modifiedBy;
-
-    @Column(name = "modified_date")
-    private LocalDateTime modifiedDate;
 
     @Column(name = "operation")
     private String operation;

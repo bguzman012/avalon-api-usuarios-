@@ -1,23 +1,20 @@
 package avalon.usuarios.model.pojo;
 
-import avalon.usuarios.config.AuditListener;
+import avalon.usuarios.model.auditing.AuditListener;
 import avalon.usuarios.model.auditing.AuditingData;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-import java.util.List;
-
 @Entity
 @Table(name = "metodos_pago")
-@EntityListeners(AuditListener.class)
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @ToString
+@EntityListeners(AuditListener.class)
 public class MetodoPago extends AuditingData {
 
     @Id

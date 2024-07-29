@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 public interface EntityAuditRepository extends JpaRepository<EntityAudit, Long> {
+
+    Object findByEntityNameAndEntityIdOrderByIdDesc(String entityName, Long entityId);
 }
