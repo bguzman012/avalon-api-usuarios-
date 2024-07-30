@@ -1,5 +1,6 @@
 package avalon.usuarios.model.pojo;
 
+import avalon.usuarios.model.auditing.AuditListener;
 import avalon.usuarios.model.auditing.AuditingData;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditListener.class)
 public class ComentarioCitasMedicas extends AuditingData {
 
     public ComentarioCitasMedicas(Long id, String contenido, Usuario usuarioComenta, String estado) {

@@ -1,5 +1,6 @@
 package avalon.usuarios.model.pojo;
 
+import avalon.usuarios.model.auditing.AuditListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.*;

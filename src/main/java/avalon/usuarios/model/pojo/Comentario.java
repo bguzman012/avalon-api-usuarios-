@@ -1,5 +1,6 @@
 package avalon.usuarios.model.pojo;
 
+import avalon.usuarios.model.auditing.AuditListener;
 import avalon.usuarios.model.auditing.AuditingData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -13,6 +14,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditListener.class)
 public class Comentario extends AuditingData {
 
     public Comentario(Long id, String contenido, Usuario usuarioComenta, String estado) {

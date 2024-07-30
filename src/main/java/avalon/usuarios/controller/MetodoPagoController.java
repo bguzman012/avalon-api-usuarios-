@@ -67,6 +67,13 @@ public class MetodoPagoController {
         }
     }
 
+    @DeleteMapping("/metodosPago/{metodoPagoId}")
+    public ResponseEntity<Void> deleteAseguradora(@PathVariable Long metodoPagoId) {
+        service.deleteMetodoPago(metodoPagoId);
+        return ResponseEntity.noContent().build();
+    }
+
+
     private MetodoPago mapToMetodoPago(MetodoPagoRequest request, MetodoPago metodoPago) {
         metodoPago.setNombre(request.getNombre());
         metodoPago.setDescripcion(request.getDescripcion());

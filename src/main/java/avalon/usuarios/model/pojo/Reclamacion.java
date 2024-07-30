@@ -1,4 +1,5 @@
 package avalon.usuarios.model.pojo;
+import avalon.usuarios.model.auditing.AuditListener;
 import avalon.usuarios.model.auditing.AuditingData;
 import avalon.usuarios.service.ReclamacionService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditListener.class)
 public class Reclamacion extends AuditingData {
 
     @Id

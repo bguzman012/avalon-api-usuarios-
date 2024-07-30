@@ -1,5 +1,6 @@
 package avalon.usuarios.model.pojo;
 
+import avalon.usuarios.model.auditing.AuditListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @ToString
+@EntityListeners(AuditListener.class)
 public class Rol {
 
     @Id

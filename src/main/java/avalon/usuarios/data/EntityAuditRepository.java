@@ -11,5 +11,5 @@ import java.util.List;
 
 public interface EntityAuditRepository extends JpaRepository<EntityAudit, Long> {
 
-    Object findByEntityNameAndEntityIdOrderByIdDesc(String entityName, Long entityId);
+    List<EntityAudit> findByEntityNameAndEntityIdOrderByIdDesc(String entityName, Long entityId);
 }

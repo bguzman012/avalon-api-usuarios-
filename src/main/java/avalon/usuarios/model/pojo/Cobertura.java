@@ -1,5 +1,6 @@
 package avalon.usuarios.model.pojo;
 
+import avalon.usuarios.model.auditing.AuditListener;
 import avalon.usuarios.model.auditing.AuditingData;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
+@EntityListeners(AuditListener.class)
 public class Cobertura extends AuditingData {
 
     @Id

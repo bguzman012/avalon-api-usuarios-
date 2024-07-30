@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "entity_audit")
 @Getter
 @Setter
-public class EntityAudit extends AuditingData{
+public class EntityAudit extends AuditingDataHistory{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,5 +31,4 @@ public class EntityAudit extends AuditingData{
     @Column(name = "operation")
     private String operation;
 
-    // Getters and Setters
 }

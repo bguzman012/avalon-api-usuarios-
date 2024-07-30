@@ -1,5 +1,6 @@
 package avalon.usuarios.model.pojo;
 
+import avalon.usuarios.model.auditing.AuditListener;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -12,6 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @ToString
+@EntityListeners(AuditListener.class)
 public class Estado {
 
     @Id

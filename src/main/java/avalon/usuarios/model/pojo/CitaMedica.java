@@ -1,4 +1,5 @@
 package avalon.usuarios.model.pojo;
+import avalon.usuarios.model.auditing.AuditListener;
 import avalon.usuarios.model.auditing.AuditingData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@EntityListeners(AuditListener.class)
 public class CitaMedica extends AuditingData {
 
     @Id
