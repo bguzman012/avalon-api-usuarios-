@@ -38,7 +38,7 @@ public class EntityAuditServiceImpl implements EntityAuditService {
         CriteriaQuery<EntityAudit> query = cb.createQuery(EntityAudit.class);
         Root<EntityAudit> root = query.from(EntityAudit.class);
 
-        List<Predicate> predicates = buildPredicates(cb, root, busquedaEntityName);
+        List<Predicate> predicates = buildPredicates(cb, root, busquedaEntityName, busquedaOperation, busquedaId, busquedaCreatedDate, busquedaUser);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -52,12 +52,13 @@ public class EntityAuditServiceImpl implements EntityAuditService {
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countEntityAudits(busquedaEntityName);
+        Long totalRecords = countEntityAudits(busquedaEntityName, busquedaOperation, busquedaId, busquedaCreatedDate, busquedaUser);
 
         return new PageImpl<>(entityAudits, pageable, totalRecords);
     }
 
-    private Long countEntityAudits(String busqueda) {
+    private Long countEntityAudits(String busquedaEntityName, String busquedaOperation, String busquedaId,
+                                   String busquedaCreatedDate, String busquedaUser) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -65,7 +66,7 @@ public class EntityAuditServiceImpl implements EntityAuditService {
         Root<EntityAudit> countRoot = countQuery.from(EntityAudit.class);
         countQuery.select(cb.count(countRoot));
 
-        List<Predicate> countPredicates = buildPredicates(cb, countRoot, busqueda);
+        List<Predicate> countPredicates = buildPredicates(cb, countRoot, busquedaEntityName, busquedaOperation, busquedaId, busquedaCreatedDate, busquedaUser);
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -77,26 +78,35 @@ public class EntityAuditServiceImpl implements EntityAuditService {
         }
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<EntityAudit> root, String busqueda) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<EntityAudit> root, String busquedaEntityName,
+                                            String busquedaOperation, String busquedaId, String busquedaCreatedDate,
+                                            String busquedaUser) {
+
         List<Predicate> predicates = new ArrayList<>();
 
-        if (busqueda != null && !busqueda.isEmpty()) {
-            String likePattern = "%" + busqueda.toLowerCase() + "%";
-            predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("nombres")), likePattern),
-                    cb.like(cb.lower(root.get("nombresDos")), likePattern),
-                    cb.like(cb.lower(root.get("apellidos")), likePattern),
-                    cb.like(cb.lower(root.get("apellidosDos")), likePattern),
-                    cb.like(cb.lower(root.get("correoElectronico")), likePattern),
-                    cb.like(cb.lower(root.get("especialidad").get("nombre")), likePattern),
-                    cb.like(cb.lower(root.get("especialidad").get("descripcion")), likePattern)
-            ));
+
+        String likePatternName = "%" + busquedaEntityName.toLowerCase() + "%";
+        String likePatternOperation = "%" + busquedaOperation.toLowerCase() + "%";
+        String likePatternCreatedDate = "%" + busquedaCreatedDate.toLowerCase() + "%";
+        String likePatternUser = "%" + busquedaUser.toLowerCase() + "%";
+
+        predicates.add(cb.and(
+                cb.like(cb.lower(root.get("entityName")), likePatternName),
+                cb.like(cb.lower(root.get("operation")), likePatternOperation),
+                cb.like(cb.function("TO_CHAR", String.class, root.get("createdDate"), cb.literal("yyyy-MM-dd")), likePatternCreatedDate),
+                cb.like(cb.lower(root.get("createdBy")), likePatternUser)
+        ));
+
+        if (busquedaId != null && !busquedaId.isEmpty()) {
+            predicates.add(
+                    cb.equal(root.get("entityId"), Long.valueOf(busquedaId))
+            );
         }
 
 
         return predicates;
     }
-    
+
     @Override
     public Optional<EntityAudit> getEntityAudit(Long entityAuditId) {
         return this.repository.findById(entityAuditId);
