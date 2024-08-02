@@ -1,6 +1,7 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.*;
+import avalon.usuarios.model.request.CentroMedicoRequest;
 import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import avalon.usuarios.model.request.ReclamacionRequest;
@@ -43,18 +44,14 @@ public class CitaMedicaController {
     public ResponseEntity<CitaMedica> createCitaMedica(@RequestPart("citaMedica") CitaMedicaRequest request,
                                                        @RequestPart("fotoCitaMedica") MultipartFile fotoCitaMedica) {
         try {
-            ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-            MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
-                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
-
-            CitaMedica citaMedica = this.mapToCitaMedica(request, clientePoliza, medicoCentroMedicoAseguradora);
+            request.setEstado("N");
+            CitaMedica citaMedica = this.mapToCitaMedica(request, new CitaMedica());
             if (!fotoCitaMedica.isEmpty()) {
                 Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
                 this.imagenService.saveImagen(imagen);
                 citaMedica.setImagenId(imagen.getId());
             }
 
-            citaMedica.setEstado("N");
             service.saveCitaMedica(citaMedica);
             return citaMedica.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(citaMedica) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -110,33 +107,26 @@ public class CitaMedicaController {
 
     @PutMapping("/citasMedicas/{citaMedicaId}")
     public ResponseEntity<CitaMedica> updateCitaMedica(@PathVariable Long citaMedicaId,
-                                                       @RequestPart("reclamacion") CitaMedicaRequest request,
-                                                       @RequestPart("fotoReclamo") MultipartFile fotoReclamo) {
+                                                       @RequestPart("citaMedica") CitaMedicaRequest request,
+                                                       @RequestPart(value="fotoCitaMedica", required = false) MultipartFile fotoCitaMedica) {
         try {
-            ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-            MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
-                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+            CitaMedica citaMedica = service.getCitaMedica(citaMedicaId).orElseThrow(() -> new IllegalArgumentException("Cita Médica no encontrada"));
+            CitaMedica citaMedicaMapped = this.mapToCitaMedica(request, citaMedica);
 
-            CitaMedica citaMedica = service.getCitaMedica(citaMedicaId).orElseThrow(() -> new IllegalArgumentException("CitaMedica no encontrada"));
-            citaMedica.setRazon(request.getRazon());
-
-            if (citaMedica.getImagenId() != null)
+            if (citaMedicaMapped.getImagenId() != null && fotoCitaMedica != null) {
                 this.imagenService.deleteImagen(citaMedica.getImagenId());
-
-            citaMedica.setImagenId(null);
-
-            if (!fotoReclamo.isEmpty()) {
-                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
-                this.imagenService.saveImagen(imagen);
-                citaMedica.setImagenId(imagen.getId());
+                citaMedicaMapped.setImagenId(null);
             }
 
-            citaMedica.setEstado(request.getEstado());
-            citaMedica.setClientePoliza(clientePoliza);
-            citaMedica.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
-            service.saveCitaMedica(citaMedica);
+            if (fotoCitaMedica != null && !fotoCitaMedica.isEmpty()) {
+                Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                citaMedicaMapped.setImagenId(imagen.getId());
+            }
 
-            return citaMedica.getId() != null ? ResponseEntity.ok(citaMedica) : ResponseEntity.badRequest().build();
+            service.saveCitaMedica(citaMedicaMapped);
+
+            return citaMedicaMapped.getId() != null ? ResponseEntity.ok(citaMedicaMapped) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -152,12 +142,20 @@ public class CitaMedicaController {
         }
     }
 
-    private CitaMedica mapToCitaMedica(CitaMedicaRequest request, ClientePoliza clientePoliza, MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora) {
-        return CitaMedica.builder()
-                .razon(request.getRazon())
-                .estado(request.getEstado())
-                .clientePoliza(clientePoliza)
-                .medicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora)
-                .build();
+    private CitaMedica mapToCitaMedica(CitaMedicaRequest request, CitaMedica citaMedica) {
+        ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+
+        citaMedica.setEstado(request.getEstado());
+        citaMedica.setClientePoliza(clientePoliza);
+        citaMedica.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
+        citaMedica.setFechaTentativa(request.getFechaTentativa());
+        citaMedica.setCiudadPreferencia(request.getCiudadPreferencia());
+        citaMedica.setPadecimiento(request.getPadecimiento());
+        citaMedica.setInformacionAdicional(request.getInformacionAdicional());
+        citaMedica.setRequisitosAdicionales(request.getRequisitosAdicionales());
+        citaMedica.setOtrosRequisitos(request.getOtrosRequisitos());
+        return citaMedica;
     }
 }

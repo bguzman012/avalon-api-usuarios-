@@ -6,7 +6,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 
 @Entity
 @Table(name = "citas_medicas")
@@ -25,9 +29,20 @@ public class CitaMedica extends AuditingData {
     @Column(name = "codigo", unique = true, updatable = false)
     private String codigo;
 
-    @NotNull
-    @Column(name = "razon")
-    private String razon;
+    @Column(name = "ciudad_preferencia")
+    private String ciudadPreferencia;
+
+    @Column(name = "padecimiento")
+    private String padecimiento;
+
+    @Column(name = "informacion_adicional")
+    private String informacionAdicional;
+
+    @Column(name = "otros_requisitos")
+    private String otrosRequisitos;
+
+    @Temporal(TemporalType.DATE)
+    private Date fechaTentativa;
 
     @Column(name = "imagen_id")
     private Long imagenId;
@@ -49,4 +64,11 @@ public class CitaMedica extends AuditingData {
     @JsonIgnore
     @OneToMany(mappedBy = "citaMedica", cascade = CascadeType.ALL)
     private List<ComentarioCitasMedicas> comentarioCitasMedicasList;
+
+    @ElementCollection
+    @CollectionTable(name = "cita_medica_requisitos_adicionales", joinColumns = @JoinColumn(name = "cita_medica_id"))
+    @MapKeyEnumerated(EnumType.STRING)
+    @Column(name = "requisitosAdicionales")
+    private Map<RequisitoAdicional, Boolean> requisitosAdicionales = new HashMap<>();
+
 }
