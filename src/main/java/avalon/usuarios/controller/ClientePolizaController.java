@@ -1,5 +1,6 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.PaginatedResponse;
@@ -17,12 +18,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 public class ClientePolizaController {
 
+    @Autowired
+    private AuditorAwareImpl auditorAware;
     private final ClientesPolizaService service;
     @Autowired
     private ClienteService clienteService;
@@ -32,6 +36,8 @@ public class ClientePolizaController {
     private AgenteService agenteService;
     @Autowired
     private PolizaService polizaService;
+
+
 
     @PostMapping("/clientesPolizas")
     public ResponseEntity<ClientePoliza> create(@RequestBody ClientePolizaRequest request) {
@@ -54,7 +60,7 @@ public class ClientePolizaController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, null);
+        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, null,  this.getCurrentUser());
 
         List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
         long totalRecords = clientePolizaPage.getTotalElements();
@@ -70,12 +76,13 @@ public class ClientePolizaController {
                                                                                        @RequestParam(defaultValue = "10") int size,
                                                                                        @RequestParam(defaultValue = "createdDate") String sortField,
                                                                                        @RequestParam(defaultValue = "desc") String sortOrder) {
+
         Poliza poliza = this.polizaService.getPoliza(polizaId).orElseThrow(() -> new IllegalArgumentException("Poliza no encontrado"));
 
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, poliza);
+        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, poliza, this.getCurrentUser());
 
         List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
         long totalRecords = clientePolizaPage.getTotalElements();
@@ -96,7 +103,7 @@ public class ClientePolizaController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, cliente, null);
+        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, cliente, null, this.getCurrentUser());
 
         List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
         long totalRecords = clientePolizaPage.getTotalElements();
@@ -146,4 +153,10 @@ public class ClientePolizaController {
         return clientePolizaeference;
     }
 
+    private Usuario getCurrentUser(){
+        Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+        return currentUser.map(s -> this.clienteService.findByNombreUsuario(s)).orElse(null);
+
+    }
 }

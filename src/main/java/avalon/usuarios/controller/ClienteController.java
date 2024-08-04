@@ -1,8 +1,10 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.mapper.UsuarioMapper;
 import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.Direccion;
+import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.response.PaginatedResponse;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,6 +31,8 @@ public class ClienteController {
     private UsuarioMapper usuarioMapper;
     @Autowired
     private ClienteService service;
+    @Autowired
+    private AuditorAwareImpl auditorAware;
 
     @PostMapping("/clientes")
     public ResponseEntity<Cliente> createCliente(@RequestBody ClienteRequest request) {
@@ -47,10 +52,16 @@ public class ClienteController {
                                                                   @RequestParam(defaultValue = "10") int size,
                                                                   @RequestParam(defaultValue = "createdDate") String sortField,
                                                                   @RequestParam(defaultValue = "desc") String sortOrder) {
+        Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+        if (currentUser.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Usuario usuario = this.service.findByNombreUsuario(currentUser.get());
 
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Cliente> clientesPage = service.searchClientes(estado, busqueda, pageable);
+        Page<Cliente> clientesPage = service.searchClientes(estado, busqueda, pageable, usuario);
 
         List<Cliente> clientes = clientesPage.getContent();
         long totalRecords = clientesPage.getTotalElements();

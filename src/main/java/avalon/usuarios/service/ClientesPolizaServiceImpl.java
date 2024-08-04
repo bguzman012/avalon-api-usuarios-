@@ -23,10 +23,9 @@ import java.util.Optional;
 @Service
 public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
-    @Autowired
-    private PolizaRepository polizaRepository;
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final String ROL_ADMIN = "ADM";
+    private final String ROL_ASESOR = "ASR";
+    private final String ROL_AGENTE = "BRO";
     private final ClientePolizaRepository repository;
 
     @PersistenceContext
@@ -53,7 +52,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
 
     @Override
-    public Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza) {
+    public Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
@@ -64,7 +63,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         Join<ClientePoliza, Asesor> aJoin = cmRoot.join("asesor");
         Join<ClientePoliza, Poliza> pJoin = cmRoot.join("poliza");
 
-        List<Predicate> predicates = buildPredicates(cb, cmRoot, agJoin, cJoin, aJoin, pJoin, busqueda, cliente, poliza);
+        List<Predicate> predicates = buildPredicates(cb, cmRoot, agJoin, cJoin, aJoin, pJoin, busqueda, cliente, poliza, usuario);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -77,12 +76,12 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countClientesMembresias(busqueda, cliente, poliza);
+        Long totalRecords = countClientesMembresias(busqueda, cliente, poliza, usuario);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countClientesMembresias(String busqueda, Cliente cliente, Poliza poliza) {
+    private Long countClientesMembresias(String busqueda, Cliente cliente, Poliza poliza, Usuario usuario) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -95,7 +94,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         Join<ClientePoliza, Asesor> aJoin = countRoot.join("asesor");
         Join<ClientePoliza, Poliza> pJoin = countRoot.join("poliza");
 
-        List<Predicate> countPredicates = buildPredicates(cb, countRoot, agJoin, cJoin, aJoin, pJoin, busqueda, cliente, poliza);
+        List<Predicate> countPredicates = buildPredicates(cb, countRoot, agJoin, cJoin, aJoin, pJoin, busqueda, cliente, poliza, usuario);
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -115,7 +114,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                                             Join<ClientePoliza, Poliza> pJoin,
                                             String busqueda,
                                             Cliente cliente,
-                                            Poliza poliza) {
+                                            Poliza poliza,
+                                            Usuario usuario) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {
@@ -138,6 +138,12 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
         if (poliza != null) {
             predicates.add(cb.equal(cmRoot.get("poliza"), poliza));
+        }
+
+        if (usuario.getRol().getCodigo().equals(this.ROL_ASESOR)) {
+            predicates.add(cb.equal(cmRoot.get("asesor").get("id"), usuario.getId()));
+        } else if (usuario.getRol().getCodigo().equals(this.ROL_AGENTE)) {
+            predicates.add(cb.equal(cmRoot.get("agente").get("id"), usuario.getId()));
         }
 
         return predicates;
