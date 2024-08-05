@@ -25,9 +25,9 @@ public class Emergencia extends AuditingData {
     @Column(name = "codigo", unique = true, updatable = false)
     private String codigo;
 
-    @NotNull
-    @Column(name = "razon")
-    private String razon;
+    @ManyToOne
+    @JoinColumn(name = "medico_centro_medico_aseguradora_id")
+    private MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora;
 
     @Column(name = "imagen_id")
     private Long imagenId;

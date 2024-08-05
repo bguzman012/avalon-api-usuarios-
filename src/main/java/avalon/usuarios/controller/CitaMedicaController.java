@@ -125,7 +125,6 @@ public class CitaMedicaController {
             }
 
             service.saveCitaMedica(citaMedicaMapped);
-
             return citaMedicaMapped.getId() != null ? ResponseEntity.ok(citaMedicaMapped) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
