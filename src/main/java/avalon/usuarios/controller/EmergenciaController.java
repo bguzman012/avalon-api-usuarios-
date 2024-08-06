@@ -5,10 +5,7 @@ import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.EmergenciaRequest;
 import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
 import avalon.usuarios.model.response.PaginatedResponse;
-import avalon.usuarios.service.EmergenciaService;
-import avalon.usuarios.service.ClientesPolizaService;
-import avalon.usuarios.service.ImagenService;
-import avalon.usuarios.service.MedicoCentroMedicoAseguradoraService;
+import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +32,11 @@ public class EmergenciaController {
     private ImagenService imagenService;
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
+    @Autowired
+    private PaisService paisService;
+    @Autowired
+    private EstadosService estadosService;
+
     private String TOPICO = "IMAGEN_EMERGENCIA";
 
     @PostMapping("/emergencias")
@@ -42,8 +44,7 @@ public class EmergenciaController {
                                                        @RequestPart("fotoEmergencia") MultipartFile fotoEmergencia) {
         try {
             request.setEstado("N");
-            ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-            Emergencia emergencia = this.mapToEmergencia(request, new Emergencia());
+            Emergencia emergencia = this.mapToEmergencia(request, new Emergencia(), new Direccion());
 
             if (!fotoEmergencia.isEmpty()) {
                 Imagen imagen = new Imagen(fotoEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
@@ -110,7 +111,7 @@ public class EmergenciaController {
                                                        @RequestPart(value = "fotoEmergencia", required = false) MultipartFile fotoEmergencia) {
         try {
             Emergencia emergencia = service.getEmergencia(emergenciaId).orElseThrow(() -> new IllegalArgumentException("Emergencia no encontrada"));
-            Emergencia emergenciaMapped = this.mapToEmergencia(request, emergencia);
+            Emergencia emergenciaMapped = this.mapToEmergencia(request, emergencia, emergencia.getDireccion());
 
             if (emergencia.getImagenId() != null && fotoEmergencia != null) {
                 this.imagenService.deleteImagen(emergencia.getImagenId());
@@ -140,20 +141,28 @@ public class EmergenciaController {
         }
     }
 
-    private Emergencia mapToEmergencia(EmergenciaRequest request, Emergencia emergencia) {
+    private Emergencia mapToEmergencia(EmergenciaRequest request, Emergencia emergencia, Direccion direccion) {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
                 request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
+        Estado estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
+
 
         emergencia.setEstado(request.getEstado());
         emergencia.setClientePoliza(clientePoliza);
         emergencia.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
-//        citaMedica.setFechaTentativa(request.getFechaTentativa());
-//        citaMedica.setCiudadPreferencia(request.getCiudadPreferencia());
-//        citaMedica.setPadecimiento(request.getPadecimiento());
-//        citaMedica.setInformacionAdicional(request.getInformacionAdicional());
-//        citaMedica.setRequisitosAdicionales(request.getRequisitosAdicionales());
-//        citaMedica.setOtrosRequisitos(request.getOtrosRequisitos());
+        emergencia.setDiagnostico(request.getDiagnostico());
+        emergencia.setSintomas(request.getSintomas());
+
+        direccion.setDireccionUno(request.getDireccion().getDireccionUno());
+        direccion.setDireccionDos(request.getDireccion().getDireccionDos());
+        direccion.setCodigoPostal(request.getDireccion().getCodigoPostal());
+        direccion.setPais(pais);
+        direccion.setState(estado);
+        direccion.setCiudad(request.getDireccion().getCiudad());
+
+        emergencia.setDireccion(direccion);
         return emergencia;
     }
 }

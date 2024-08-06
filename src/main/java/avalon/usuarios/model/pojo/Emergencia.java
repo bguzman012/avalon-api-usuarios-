@@ -25,10 +25,6 @@ public class Emergencia extends AuditingData {
     @Column(name = "codigo", unique = true, updatable = false)
     private String codigo;
 
-    @ManyToOne
-    @JoinColumn(name = "medico_centro_medico_aseguradora_id")
-    private MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora;
-
     @Column(name = "imagen_id")
     private Long imagenId;
 
@@ -36,10 +32,23 @@ public class Emergencia extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "diagnostico")
+    private String diagnostico;
+
+    @Column(name = "sintomas")
+    private String sintomas;
+
+    @Embedded
+    private Direccion direccion;
+
     @ManyToOne
     @NotNull
     @JoinColumn(name = "cliente_poliza_id")
     private ClientePoliza clientePoliza;
+
+    @ManyToOne
+    @JoinColumn(name = "medico_centro_medico_aseguradora_id")
+    private MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora;
 
     @JsonIgnore
     @OneToMany(mappedBy = "emergencia", cascade = CascadeType.ALL)

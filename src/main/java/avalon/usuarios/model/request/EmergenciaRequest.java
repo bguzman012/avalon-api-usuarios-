@@ -1,5 +1,6 @@
 package avalon.usuarios.model.request;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,10 +13,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class EmergenciaRequest {
 
-	@NotNull
-	private String razon;
 	private String estado;
+	@NotNull
+	private Long medicoCentroMedicoAseguradoraId;
 	private String nombreDocumento;
+	private String diagnostico;
+	private DireccionRequest direccion;
+	@NotNull
+	private String sintomas;
 	@NotNull
 	private Long clientePolizaId;
 
