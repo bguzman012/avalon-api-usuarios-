@@ -1,15 +1,9 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.*;
-import avalon.usuarios.model.request.AseguradoraRequest;
-import avalon.usuarios.model.request.PartiallyUpdateAseguradora;
-import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
-import avalon.usuarios.model.request.ReclamacionRequest;
+import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.PaginatedResponse;
-import avalon.usuarios.service.AseguradoraService;
-import avalon.usuarios.service.ClientesPolizaService;
-import avalon.usuarios.service.ImagenService;
-import avalon.usuarios.service.ReclamacionService;
+import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +29,8 @@ public class ReclamoController {
     @Autowired
     private ClientesPolizaService clientesPolizaService;
     @Autowired
+    private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
+    @Autowired
     private ImagenService imagenService;
     private String TOPICO = "IMAGEN_RECLAMO";
 
@@ -42,15 +38,14 @@ public class ReclamoController {
     public ResponseEntity<Reclamacion> createReclamacion(@RequestPart("reclamacion") ReclamacionRequest request,
                                                          @RequestPart("fotoReclamo") MultipartFile fotoReclamo) {
         try {
-            ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-            Reclamacion reclamacion = this.mapToReclamacion(request, clientePoliza);
+            request.setEstado("N");
+            Reclamacion reclamacion = this.mapToReclamacion(request, new Reclamacion());
             if (!fotoReclamo.isEmpty()) {
                 Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
                 this.imagenService.saveImagen(imagen);
                 reclamacion.setImagenId(imagen.getId());
             }
 
-            reclamacion.setEstado("N");
             service.saveReclamacion(reclamacion);
             return reclamacion.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(reclamacion) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -100,28 +95,25 @@ public class ReclamoController {
     @PutMapping("/reclamaciones/{reclamacionId}")
     public ResponseEntity<Reclamacion> updateReclamacion(@PathVariable Long reclamacionId,
                                                          @RequestPart("reclamacion") ReclamacionRequest request,
-                                                         @RequestPart("fotoReclamo") MultipartFile fotoReclamo) {
+                                                         @RequestPart(value="fotoReclamo", required = false) MultipartFile fotoReclamo) {
         try {
-            ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
             Reclamacion reclamacion = service.getReclamacion(reclamacionId).orElseThrow(() -> new IllegalArgumentException("Reclamacion no encontrada"));
-            reclamacion.setRazon(request.getRazon());
+            Reclamacion reclamacionMapped = this.mapToReclamacion(request, reclamacion);
 
-            if (reclamacion.getImagenId() != null)
+
+            if (reclamacionMapped.getImagenId() != null && fotoReclamo != null){
                 this.imagenService.deleteImagen(reclamacion.getImagenId());
-
-            reclamacion.setImagenId(null);
-
-            if (!fotoReclamo.isEmpty()) {
-                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
-                this.imagenService.saveImagen(imagen);
-                reclamacion.setImagenId(imagen.getId());
+                reclamacionMapped.setImagenId(null);
             }
 
-            reclamacion.setEstado(request.getEstado());
-            reclamacion.setClientePoliza(clientePoliza);
-            service.saveReclamacion(reclamacion);
+            if (fotoReclamo != null && !fotoReclamo.isEmpty()) {
+                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                reclamacionMapped.setImagenId(imagen.getId());
+            }
 
-            return reclamacion.getId() != null ? ResponseEntity.ok(reclamacion) : ResponseEntity.badRequest().build();
+            service.saveReclamacion(reclamacionMapped);
+            return reclamacionMapped.getId() != null ? ResponseEntity.ok(reclamacionMapped) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -144,12 +136,20 @@ public class ReclamoController {
         return ResponseEntity.noContent().build();
     }
 
-    private Reclamacion mapToReclamacion(ReclamacionRequest request, ClientePoliza clientePoliza) {
-        return Reclamacion.builder()
-                .razon(request.getRazon())
-                .estado(request.getEstado())
-                .clientePoliza(clientePoliza)
-                .build();
+    private Reclamacion mapToReclamacion(ReclamacionRequest request, Reclamacion reclamacion) {
+        ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+
+        reclamacion.setEstado(request.getEstado());
+        reclamacion.setFechaServicio(request.getFechaServicio());
+        reclamacion.setClientePoliza(clientePoliza);
+        reclamacion.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
+        reclamacion.setTipoAdm(TipoAdm.valueOf(request.getTipoAdm().toUpperCase()));
+        reclamacion.setPadecimientoDiagnostico(request.getPadecimientoDiagnostico());
+        reclamacion.setInfoAdicional(request.getInfoAdicional());
+
+        return reclamacion;
     }
 
 }

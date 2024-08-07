@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -27,12 +28,25 @@ public class Reclamacion extends AuditingData {
     @Column(name = "codigo", unique = true, updatable = false)
     private String codigo;
 
-    @NotNull
-    @Column(name = "razon")
-    private String razon;
+    @Temporal(TemporalType.DATE)
+    private Date fechaServicio;
+
+    @ManyToOne
+    @JoinColumn(name = "medico_centro_medico_aseguradora_id")
+    private MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora;
+
+    @Column(name = "tipoAdm")
+    @Enumerated(EnumType.STRING)
+    private TipoAdm tipoAdm;
 
     @Column(name = "imagen_id")
     private Long imagenId;
+
+    @Column(name = "padecimiento_diagnostico")
+    private String padecimientoDiagnostico;
+
+    @Column(name = "info_adicional")
+    private String infoAdicional;
 
     @NotNull
     @Column(name = "estado")
