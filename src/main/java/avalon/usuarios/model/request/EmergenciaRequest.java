@@ -23,5 +23,7 @@ public class EmergenciaRequest {
 	private String sintomas;
 	@NotNull
 	private Long clientePolizaId;
+	@NotNull
+	private Long casoId;
 
 }

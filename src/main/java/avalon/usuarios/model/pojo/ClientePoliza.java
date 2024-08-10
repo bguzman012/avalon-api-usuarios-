@@ -66,6 +66,18 @@ public class ClientePoliza extends AuditingData {
     @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
     private List<Reclamacion> reclamacionList;
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
+    private List<CitaMedica> citaMedicaList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
+    private List<Emergencia> emergenciaList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
+    private List<Caso> casoList;
+
     // Campo no persistente para concatenar nombres y apellidos
     @Transient
     public String getDisplayName() {

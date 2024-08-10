@@ -1,6 +1,7 @@
 package avalon.usuarios.service;
 
 import avalon.usuarios.data.EmergenciaRepository;
+import avalon.usuarios.model.pojo.Caso;
 import avalon.usuarios.model.pojo.Emergencia;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
@@ -75,15 +76,14 @@ public class EmergenciaServiceImpl implements EmergenciaService {
         }
     }
 
-    public Page<Emergencia> searchEmergencias(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
+    public Page<Emergencia> searchEmergencias(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
         CriteriaQuery<Emergencia> query = cb.createQuery(Emergencia.class);
         Root<Emergencia> rRoot = query.from(Emergencia.class);
-        Join<Emergencia, ClientePoliza> cpJoin = rRoot.join("clientePoliza");
 
-        List<Predicate> predicates = buildPredicates(cb, rRoot, cpJoin, busqueda, estado, clientePoliza);
+        List<Predicate> predicates = buildPredicates(cb, rRoot, busqueda, estado, clientePoliza, caso);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -97,12 +97,12 @@ public class EmergenciaServiceImpl implements EmergenciaService {
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countEmergencias(busqueda, estado, clientePoliza);
+        Long totalRecords = countEmergencias(busqueda, estado, clientePoliza, caso);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countEmergencias(String busqueda, String estado, ClientePoliza clientePoliza) {
+    private Long countEmergencias(String busqueda, String estado, ClientePoliza clientePoliza, Caso caso) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -110,9 +110,7 @@ public class EmergenciaServiceImpl implements EmergenciaService {
         Root<Emergencia> countRoot = countQuery.from(Emergencia.class);
         countQuery.select(cb.count(countRoot));
 
-        Join<Emergencia, ClientePoliza> cpJoin = countRoot.join("clientePoliza");
-
-        List<Predicate> countPredicates = buildPredicates(cb, countRoot, cpJoin, busqueda, estado, clientePoliza);
+        List<Predicate> countPredicates = buildPredicates(cb, countRoot,busqueda, estado, clientePoliza, caso);
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -124,7 +122,7 @@ public class EmergenciaServiceImpl implements EmergenciaService {
         }
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Emergencia> rRoot, Join<Emergencia, ClientePoliza> cpJoin, String busqueda, String estado, ClientePoliza clientePoliza) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Emergencia> rRoot, String busqueda, String estado, ClientePoliza clientePoliza, Caso caso) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {
@@ -142,6 +140,10 @@ public class EmergenciaServiceImpl implements EmergenciaService {
 
         if (clientePoliza != null) {
             predicates.add(cb.equal(rRoot.get("clientePoliza"), clientePoliza));
+        }
+
+        if (caso != null) {
+            predicates.add(cb.equal(rRoot.get("caso"), caso));
         }
 
         return predicates;

@@ -1,5 +1,6 @@
 package avalon.usuarios.service;
 
+import avalon.usuarios.model.pojo.Caso;
 import avalon.usuarios.model.pojo.Emergencia;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
@@ -11,7 +12,7 @@ import java.util.Optional;
 public interface EmergenciaService {
 
     String generarNuevoCodigo();
-    Page<Emergencia> searchEmergencias(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza);
+    Page<Emergencia> searchEmergencias(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso);
     Optional<Emergencia> getEmergencia(Long casoId);
     Emergencia saveEmergencia(Emergencia emergencia);
     Emergencia partiallyUpdateEmergencia(PartiallyUpdateEmergenciasRequest request, Long casoId);

@@ -33,6 +33,8 @@ public class EmergenciaController {
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
     @Autowired
+    private CasoService casoService;
+    @Autowired
     private PaisService paisService;
     @Autowired
     private EstadosService estadosService;
@@ -62,22 +64,29 @@ public class EmergenciaController {
     @GetMapping("/emergencias")
     public ResponseEntity<PaginatedResponse<Emergencia>> getEmergencias(@RequestParam(required = false) String estado,
                                                                         @RequestParam(required = false) String clientePolizaId,
+                                                                        @RequestParam(required = false) String casoId,
                                                                         @RequestParam(required = false) String busqueda,
                                                                         @RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size,
                                                                         @RequestParam(defaultValue = "createdDate") String sortField,
                                                                         @RequestParam(defaultValue = "desc") String sortOrder) {
         ClientePoliza clientePoliza = null;
+        Caso caso = null;
 
         if (!clientePolizaId.isBlank()) {
             clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId))
                     .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         }
 
+        if (!casoId.isBlank()) {
+            caso = casoService.getCaso(Long.valueOf(casoId))
+                    .orElseThrow(() -> new IllegalArgumentException("Caso no encontrada"));
+        }
+
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Emergencia> emergenciaPage = service.searchEmergencias(busqueda, estado, pageable, clientePoliza);
+        Page<Emergencia> emergenciaPage = service.searchEmergencias(busqueda, estado, pageable, clientePoliza, caso);
 
         List<Emergencia> emergencias = emergenciaPage.getContent();
         long totalRecords = emergenciaPage.getTotalElements();
@@ -147,6 +156,7 @@ public class EmergenciaController {
                 request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
         Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
         Estado estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
+        Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
 
 
         emergencia.setEstado(request.getEstado());
@@ -154,6 +164,8 @@ public class EmergenciaController {
         emergencia.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
         emergencia.setDiagnostico(request.getDiagnostico());
         emergencia.setSintomas(request.getSintomas());
+        emergencia.setCaso(caso);
+
 
         direccion.setDireccionUno(request.getDireccion().getDireccionUno());
         direccion.setDireccionDos(request.getDireccion().getDireccionDos());

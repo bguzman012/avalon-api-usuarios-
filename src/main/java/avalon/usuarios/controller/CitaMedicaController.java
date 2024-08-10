@@ -6,10 +6,7 @@ import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import avalon.usuarios.model.request.ReclamacionRequest;
 import avalon.usuarios.model.response.PaginatedResponse;
-import avalon.usuarios.service.ClientesPolizaService;
-import avalon.usuarios.service.CitaMedicaService;
-import avalon.usuarios.service.ImagenService;
-import avalon.usuarios.service.MedicoCentroMedicoAseguradoraService;
+import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +34,8 @@ public class CitaMedicaController {
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
     @Autowired
+    private CasoService casoService;
+    @Autowired
     private ImagenService imagenService;
     private String TOPICO = "IMAGEN_CITA_MEDICA";
 
@@ -62,22 +61,29 @@ public class CitaMedicaController {
     @GetMapping("/citasMedicas")
     public ResponseEntity<PaginatedResponse<CitaMedica>> getCitasMedicas(@RequestParam(required = false) String estado,
                                                                          @RequestParam(required = false) String clientePolizaId,
+                                                                         @RequestParam(required = false) String casoId,
                                                                          @RequestParam(required = false) String busqueda,
                                                                          @RequestParam(defaultValue = "0") int page,
                                                                          @RequestParam(defaultValue = "10") int size,
                                                                          @RequestParam(defaultValue = "createdDate") String sortField,
                                                                          @RequestParam(defaultValue = "desc") String sortOrder) {
         ClientePoliza clientePoliza = null;
+        Caso caso = null;
 
         if (!clientePolizaId.isBlank()) {
             clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId))
-                    .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+                    .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrado"));
+        }
+
+        if (!casoId.isBlank()) {
+            caso = casoService.getCaso(Long.valueOf(casoId))
+                    .orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
         }
 
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<CitaMedica> citaMedicaPage = service.searchCitasMedicas(busqueda, estado, pageable, clientePoliza);
+        Page<CitaMedica> citaMedicaPage = service.searchCitasMedicas(busqueda, estado, pageable, clientePoliza, caso);
 
         List<CitaMedica> citasMedicas = citaMedicaPage.getContent();
         long totalRecords = citaMedicaPage.getTotalElements();
@@ -145,9 +151,11 @@ public class CitaMedicaController {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
                 request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
 
         citaMedica.setEstado(request.getEstado());
         citaMedica.setClientePoliza(clientePoliza);
+        citaMedica.setCaso(caso);
         citaMedica.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
         citaMedica.setFechaTentativa(request.getFechaTentativa());
         citaMedica.setCiudadPreferencia(request.getCiudadPreferencia());
@@ -155,6 +163,7 @@ public class CitaMedicaController {
         citaMedica.setInformacionAdicional(request.getInformacionAdicional());
         citaMedica.setRequisitosAdicionales(request.getRequisitosAdicionales());
         citaMedica.setOtrosRequisitos(request.getOtrosRequisitos());
+
         return citaMedica;
     }
 }

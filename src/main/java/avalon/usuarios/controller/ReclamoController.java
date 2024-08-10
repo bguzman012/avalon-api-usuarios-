@@ -31,6 +31,8 @@ public class ReclamoController {
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
     @Autowired
+    private CasoService casoService;
+    @Autowired
     private ImagenService imagenService;
     private String TOPICO = "IMAGEN_RECLAMO";
 
@@ -56,6 +58,7 @@ public class ReclamoController {
     @GetMapping("/reclamaciones")
     public ResponseEntity<PaginatedResponse<Reclamacion>> getReclamaciones(@RequestParam(required = false) String estado,
                                                                            @RequestParam(required = false) String clientePolizaId,
+                                                                           @RequestParam(required = false) String casoId,
                                                                            @RequestParam(required = false) String busqueda,
                                                                            @RequestParam(defaultValue = "0") int page,
                                                                            @RequestParam(defaultValue = "10") int size,
@@ -63,16 +66,22 @@ public class ReclamoController {
                                                                            @RequestParam(defaultValue = "desc") String sortOrder) {
 
         ClientePoliza clientePoliza = null;
+        Caso caso = null;
 
         if (!clientePolizaId.isBlank()) {
             clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId))
                     .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         }
 
+        if (!casoId.isBlank()) {
+            caso = casoService.getCaso(Long.valueOf(casoId))
+                    .orElseThrow(() -> new IllegalArgumentException("Caso no encontrada"));
+        }
+
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Reclamacion> reclamacionPage = service.searchReclamaciones(busqueda, estado, pageable, clientePoliza);
+        Page<Reclamacion> reclamacionPage = service.searchReclamaciones(busqueda, estado, pageable, clientePoliza, caso);
 
         List<Reclamacion> reclamaciones = reclamacionPage.getContent();
         long totalRecords = reclamacionPage.getTotalElements();
@@ -140,7 +149,9 @@ public class ReclamoController {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
                 request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
 
+        reclamacion.setCaso(caso);
         reclamacion.setEstado(request.getEstado());
         reclamacion.setFechaServicio(request.getFechaServicio());
         reclamacion.setClientePoliza(clientePoliza);

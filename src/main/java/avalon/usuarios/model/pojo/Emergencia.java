@@ -38,6 +38,11 @@ public class Emergencia extends AuditingData {
     @Column(name = "sintomas")
     private String sintomas;
 
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "caso_id")
+    private Caso caso;
+
     @Embedded
     private Direccion direccion;
 

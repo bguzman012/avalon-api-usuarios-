@@ -4,6 +4,7 @@ import avalon.usuarios.model.auditing.AuditingData;
 import avalon.usuarios.service.ReclamacionService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,11 @@ public class Reclamacion extends AuditingData {
     @NotNull
     @JoinColumn(name = "cliente_poliza_id")
     private ClientePoliza clientePoliza;
+
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "caso_id")
+    private Caso caso;
 
     @JsonIgnore
     @OneToMany(mappedBy = "reclamacion", cascade = CascadeType.ALL)

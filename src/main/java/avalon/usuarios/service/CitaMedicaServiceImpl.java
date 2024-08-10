@@ -1,6 +1,7 @@
 package avalon.usuarios.service;
 
 import avalon.usuarios.data.CitaMedicaRepository;
+import avalon.usuarios.model.pojo.Caso;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.CitaMedica;
 import avalon.usuarios.model.pojo.Reclamacion;
@@ -76,15 +77,14 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         }
     }
 
-    public Page<CitaMedica> searchCitasMedicas(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza) {
+    public Page<CitaMedica> searchCitasMedicas(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
         CriteriaQuery<CitaMedica> query = cb.createQuery(CitaMedica.class);
         Root<CitaMedica> rRoot = query.from(CitaMedica.class);
-        Join<CitaMedica, ClientePoliza> cpJoin = rRoot.join("clientePoliza");
 
-        List<Predicate> predicates = buildPredicates(cb, rRoot, cpJoin, busqueda, estado, clientePoliza);
+        List<Predicate> predicates = buildPredicates(cb, rRoot, busqueda, estado, clientePoliza, caso);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -98,12 +98,12 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countCitaMedicaes(busqueda, estado, clientePoliza);
+        Long totalRecords = countCitaMedicaes(busqueda, estado, clientePoliza, caso);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countCitaMedicaes(String busqueda, String estado, ClientePoliza clientePoliza) {
+    private Long countCitaMedicaes(String busqueda, String estado, ClientePoliza clientePoliza, Caso caso) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -111,9 +111,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         Root<CitaMedica> countRoot = countQuery.from(CitaMedica.class);
         countQuery.select(cb.count(countRoot));
 
-        Join<CitaMedica, ClientePoliza> cpJoin = countRoot.join("clientePoliza");
-
-        List<Predicate> countPredicates = buildPredicates(cb, countRoot, cpJoin, busqueda, estado, clientePoliza);
+        List<Predicate> countPredicates = buildPredicates(cb, countRoot, busqueda, estado, clientePoliza, caso);
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -125,7 +123,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         }
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<CitaMedica> rRoot, Join<CitaMedica, ClientePoliza> cpJoin, String busqueda, String estado, ClientePoliza clientePoliza) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<CitaMedica> rRoot, String busqueda, String estado, ClientePoliza clientePoliza, Caso caso) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {
@@ -143,6 +141,10 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
 
         if (clientePoliza != null) {
             predicates.add(cb.equal(rRoot.get("clientePoliza"), clientePoliza));
+        }
+
+        if (caso != null) {
+            predicates.add(cb.equal(rRoot.get("caso"), caso));
         }
 
         return predicates;

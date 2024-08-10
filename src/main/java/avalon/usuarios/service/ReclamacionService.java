@@ -1,5 +1,6 @@
 package avalon.usuarios.service;
 
+import avalon.usuarios.model.pojo.Caso;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.Reclamacion;
 import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
@@ -12,7 +13,7 @@ import java.util.Optional;
 public interface ReclamacionService {
 
     String generarNuevoCodigo();
-    Page<Reclamacion> searchReclamaciones(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza);
+    Page<Reclamacion> searchReclamaciones(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso);
     Optional<Reclamacion> getReclamacion(Long reclamacionId);
     Reclamacion saveReclamacion(Reclamacion reclamacion);
     Reclamacion partiallyUpdateReclamacion(PartiallyUpdateReclamacionRequest request, Long reclamacionId);

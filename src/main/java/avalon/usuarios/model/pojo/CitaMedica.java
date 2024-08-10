@@ -61,6 +61,11 @@ public class CitaMedica extends AuditingData {
     @JoinColumn(name = "cliente_poliza_id")
     private ClientePoliza clientePoliza;
 
+    @ManyToOne
+    @NotNull
+    @JoinColumn(name = "caso_id")
+    private Caso caso;
+
     @JsonIgnore
     @OneToMany(mappedBy = "citaMedica", cascade = CascadeType.ALL)
     private List<ComentarioCitasMedicas> comentarioCitasMedicasList;

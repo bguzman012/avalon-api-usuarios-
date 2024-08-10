@@ -34,5 +34,7 @@ public class ReclamacionRequest {
 	private String padecimientoDiagnostico;
 	@NotNull
 	private String infoAdicional;
+	@NotNull
+	private Long casoId;
 
 }
