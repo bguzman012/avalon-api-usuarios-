@@ -68,12 +68,12 @@ public class ReclamoController {
         ClientePoliza clientePoliza = null;
         Caso caso = null;
 
-        if (!clientePolizaId.isBlank()) {
+        if (clientePolizaId != null && !clientePolizaId.isBlank()) {
             clientePoliza = clientesPolizaService.getClientePoliza(Long.valueOf(clientePolizaId))
                     .orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         }
 
-        if (!casoId.isBlank()) {
+        if (casoId != null && !casoId.isBlank()) {
             caso = casoService.getCaso(Long.valueOf(casoId))
                     .orElseThrow(() -> new IllegalArgumentException("Caso no encontrada"));
         }

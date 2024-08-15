@@ -48,5 +48,18 @@ public class Caso extends AuditingData {
     @OneToMany(mappedBy = "caso", cascade = CascadeType.ALL)
     private List<Emergencia> emergenciaList;
 
+    // Campo no persistente para concatenar nombres y apellidos
+    @Transient
+    public String getDisplayName() {
+        return (codigo != null ? "Caso - " + codigo : "");
+    }
+
+    @Transient
+    public String getClienteDisplayName() {
+        return (clientePoliza != null ? clientePoliza.getCliente().getNombreUsuario() + " [" + clientePoliza.getCliente().getNombres()
+                + " " + clientePoliza.getCliente().getApellidos() + "]": "");
+    }
+
+
 }
 

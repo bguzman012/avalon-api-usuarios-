@@ -52,7 +52,7 @@ public class CasoController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (!clientePolizaId.isBlank())
+        if (clientePolizaId != null && !clientePolizaId.isBlank())
             clientePoliza = Long.valueOf(clientePolizaId);
 
         Page<Caso> casoPage = service.searchCasos(busqueda, pageable, clientePoliza);

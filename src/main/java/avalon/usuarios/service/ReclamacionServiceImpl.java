@@ -135,8 +135,7 @@ public class ReclamacionServiceImpl implements ReclamacionService {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
             predicates.add(cb.or(
-                    cb.like(cb.lower(rRoot.get("razon")), likePattern),
-                    cb.like(cb.lower(rRoot.get("codigo")), likePattern)
+                    cb.like(cb.lower(rRoot.get("razon")), likePattern)
             ));
         }
 
