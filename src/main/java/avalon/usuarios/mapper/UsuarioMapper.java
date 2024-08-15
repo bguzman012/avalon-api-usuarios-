@@ -1,6 +1,7 @@
 package avalon.usuarios.mapper;
 
 import avalon.usuarios.model.pojo.*;
+import avalon.usuarios.model.request.CargaFamiliarRequest;
 import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.EstadosService;
@@ -52,6 +53,47 @@ public class UsuarioMapper {
 
     public Cliente mapToUsuario(ClienteRequest request, Cliente cliente, Direccion direccion) {
         mapToUsuario((UsuarioRequest) request, cliente);
+        Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
+        Estado estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
+
+        cliente.setFechaNacimiento(request.getFechaNacimiento());
+        cliente.setLugarNacimiento(request.getLugarNacimiento());
+        cliente.setLugarResidencia(request.getLugarResidencia());
+
+        direccion.setDireccionUno(request.getDireccion().getDireccionUno());
+        direccion.setDireccionDos(request.getDireccion().getDireccionDos());
+        direccion.setCodigoPostal(request.getDireccion().getCodigoPostal());
+        direccion.setPais(pais);
+        direccion.setState(estado);
+        direccion.setCiudad(request.getDireccion().getCiudad());
+
+        cliente.setDireccion(direccion);
+
+        return cliente;
+    }
+
+    public Cliente mapToUsuarioFromCargaFamiliar(CargaFamiliarRequest request, Cliente cliente, Direccion direccion) {
+        String contrasenia = "";
+        if (request.getContrasenia() != null)
+            contrasenia = passwordEncoder.encode(request.getContrasenia());
+
+        cliente.setNombres(request.getNombres());
+        cliente.setNombresDos(request.getNombresDos());
+        cliente.setApellidos(request.getApellidos());
+        cliente.setApellidosDos(request.getApellidosDos());
+        cliente.setCorreoElectronico(request.getCorreoElectronico());
+        cliente.setNumeroTelefono(request.getNumeroTelefono());
+        if (cliente.getId() == null) {
+            cliente.setNombreUsuario(request.getNombreUsuario());
+        }
+
+        if (!contrasenia.isEmpty())
+            cliente.setContrasenia(contrasenia);
+
+        cliente.setUrlImagen(request.getUrlImagen());
+        cliente.setEstado(request.getEstado());
+        cliente.setRol(rolService.findById(request.getRolId()));
+
         Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
         Estado estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
 

@@ -39,9 +39,10 @@ public class CargaFamiliarController {
     public ResponseEntity<ClientePoliza> createCargaFamiliar(@RequestBody CargaFamiliarRequest request) {
         try {
             Cliente cliente;
-            if (request.getClienteId() == null)
-                cliente = usuarioMapper.mapToUsuario(request, new Cliente(), new Direccion());
-            else
+            if (request.getClienteId() == null) {
+                cliente = usuarioMapper.mapToUsuarioFromCargaFamiliar(request, new Cliente(), new Direccion());
+                this.clienteService.save(cliente);
+            }else
                 cliente = this.clienteService.findById(request.getClienteId()).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
 
             ClientePoliza clientePoliza= this.mapToClientePolizaCargaFamiliar(request, cliente, new ClientePoliza());

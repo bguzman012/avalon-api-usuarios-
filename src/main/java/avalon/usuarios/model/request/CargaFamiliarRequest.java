@@ -12,7 +12,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CargaFamiliarRequest extends ClienteRequest{
+public class CargaFamiliarRequest{
 	private String nombres;
 	private String nombresDos;
 	private String apellidos;
