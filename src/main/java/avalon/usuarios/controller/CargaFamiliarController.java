@@ -138,6 +138,7 @@ public class CargaFamiliarController {
         clientePolizaeference.setFechaFin(clientePolizaTitular.getFechaFin());
         clientePolizaeference.setNumeroCertificado(request.getNumeroCertificado());
         clientePolizaeference.setParentesco(request.getParentesco());
+        clientePolizaeference.setEstado("A");
         clientePolizaeference.setTipo("DEPENDIENTE");
 
         return clientePolizaeference;

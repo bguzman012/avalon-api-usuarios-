@@ -99,7 +99,8 @@ public class ClientePoliza extends AuditingData {
     @Transient
     public String getDisplayName() {
         return (codigo != null ? codigo + " - " : "") +
-                (poliza.getNombre() != null ? poliza.getNombre() : "");
+                (poliza.getNombre() != null ? poliza.getNombre() : "") +
+                (tipo != null ? " [" + tipo + "]" : "");
     }
 
 }

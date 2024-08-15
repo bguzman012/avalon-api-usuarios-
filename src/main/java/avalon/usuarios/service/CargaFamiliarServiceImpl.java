@@ -95,7 +95,7 @@ public class CargaFamiliarServiceImpl implements CargaFamiliarService {
             ));
         }
 
-        predicates.add(cb.equal(root.get("clientePoliza"), clientePoliza));
+        predicates.add(cb.equal(root.get("titular"), clientePoliza));
 
 
         return predicates;
