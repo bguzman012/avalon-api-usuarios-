@@ -1,5 +1,6 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.response.JwtAuthenticationResponse;
 import avalon.usuarios.config.JwtTokenProvider;
 import avalon.usuarios.model.pojo.Usuario;
@@ -42,7 +43,12 @@ public class AuthController {
         if (usuarioEncontrado != null) {
             // Generar y devolver el token JWT
 
-            if (Objects.equals(usuarioEncontrado.getEstado(), "P")) return ResponseEntity.badRequest().body(new ApiResponse(false, "Su cuenta no se encuentra activa"));
+            if (!Objects.equals(usuarioEncontrado.getEstado(), "A")) return ResponseEntity.badRequest().body(new ApiResponse(false, "Su cuenta no se encuentra activa"));
+
+            if (usuarioEncontrado.getRol().getId() == 3 ) {
+                Cliente cliente = (Cliente) usuarioEncontrado;
+                if (!cliente.tiene18OMasAnios()) return ResponseEntity.badRequest().body(new ApiResponse(false, "El usuario no tiene la edad suficiente para utilizar el sistema"));
+            }
 
             String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
             return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId()));

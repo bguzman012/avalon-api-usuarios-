@@ -24,7 +24,6 @@ public class UsuarioRequest {
 	private String numeroTelefono;
 	@NotNull
 	private String nombreUsuario;
-	@NotNull
 	private String contrasenia;
 	private String urlImagen;
 	@NotNull

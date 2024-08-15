@@ -27,7 +27,9 @@ public class UsuarioMapper {
     }
 
     public <T extends Usuario> T mapToUsuario(UsuarioRequest request, T usuario) {
-        String contrasenia = passwordEncoder.encode(request.getContrasenia());
+        String contrasenia = "";
+        if (request.getContrasenia() != null)
+            contrasenia = passwordEncoder.encode(request.getContrasenia());
 
         usuario.setNombres(request.getNombres());
         usuario.setNombresDos(request.getNombresDos());
@@ -35,8 +37,13 @@ public class UsuarioMapper {
         usuario.setApellidosDos(request.getApellidosDos());
         usuario.setCorreoElectronico(request.getCorreoElectronico());
         usuario.setNumeroTelefono(request.getNumeroTelefono());
-        usuario.setNombreUsuario(request.getNombreUsuario());
-        usuario.setContrasenia(contrasenia);
+        if (usuario.getId() == null) {
+            usuario.setNombreUsuario(request.getNombreUsuario());
+        }
+
+        if (!contrasenia.isEmpty())
+            usuario.setContrasenia(contrasenia);
+
         usuario.setUrlImagen(request.getUrlImagen());
         usuario.setEstado(request.getEstado());
         usuario.setRol(rolService.findById(request.getRolId()));

@@ -50,6 +50,7 @@ public class Usuario extends AuditingData {
     @Column(name = "nombre_usuario", unique = true)
     private String nombreUsuario;
 
+    @JsonIgnore
     @NotNull
     @Column(name = "contrasenia")
     private String contrasenia;
