@@ -1,16 +1,13 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.Beneficio;
-import avalon.usuarios.model.pojo.CargaFamiliar;
-import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.Membresia;
+import avalon.usuarios.mapper.UsuarioMapper;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.BeneficioRequest;
 import avalon.usuarios.model.request.CargaFamiliarRequest;
+import avalon.usuarios.model.request.ClientePolizaRequest;
+import avalon.usuarios.model.request.UpdateCargaFamiliarRequest;
 import avalon.usuarios.model.response.PaginatedResponse;
-import avalon.usuarios.service.BeneficioService;
-import avalon.usuarios.service.CargaFamiliarService;
-import avalon.usuarios.service.ClientesPolizaService;
-import avalon.usuarios.service.MembresiaService;
+import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,90 +29,118 @@ public class CargaFamiliarController {
 
     private final CargaFamiliarService service;
     @Autowired
+    private ClienteService clienteService;
+    @Autowired
     private ClientesPolizaService clientesPolizaService;
+    @Autowired
+    private UsuarioMapper usuarioMapper;
 
     @PostMapping("/cargasFamiliares")
-    public ResponseEntity<CargaFamiliar> createCargaFamiliar(@RequestBody CargaFamiliarRequest request) {
+    public ResponseEntity<ClientePoliza> createCargaFamiliar(@RequestBody CargaFamiliarRequest request) {
         try {
-            CargaFamiliar cargaFamiliar = this.mapToCargaFamiliar(request, new CargaFamiliar());
-            service.save(cargaFamiliar);
-            return cargaFamiliar.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(cargaFamiliar) : ResponseEntity.badRequest().build();
+            Cliente cliente;
+            if (request.getClienteId() == null)
+                cliente = usuarioMapper.mapToUsuario(request, new Cliente(), new Direccion());
+            else
+                cliente = this.clienteService.findById(request.getClienteId()).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+
+            ClientePoliza clientePoliza= this.mapToClientePolizaCargaFamiliar(request, cliente, new ClientePoliza());
+            clientesPolizaService.savePoliza(clientePoliza);
+            return clientePoliza.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(clientePoliza) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
-    @GetMapping("/cargasFamiliares")
-    public ResponseEntity<List<CargaFamiliar>> getCargaFamiliars() {
-        List<CargaFamiliar> cargasFamiliares = service.findAll();
-
-        if (!cargasFamiliares.isEmpty()) {
-            return ResponseEntity.ok(cargasFamiliares);
-        } else {
-            return ResponseEntity.ok(Collections.emptyList());
-        }
-    }
+//    @GetMapping("/cargasFamiliares")
+//    public ResponseEntity<List<CargaFamiliar>> getCargaFamiliars() {
+//        List<CargaFamiliar> cargasFamiliares = service.findAll();
+//
+//        if (!cargasFamiliares.isEmpty()) {
+//            return ResponseEntity.ok(cargasFamiliares);
+//        } else {
+//            return ResponseEntity.ok(Collections.emptyList());
+//        }
+//    }
 
     @GetMapping("/clientesPolizas/{clientePolizaId}/cargasFamiliares")
-    public ResponseEntity<PaginatedResponse<CargaFamiliar>> getCargaFamiliarByClientePoliza(@PathVariable Long clientePolizaId,
-                                                                               @RequestParam(required = false) String busqueda,
-                                                                               @RequestParam(defaultValue = "0") int page,
-                                                                               @RequestParam(defaultValue = "10") int size,
-                                                                               @RequestParam(defaultValue = "createdDate") String sortField,
-                                                                               @RequestParam(defaultValue = "desc") String sortOrder) {
+    public ResponseEntity<PaginatedResponse<ClientePoliza>> getCargaFamiliarByClientePoliza(@PathVariable Long clientePolizaId,
+                                                                                            @RequestParam(required = false) String busqueda,
+                                                                                            @RequestParam(defaultValue = "0") int page,
+                                                                                            @RequestParam(defaultValue = "10") int size,
+                                                                                            @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                                            @RequestParam(defaultValue = "desc") String sortOrder) {
         ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<CargaFamiliar> cargaFamiliarPage = service.searchCargasByClientePoliza(busqueda, clientePoliza, pageable);
+        Page<ClientePoliza> clientePolizaPage = service.searchCargasByClientePoliza(busqueda, clientePoliza, pageable);
 
-        List<CargaFamiliar> cargasFamiliares = cargaFamiliarPage.getContent();
-        long totalRecords = cargaFamiliarPage.getTotalElements();
+        List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
+        long totalRecords = clientePolizaPage.getTotalElements();
 
-        PaginatedResponse<CargaFamiliar> response = new PaginatedResponse<>(cargasFamiliares, totalRecords);
+        PaginatedResponse<ClientePoliza> response = new PaginatedResponse<>(clientePolizas, totalRecords);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/cargasFamiliares/{cargaFamiliarId}")
-    public ResponseEntity<CargaFamiliar> getCargaFamiliar(@PathVariable Long cargaFamiliarId) {
-        CargaFamiliar cargaFamiliar = service.findById(cargaFamiliarId).orElseThrow(() -> new IllegalArgumentException("CargaFamiliar no encontrada"));
+    @GetMapping("/cargasFamiliares/{clientePolizaId}")
+    public ResponseEntity<ClientePoliza> getClientePoliza(@PathVariable Long clientePolizaId) {
+        ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente poliza titular no encontrado"));
 
-        if (cargaFamiliar != null) {
-            return ResponseEntity.ok(cargaFamiliar);
+        if (clientePoliza != null) {
+            return ResponseEntity.ok(clientePoliza);
         } else {
             return ResponseEntity.notFound().build();
         }
     }
 
-    @PutMapping("/cargasFamiliares/{cargaFamiliarId}")
-    public ResponseEntity<CargaFamiliar> updateCargaFamiliar(@PathVariable Long cargaFamiliarId, @RequestBody CargaFamiliarRequest request) {
-        CargaFamiliar cargaFamiliar = service.findById(cargaFamiliarId).orElseThrow(() -> new IllegalArgumentException("CargaFamiliar no encontrada"));
-        CargaFamiliar cargaFamiliarMapped = this.mapToCargaFamiliar(request, cargaFamiliar);
-        service.save(cargaFamiliarMapped);
+    @PutMapping("/cargasFamiliares/{clientePolizaId}")
+    public ResponseEntity<ClientePoliza> updateCargaFamiliar(@PathVariable Long clientePolizaId, @RequestBody UpdateCargaFamiliarRequest request) {
+        ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente poliza titular no encontrado"));
+        Cliente cliente = this.clienteService.findById(request.getClienteId()).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
 
-        return cargaFamiliarMapped.getId() != null ? ResponseEntity.ok(cargaFamiliarMapped) : ResponseEntity.badRequest().build();
+        clientePoliza.setParentesco(request.getParentesco());
+        clientePoliza.setCliente(cliente);
+        clientePoliza.setNumeroCertificado(request.getNumeroCertificado());
+
+        clientesPolizaService.savePoliza(clientePoliza);
+        return clientePoliza.getId() != null ? ResponseEntity.ok(clientePoliza) : ResponseEntity.badRequest().build();
     }
 
-    @DeleteMapping("/cargasFamiliares/{cargaFamiliarId}")
-    public ResponseEntity<Void> deleteCargaFamiliar(@PathVariable Long cargaFamiliarId) {
-        service.deleteById(cargaFamiliarId);
-        return ResponseEntity.noContent().build();
-    }
+//    private CargaFamiliar mapToCargaFamiliar(CargaFamiliarRequest request, CargaFamiliar clientePoliza) {
+//        ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+//
+//        clientePoliza.setNombres(request.getNombres());
+//        clientePoliza.setNombresDos(request.getNombresDos());
+//        clientePoliza.setApellidos(request.getApellidos());
+//        clientePoliza.setApellidosDos(request.getApellidosDos());
+//        clientePoliza.setParentesco(request.getParentesco());
+//        clientePoliza.setCorreoElectronico(request.getCorreoElectronico());
+//        clientePoliza.setNumeroTelefono(request.getNumeroTelefono());
+//        clientePoliza.setUrlImagen(request.getUrlImagen());
+//
+//        clientePoliza.setClientePoliza(clientePoliza);
+//        return clientePoliza;
+//    }
 
-    private CargaFamiliar mapToCargaFamiliar(CargaFamiliarRequest request, CargaFamiliar cargaFamiliar) {
-        ClientePoliza clientePoliza = this.clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+    private ClientePoliza mapToClientePolizaCargaFamiliar(CargaFamiliarRequest request, Cliente cliente, ClientePoliza clientePolizaeference) {
+        ClientePoliza clientePolizaTitular = this.clientesPolizaService.getClientePoliza(request.getClientePolizaTitularId()).orElseThrow(() -> new IllegalArgumentException("Cliente poliza titular no encontrado"));
+        Asesor asesor = clientePolizaTitular.getAsesor();
+        Agente agente = clientePolizaTitular.getAgente();
+        Poliza poliza = clientePolizaTitular.getPoliza();
 
-        cargaFamiliar.setNombres(request.getNombres());
-        cargaFamiliar.setNombresDos(request.getNombresDos());
-        cargaFamiliar.setApellidos(request.getApellidos());
-        cargaFamiliar.setApellidosDos(request.getApellidosDos());
-        cargaFamiliar.setParentesco(request.getParentesco());
-        cargaFamiliar.setCorreoElectronico(request.getCorreoElectronico());
-        cargaFamiliar.setNumeroTelefono(request.getNumeroTelefono());
-        cargaFamiliar.setUrlImagen(request.getUrlImagen());
+        clientePolizaeference.setTitular(clientePolizaTitular);
+        clientePolizaeference.setCliente(cliente);
+        clientePolizaeference.setAsesor(asesor);
+        clientePolizaeference.setAgente(agente);
+        clientePolizaeference.setPoliza(poliza);
+        clientePolizaeference.setFechaInicio(clientePolizaTitular.getFechaInicio());
+        clientePolizaeference.setFechaFin(clientePolizaTitular.getFechaFin());
+        clientePolizaeference.setNumeroCertificado(request.getNumeroCertificado());
+        clientePolizaeference.setParentesco(request.getParentesco());
+        clientePolizaeference.setTipo("DEPENDIENTE");
 
-        cargaFamiliar.setClientePoliza(clientePoliza);
-        return cargaFamiliar;
+        return clientePolizaeference;
     }
 
 

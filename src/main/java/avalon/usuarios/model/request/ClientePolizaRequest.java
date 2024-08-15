@@ -25,6 +25,8 @@ public class ClientePolizaRequest {
 	@NotNull
 	private Long polizaId;
 	@NotNull
+	private String numeroCertificado;
+	@NotNull
 	@Temporal(TemporalType.DATE)
 	private Date fechaInicio;
 	@NotNull

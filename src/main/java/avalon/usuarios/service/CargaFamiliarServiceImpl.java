@@ -3,7 +3,7 @@ package avalon.usuarios.service;
 import avalon.usuarios.data.AsesorRepository;
 import avalon.usuarios.data.CargaFamiliarRepository;
 import avalon.usuarios.model.pojo.Asesor;
-import avalon.usuarios.model.pojo.CargaFamiliar;
+import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import jakarta.persistence.EntityManager;
@@ -28,39 +28,15 @@ public class CargaFamiliarServiceImpl implements CargaFamiliarService {
 
     @PersistenceContext
     private EntityManager entityManager;
+    
 
     @Override
-    public CargaFamiliar save(CargaFamiliar entity) {
-        return this.repository.save(entity);
-    }
-
-    @Override
-    public Optional<CargaFamiliar> findById(Long id) {
-        return this.repository.findById(id);
-    }
-
-    @Override
-    public List<CargaFamiliar> findAll() {
-        return this.repository.findAll();
-    }
-
-    @Override
-    public List<CargaFamiliar> findAllByClientePoliza(ClientePoliza clientePoliza) {
-        return this.repository.findAllByClientePoliza(clientePoliza);
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        this.repository.deleteById(id);
-    }
-
-    @Override
-    public Page<CargaFamiliar> searchCargasByClientePoliza(String busqueda, ClientePoliza clientePoliza, Pageable pageable) {
+    public Page<ClientePoliza> searchCargasByClientePoliza(String busqueda, ClientePoliza clientePoliza, Pageable pageable) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Consulta principal para los resultados paginados
-        CriteriaQuery<CargaFamiliar> query = cb.createQuery(CargaFamiliar.class);
-        Root<CargaFamiliar> root = query.from(CargaFamiliar.class);
+        CriteriaQuery<ClientePoliza> query = cb.createQuery(ClientePoliza.class);
+        Root<ClientePoliza> root = query.from(ClientePoliza.class);
 
         List<Predicate> predicates = buildPredicates(cb, root, busqueda, clientePoliza);
 
@@ -71,22 +47,22 @@ public class CargaFamiliarServiceImpl implements CargaFamiliarService {
         Order order = sortOrder.isAscending() ? cb.asc(root.get(sortOrder.getProperty())) : cb.desc(root.get(sortOrder.getProperty()));
         query.orderBy(order);
 
-        List<CargaFamiliar> cargasFamiliares = entityManager.createQuery(query)
+        List<ClientePoliza> clientePolizas = entityManager.createQuery(query)
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countCargaFamiliars(busqueda, clientePoliza);
+        Long totalRecords = countClientePolizas(busqueda, clientePoliza);
 
-        return new PageImpl<>(cargasFamiliares, pageable, totalRecords);
+        return new PageImpl<>(clientePolizas, pageable, totalRecords);
     }
 
-    private Long countCargaFamiliars(String busqueda, ClientePoliza clientePoliza) {
+    private Long countClientePolizas(String busqueda, ClientePoliza clientePoliza) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
         CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<CargaFamiliar> countRoot = countQuery.from(CargaFamiliar.class);
+        Root<ClientePoliza> countRoot = countQuery.from(ClientePoliza.class);
         countQuery.select(cb.count(countRoot));
 
         List<Predicate> countPredicates = buildPredicates(cb, countRoot, busqueda, clientePoliza);
@@ -101,18 +77,21 @@ public class CargaFamiliarServiceImpl implements CargaFamiliarService {
         }
     }
 
-    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<CargaFamiliar> root, String busqueda, ClientePoliza clientePoliza) {
+    private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<ClientePoliza> root, String busqueda, ClientePoliza clientePoliza) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
             predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("nombres")), likePattern),
-                    cb.like(cb.lower(root.get("nombresDos")), likePattern),
-                    cb.like(cb.lower(root.get("apellidos")), likePattern),
-                    cb.like(cb.lower(root.get("apellidosDos")), likePattern),
-                    cb.like(cb.lower(root.get("correoElectronico")), likePattern),
-                    cb.like(cb.lower(root.get("parentesco")), likePattern)
+                    cb.like(cb.lower(root.get("cliente").get("nombres")), likePattern),
+                    cb.like(cb.lower(root.get("cliente").get("nombresDos")), likePattern),
+                    cb.like(cb.lower(root.get("cliente").get("apellidos")), likePattern),
+                    cb.like(cb.lower(root.get("cliente").get("apellidosDos")), likePattern),
+                    cb.like(cb.lower(root.get("cliente").get("correoElectronico")), likePattern),
+                    cb.like(cb.lower(root.get("cliente").get("nombreUsuario")), likePattern),
+
+                    cb.like(cb.lower(root.get("parentesco")), likePattern),
+                    cb.like(cb.lower(root.get("numeroCertificado")), likePattern)
             ));
         }
 

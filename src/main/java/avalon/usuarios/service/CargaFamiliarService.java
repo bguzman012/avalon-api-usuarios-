@@ -11,10 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CargaFamiliarService {
-    CargaFamiliar save(CargaFamiliar entity);
-    Optional<CargaFamiliar> findById(Long id);
-    List<CargaFamiliar> findAll();
-    Page<CargaFamiliar> searchCargasByClientePoliza(String busqueda, ClientePoliza clientePoliza, Pageable pageable);
-    List<CargaFamiliar> findAllByClientePoliza(ClientePoliza clientePoliza);
-    void deleteById(Long id);
+    Page<ClientePoliza> searchCargasByClientePoliza(String busqueda, ClientePoliza clientePoliza, Pageable pageable);
+
 }

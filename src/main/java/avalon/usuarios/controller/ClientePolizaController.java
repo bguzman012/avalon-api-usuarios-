@@ -150,6 +150,9 @@ public class ClientePolizaController {
         clientePolizaeference.setPoliza(poliza);
         clientePolizaeference.setFechaInicio(request.getFechaInicio());
         clientePolizaeference.setFechaFin(request.getFechaFin());
+        clientePolizaeference.setNumeroCertificado(request.getNumeroCertificado());
+        clientePolizaeference.setTipo("TITULAR");
+
         return clientePolizaeference;
     }
 

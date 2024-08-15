@@ -127,6 +127,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                     cb.like(cb.lower(agJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(pJoin.get("nombre")), likePattern),
                     cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("numeroCertificado")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaFin"), cb.literal("yyyy-MM-dd")), likePattern)
             ));

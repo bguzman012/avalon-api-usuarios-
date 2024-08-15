@@ -29,6 +29,9 @@ public class ClientePoliza extends AuditingData {
     @Column(name = "codigo", unique = true, updatable = false)
     private String codigo;
 
+    @Column(name = "numeroCertificado")
+    private String numeroCertificado;
+
     @ManyToOne
     @NotNull
     @JoinColumn(name = "cliente_id")
@@ -58,6 +61,16 @@ public class ClientePoliza extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "parentesco")
+    private String parentesco;
+
+    @Column(name = "tipo")
+    private String tipo;
+
+    @ManyToOne
+    @JoinColumn(name = "titular_id")
+    private ClientePoliza titular;
+
     @JsonIgnore
     @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
     private List<CargaFamiliar> cargaFamiliarList;
@@ -73,6 +86,10 @@ public class ClientePoliza extends AuditingData {
     @JsonIgnore
     @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
     private List<Emergencia> emergenciaList;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "titular", cascade = CascadeType.ALL)
+    private List<ClientePoliza> dependedientes;
 
     @JsonIgnore
     @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)

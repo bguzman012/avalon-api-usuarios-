@@ -10,14 +10,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CargaFamiliarRequest extends ClienteRequest{
+public class UpdateCargaFamiliarRequest{
 
 	@NotNull
 	private String parentesco;
+	@NotNull
 	private Long clienteId;
 	@NotNull
 	private String numeroCertificado;
-	@NotNull
-	private Long clientePolizaTitularId;
 	// Getters and setters
 }
