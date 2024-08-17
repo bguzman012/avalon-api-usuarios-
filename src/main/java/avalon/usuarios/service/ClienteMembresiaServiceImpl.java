@@ -100,6 +100,8 @@ public class ClienteMembresiaServiceImpl implements ClienteMembresiaService {
                     cb.like(cb.lower(cJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(mJoin.get("nombres")), likePattern),
                     cb.like(cb.lower(aJoin.get("nombreUsuario")), likePattern),
+
+                    cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaFin"), cb.literal("yyyy-MM-dd")), likePattern)
             ));

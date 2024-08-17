@@ -23,6 +23,9 @@ public class ClienteMembresia extends AuditingData {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "codigo")
+    private String codigo;
+
     @ManyToOne
     @NotNull
     @JoinColumn(name = "membresia_id")

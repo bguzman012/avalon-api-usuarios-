@@ -1,5 +1,6 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.PaginatedResponse;
@@ -7,6 +8,7 @@ import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ import java.util.List;
 public class ReclamoController {
 
     private final ReclamacionService service;
+    private final UsuariosService usuariosService;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
     @Autowired
@@ -34,7 +38,15 @@ public class ReclamoController {
     private CasoService casoService;
     @Autowired
     private ImagenService imagenService;
+    @Autowired
+    private AuditorAwareImpl auditorAware;
     private String TOPICO = "IMAGEN_RECLAMO";
+
+    @Autowired
+    public ReclamoController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, ReclamacionService reclamacionService) {
+        this.service = reclamacionService;
+        this.usuariosService = usuariosService;
+    }
 
     @PostMapping("/reclamaciones")
     public ResponseEntity<Reclamacion> createReclamacion(@RequestPart("reclamacion") ReclamacionRequest request,
@@ -64,6 +76,12 @@ public class ReclamoController {
                                                                            @RequestParam(defaultValue = "10") int size,
                                                                            @RequestParam(defaultValue = "createdDate") String sortField,
                                                                            @RequestParam(defaultValue = "desc") String sortOrder) {
+        Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+        if (currentUser.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
 
         ClientePoliza clientePoliza = null;
         Caso caso = null;
@@ -81,7 +99,7 @@ public class ReclamoController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Reclamacion> reclamacionPage = service.searchReclamaciones(busqueda, estado, pageable, clientePoliza, caso);
+        Page<Reclamacion> reclamacionPage = service.searchReclamaciones(busqueda, estado, pageable, clientePoliza, caso, usuario);
 
         List<Reclamacion> reclamaciones = reclamacionPage.getContent();
         long totalRecords = reclamacionPage.getTotalElements();

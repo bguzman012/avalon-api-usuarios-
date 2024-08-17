@@ -1,5 +1,6 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.EmergenciaRequest;
@@ -9,6 +10,7 @@ import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ import java.util.List;
 public class EmergenciaController {
 
     private final EmergenciaService service;
+    private final UsuariosService usuariosService;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
     @Autowired
@@ -38,8 +42,15 @@ public class EmergenciaController {
     private PaisService paisService;
     @Autowired
     private EstadosService estadosService;
-
+    @Autowired
+    private AuditorAwareImpl auditorAware;
     private String TOPICO = "IMAGEN_EMERGENCIA";
+
+    @Autowired
+    public EmergenciaController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, EmergenciaService emergenciaService) {
+        this.service = emergenciaService;
+        this.usuariosService = usuariosService;
+    }
 
     @PostMapping("/emergencias")
     public ResponseEntity<Emergencia> createEmergencia(@RequestPart("emergencia") EmergenciaRequest request,
@@ -70,6 +81,13 @@ public class EmergenciaController {
                                                                         @RequestParam(defaultValue = "10") int size,
                                                                         @RequestParam(defaultValue = "createdDate") String sortField,
                                                                         @RequestParam(defaultValue = "desc") String sortOrder) {
+        Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+        if (currentUser.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+
         ClientePoliza clientePoliza = null;
         Caso caso = null;
 
@@ -86,7 +104,7 @@ public class EmergenciaController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Emergencia> emergenciaPage = service.searchEmergencias(busqueda, estado, pageable, clientePoliza, caso);
+        Page<Emergencia> emergenciaPage = service.searchEmergencias(busqueda, estado, pageable, clientePoliza, caso, usuario);
 
         List<Emergencia> emergencias = emergenciaPage.getContent();
         long totalRecords = emergenciaPage.getTotalElements();

@@ -18,12 +18,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
 public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
-    private final String ROL_ADMIN = "ADM";
+    private final String ROL_CLIENTE = "CLI";
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
     private final ClientePolizaRepository repository;
@@ -58,12 +59,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         // Consulta principal para los resultados paginados
         CriteriaQuery<ClientePoliza> query = cb.createQuery(ClientePoliza.class);
         Root<ClientePoliza> cmRoot = query.from(ClientePoliza.class);
-        Join<ClientePoliza, Agente> agJoin = cmRoot.join("agente");
-        Join<ClientePoliza, Cliente> cJoin = cmRoot.join("cliente");
-        Join<ClientePoliza, Asesor> aJoin = cmRoot.join("asesor");
-        Join<ClientePoliza, Poliza> pJoin = cmRoot.join("poliza");
 
-        List<Predicate> predicates = buildPredicates(cb, cmRoot, agJoin, cJoin, aJoin, pJoin, busqueda, cliente, poliza, usuario);
+        List<Predicate> predicates = buildPredicates(cb, cmRoot,busqueda, cliente, poliza, usuario);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -89,12 +86,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         Root<ClientePoliza> countRoot = countQuery.from(ClientePoliza.class);
         countQuery.select(cb.count(countRoot));
 
-        Join<ClientePoliza, Agente> agJoin = countRoot.join("agente");
-        Join<ClientePoliza, Cliente> cJoin = countRoot.join("cliente");
-        Join<ClientePoliza, Asesor> aJoin = countRoot.join("asesor");
-        Join<ClientePoliza, Poliza> pJoin = countRoot.join("poliza");
-
-        List<Predicate> countPredicates = buildPredicates(cb, countRoot, agJoin, cJoin, aJoin, pJoin, busqueda, cliente, poliza, usuario);
+        List<Predicate> countPredicates = buildPredicates(cb, countRoot, busqueda, cliente, poliza, usuario);
 
         countQuery.where(cb.and(countPredicates.toArray(new Predicate[0])));
 
@@ -108,10 +100,6 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
     private List<Predicate> buildPredicates(CriteriaBuilder cb,
                                             Root<ClientePoliza> cmRoot,
-                                            Join<ClientePoliza, Agente> agJoin,
-                                            Join<ClientePoliza, Cliente> cJoin,
-                                            Join<ClientePoliza, Asesor> aJoin,
-                                            Join<ClientePoliza, Poliza> pJoin,
                                             String busqueda,
                                             Cliente cliente,
                                             Poliza poliza,
@@ -122,15 +110,23 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
             predicates.add(cb.or(
-                    cb.like(cb.lower(cJoin.get("nombreUsuario")), likePattern),
-                    cb.like(cb.lower(aJoin.get("nombreUsuario")), likePattern),
-                    cb.like(cb.lower(agJoin.get("nombreUsuario")), likePattern),
-                    cb.like(cb.lower(pJoin.get("nombre")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("asesor").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("agente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("poliza").get("nombre")), likePattern),
                     cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
                     cb.like(cb.lower(cmRoot.get("numeroCertificado")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaFin"), cb.literal("yyyy-MM-dd")), likePattern)
             ));
+        }
+
+        // Si se esta consultando las polizas por cliente y si el usuario loggeado es cliente
+        if (usuario.getRol().getCodigo().equals(this.ROL_CLIENTE) && cliente != null){
+            // Si el cliente loggeado es diferente al cliente que se esta consultando
+            if (!Objects.equals(usuario.getId(), cliente.getId())){
+                predicates.add(cb.equal(cmRoot.get("titular").get("cliente").get("id"), usuario.getId()));
+            }
         }
 
         if (cliente != null) {

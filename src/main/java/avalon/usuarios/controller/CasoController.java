@@ -1,15 +1,14 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.CasoRequest;
 import avalon.usuarios.model.response.PaginatedResponse;
-import avalon.usuarios.service.CasoService;
-import avalon.usuarios.service.ClientesPolizaService;
-import avalon.usuarios.service.EstadosService;
-import avalon.usuarios.service.PaisService;
+import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,8 +26,17 @@ import java.util.List;
 public class CasoController {
 
     private final CasoService service;
+    private final UsuariosService usuariosService;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
+    @Autowired
+    private AuditorAwareImpl auditorAware;
+
+    @Autowired
+    public CasoController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, CasoService casoService) {
+        this.service = casoService;
+        this.usuariosService = usuariosService;
+    }
 
     @PostMapping("/casos")
     public ResponseEntity<Caso> createCaso(@RequestBody CasoRequest request) {
@@ -47,15 +56,25 @@ public class CasoController {
                                                             @RequestParam(defaultValue = "createdDate") String sortField,
                                                             @RequestParam(defaultValue = "asc") String sortOrder,
                                                             @RequestParam(required = false) String clientePolizaId) {
-        Long clientePoliza = null;
+        Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+        if (currentUser.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+
+        Long clientePolizaParam;
+        ClientePoliza clientePoliza = null;
 
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        if (clientePolizaId != null && !clientePolizaId.isBlank())
-            clientePoliza = Long.valueOf(clientePolizaId);
+        if (clientePolizaId != null && !clientePolizaId.isBlank()) {
+            clientePolizaParam = Long.valueOf(clientePolizaId);
+            clientePoliza = clientesPolizaService.getClientePoliza(clientePolizaParam).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrado"));
+        }
 
-        Page<Caso> casoPage = service.searchCasos(busqueda, pageable, clientePoliza);
+        Page<Caso> casoPage = service.searchCasos(busqueda, pageable, clientePoliza, usuario);
 
         List<Caso> casos = casoPage.getContent();
         long totalRecords = casoPage.getTotalElements();

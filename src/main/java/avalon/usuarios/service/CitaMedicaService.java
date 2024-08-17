@@ -1,9 +1,6 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.model.pojo.Caso;
-import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.CitaMedica;
-import avalon.usuarios.model.pojo.Reclamacion;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +11,7 @@ import java.util.Optional;
 public interface CitaMedicaService {
 
     String generarNuevoCodigo();
-    Page<CitaMedica> searchCitasMedicas(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso);
+    Page<CitaMedica> searchCitasMedicas(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso, Usuario usuario);
     Optional<CitaMedica> getCitaMedica(Long citaMedicaId);
     CitaMedica saveCitaMedica(CitaMedica citaMedica);
     CitaMedica partiallyUpdateCitaMedica(PartiallyUpdateCitaMedicaRequest request, Long citaMedicaId);

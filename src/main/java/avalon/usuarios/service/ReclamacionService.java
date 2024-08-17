@@ -3,6 +3,7 @@ package avalon.usuarios.service;
 import avalon.usuarios.model.pojo.Caso;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import avalon.usuarios.model.pojo.Reclamacion;
+import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +14,7 @@ import java.util.Optional;
 public interface ReclamacionService {
 
     String generarNuevoCodigo();
-    Page<Reclamacion> searchReclamaciones(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso);
+    Page<Reclamacion> searchReclamaciones(String busqueda, String estado, Pageable pageable, ClientePoliza clientePoliza, Caso caso, Usuario usuario);
     Optional<Reclamacion> getReclamacion(Long reclamacionId);
     Reclamacion saveReclamacion(Reclamacion reclamacion);
     Reclamacion partiallyUpdateReclamacion(PartiallyUpdateReclamacionRequest request, Long reclamacionId);

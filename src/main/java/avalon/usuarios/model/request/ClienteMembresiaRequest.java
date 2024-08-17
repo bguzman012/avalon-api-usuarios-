@@ -20,6 +20,8 @@ import java.util.Date;
 public class ClienteMembresiaRequest {
 
     @NotNull
+    private String codigo;
+    @NotNull
     private Long membresiaId;
     @NotNull
     private Long clienteId;

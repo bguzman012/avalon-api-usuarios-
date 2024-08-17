@@ -89,7 +89,7 @@ public class ClientePoliza extends AuditingData {
 
     @JsonIgnore
     @OneToMany(mappedBy = "titular", cascade = CascadeType.ALL)
-    private List<ClientePoliza> dependedientes;
+    private List<ClientePoliza> dependientes;
 
     @JsonIgnore
     @OneToMany(mappedBy = "clientePoliza", cascade = CascadeType.ALL)
