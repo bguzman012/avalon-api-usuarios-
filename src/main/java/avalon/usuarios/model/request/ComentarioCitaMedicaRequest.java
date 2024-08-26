@@ -20,5 +20,6 @@ public class ComentarioCitaMedicaRequest {
 	private Long usuarioComentaId;
 	@NotNull
 	private String estado;
+	private String nombreDocumento;
 
 }

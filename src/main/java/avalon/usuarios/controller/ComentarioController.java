@@ -1,13 +1,10 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.Comentario;
-import avalon.usuarios.model.pojo.Reclamacion;
-import avalon.usuarios.model.pojo.Usuario;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.ComentarioRequest;
-import avalon.usuarios.service.ClientesPolizaService;
-import avalon.usuarios.service.ComentarioService;
-import avalon.usuarios.service.ReclamacionService;
-import avalon.usuarios.service.UsuariosService;
+import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
+import avalon.usuarios.model.request.PartiallyUpdateReclamacionRequest;
+import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +24,9 @@ public class ComentarioController {
     private final ReclamacionService reclamacionService;
     private final UsuariosService usuarioService;
     private final ComentarioService comentarioService;
+    private String TOPICO = "IMAGEN_RECLAMACION_COMENTARIO";
+    @Autowired
+    private ImagenService imagenService;
 
     @Autowired
     public ComentarioController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioService comentarioService, ReclamacionService reclamacionService) {
@@ -35,9 +36,29 @@ public class ComentarioController {
     }
 
     @PostMapping("/comentarios")
-    public ResponseEntity<Comentario> createComentario(@RequestBody ComentarioRequest request) {
+    public ResponseEntity<Comentario> createComentario(@RequestPart("comentarioReclamacion") ComentarioRequest request,
+                                                       @RequestPart(value = "fotoComentarioReclamacion", required = false) MultipartFile fotoComentarioReclamacion) {
         try {
+            Reclamacion reclamacion = this.reclamacionService.getReclamacion(request.getReclamacionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Reclamación no encontrada"));
+
+            List<Comentario> comentariosReclamos = this.comentarioService.getComentariosByReclamacion(reclamacion);
+
+            // Si no tiene comentarios, cambia el estado de la cita medica a G --> Gestionando
+            if (comentariosReclamos.isEmpty()) {
+                PartiallyUpdateReclamacionRequest partiallyUpdateReclamacionRequest = new PartiallyUpdateReclamacionRequest();
+                partiallyUpdateReclamacionRequest.setEstado("G");
+                this.reclamacionService.partiallyUpdateReclamacion(partiallyUpdateReclamacionRequest, reclamacion.getId());
+            }
+
             Comentario comentario = this.mapToComentario(request, new Comentario());
+
+            if (fotoComentarioReclamacion != null && !fotoComentarioReclamacion.isEmpty()) {
+                Imagen imagen = new Imagen(fotoComentarioReclamacion.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                comentario.setImagenId(imagen.getId());
+            }
+
             comentarioService.saveComentario(comentario);
             return comentario.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentario) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -69,11 +90,30 @@ public class ComentarioController {
     }
 
     @PutMapping("/comentarios/{comentarioId}")
-    public ResponseEntity<Comentario> updateComentario(@PathVariable Long comentarioId, @RequestBody ComentarioRequest request) {
-        Comentario comentario = comentarioService.getComentario(comentarioId).orElseThrow(() -> new IllegalArgumentException("Comentario no encontrado"));
-        Comentario comentarioMapped = this.mapToComentario(request, comentario);
-        comentarioService.saveComentario(comentarioMapped);
-        return comentarioMapped.getId() != null ? ResponseEntity.ok(comentario) : ResponseEntity.badRequest().build();
+    public ResponseEntity<Comentario> updateComentario(@PathVariable Long comentarioId,
+                                                       @RequestPart("comentarioReclamacion") ComentarioRequest request,
+                                                       @RequestPart(value = "fotoComentarioReclamacion", required = false) MultipartFile fotoComentarioReclamacion) {
+        try {
+
+            Comentario comentario = comentarioService.getComentario(comentarioId).orElseThrow(() -> new IllegalArgumentException("Comentario no encontrado"));
+            Comentario comentarioMapped = this.mapToComentario(request, comentario);
+
+            if (comentarioMapped.getImagenId() != null) {
+                this.imagenService.deleteImagen(comentario.getImagenId());
+                comentarioMapped.setImagenId(null);
+            }
+
+            if (fotoComentarioReclamacion != null && !fotoComentarioReclamacion.isEmpty()) {
+                Imagen imagen = new Imagen(fotoComentarioReclamacion.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                comentarioMapped.setImagenId(imagen.getId());
+            }
+
+            comentarioService.saveComentario(comentarioMapped);
+            return comentarioMapped.getId() != null ? ResponseEntity.ok(comentario) : ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/comentarios/{comentarioId}")

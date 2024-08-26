@@ -17,13 +17,6 @@ import lombok.*;
 @EntityListeners(AuditListener.class)
 public class Comentario extends AuditingData {
 
-    public Comentario(Long id, String contenido, Usuario usuarioComenta, String estado) {
-        this.id = id;
-        this.contenido = contenido;
-        this.usuarioComenta = usuarioComenta;
-        this.estado = estado;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -41,6 +34,9 @@ public class Comentario extends AuditingData {
     @ManyToOne
     @JoinColumn(name = "usuario_comenta_id", nullable = false)
     private Usuario usuarioComenta;
+
+    @Column(name = "imagen_id")
+    private Long imagenId;
 
     @NotNull
     @Column(name = "estado")

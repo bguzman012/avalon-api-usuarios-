@@ -3,6 +3,7 @@ package avalon.usuarios.service;
 import avalon.usuarios.data.ComentarioCitasMedicasRepository;
 import avalon.usuarios.model.pojo.ComentarioCitasMedicas;
 import avalon.usuarios.model.pojo.CitaMedica;
+import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

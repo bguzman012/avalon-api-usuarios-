@@ -11,7 +11,6 @@ import java.util.List;
 @Repository
 public interface ComentarioCitasMedicasRepository extends JpaRepository<ComentarioCitasMedicas, Long> {
 
-    @Query("SELECT new avalon.usuarios.model.pojo.ComentarioCitasMedicas(c.id, c.contenido, c.usuarioComenta, c.estado) " +
-            "FROM ComentarioCitasMedicas c WHERE c.citaMedica = :citaMedica")
     List<ComentarioCitasMedicas> findAllByCitaMedica(CitaMedica citaMedica);
+
 }

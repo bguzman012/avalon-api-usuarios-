@@ -12,5 +12,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PartiallyUpdateReclamacionRequest {
 
+	@NotNull
 	private String estado;
+	private ComentarioRequest comentarioRequest;
+
 }

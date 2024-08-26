@@ -12,6 +12,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import jakarta.persistence.criteria.Join;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,9 @@ import java.util.Optional;
 public class ReclamacionServiceImpl implements ReclamacionService {
 
     private final ReclamacionRepository repository;
+    private final UsuariosService usuariosService;
+
+    private final String ROL_ADMIN = "ADM";
     private final String ROL_CLIENTE = "CLI";
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
@@ -36,8 +40,9 @@ public class ReclamacionServiceImpl implements ReclamacionService {
     private EntityManager entityManager;
 
     @Autowired
-    public ReclamacionServiceImpl(ReclamacionRepository repository) {
+    public ReclamacionServiceImpl(ReclamacionRepository repository, @Qualifier("usuariosServiceImpl") UsuariosService usuariosService) {
         this.repository = repository;
+        this.usuariosService = usuariosService;
     }
 
     @Override
@@ -56,11 +61,9 @@ public class ReclamacionServiceImpl implements ReclamacionService {
     @Override
     public Reclamacion partiallyUpdateReclamacion(PartiallyUpdateReclamacionRequest request, Long reclamacionId) {
         Reclamacion reclamacion = repository.findById(reclamacionId).orElse(null);
-        if (reclamacion == null) return null;
+        if (reclamacion == null || request.getEstado() == null) return null;
 
-        if (request.getEstado() != null)
-            reclamacion.setEstado(request.getEstado());
-
+        reclamacion.setEstado(request.getEstado());
         return repository.save(reclamacion);
     }
 
@@ -142,8 +145,8 @@ public class ReclamacionServiceImpl implements ReclamacionService {
             ));
         }
 
-        if (estado != null && !estado.isEmpty()) {
-            predicates.add(cb.equal(rRoot.get("estado"), estado));
+        if ((estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
+            predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
         }
 
         if (clientePoliza != null) {

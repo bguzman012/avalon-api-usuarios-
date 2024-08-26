@@ -10,8 +10,5 @@ import java.util.List;
 
 @Repository
 public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
-
-    @Query("SELECT new avalon.usuarios.model.pojo.Comentario(c.id, c.contenido, c.usuarioComenta, c.estado) " +
-            "FROM Comentario c WHERE c.reclamacion = :reclamacion")
     List<Comentario> findAllByReclamacion(Reclamacion reclamacion);
 }

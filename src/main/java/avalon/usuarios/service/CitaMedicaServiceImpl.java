@@ -8,6 +8,7 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,24 +17,25 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class CitaMedicaServiceImpl implements CitaMedicaService {
 
     private final CitaMedicaRepository repository;
+    private final UsuariosService usuariosService;
+
     private final String ROL_CLIENTE = "CLI";
+    private final String ROL_ADMIN = "ADM";
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    public CitaMedicaServiceImpl(CitaMedicaRepository repository) {
+    public CitaMedicaServiceImpl(CitaMedicaRepository repository, @Qualifier("usuariosServiceImpl") UsuariosService usuariosService) {
         this.repository = repository;
+        this.usuariosService = usuariosService;
     }
 
     @Override
@@ -52,11 +54,9 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     @Override
     public CitaMedica partiallyUpdateCitaMedica(PartiallyUpdateCitaMedicaRequest request, Long citaMedicaId) {
         CitaMedica citaMedica = repository.findById(citaMedicaId).orElse(null);
-        if (citaMedica == null) return null;
+        if (citaMedica == null || request.getEstado() == null) return null;
 
-        if (request.getEstado() != null)
-            citaMedica.setEstado(request.getEstado());
-
+        citaMedica.setEstado(request.getEstado());
         return repository.save(citaMedica);
     }
 
@@ -141,6 +141,10 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             predicates.add(cb.equal(rRoot.get("estado"), estado));
         }
 
+        if ((estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
+            predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
+        }
+
         if (clientePoliza != null) {
             predicates.add(cb.equal(rRoot.get("clientePoliza"), clientePoliza));
         }
@@ -176,4 +180,6 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
 
         return predicates;
     }
+
+
 }

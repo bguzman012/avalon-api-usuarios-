@@ -1,5 +1,6 @@
 package avalon.usuarios.model.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,5 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PartiallyUpdateCitaMedicaRequest {
 
+	@NotNull
 	private String estado;
+	private ComentarioCitaMedicaRequest comentarioCitaMedicaRequest;
 }

@@ -2,10 +2,7 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
-import avalon.usuarios.model.request.CentroMedicoRequest;
-import avalon.usuarios.model.request.CitaMedicaRequest;
-import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
-import avalon.usuarios.model.request.ReclamacionRequest;
+import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +34,8 @@ public class CitaMedicaController {
     private ClientesPolizaService clientesPolizaService;
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
+    @Autowired
+    private ComentarioCitasMedicasService comentarioCitasMedicasService;
     @Autowired
     private CasoService casoService;
     @Autowired
@@ -125,6 +124,10 @@ public class CitaMedicaController {
     public ResponseEntity<CitaMedica> partiallyUpdateCitaMedica(@RequestBody PartiallyUpdateCitaMedicaRequest request, @PathVariable Long citaMedicaId) {
         try {
             CitaMedica citaMedica = service.partiallyUpdateCitaMedica(request, citaMedicaId);
+
+            if (request.getEstado().equals("C") && request.getComentarioCitaMedicaRequest() != null && citaMedica != null)
+                this.crearComentarioCierreCitasMedicas(request.getComentarioCitaMedicaRequest(), citaMedica);
+
             return citaMedica == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(citaMedica);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -185,5 +188,23 @@ public class CitaMedicaController {
         citaMedica.setOtrosRequisitos(request.getOtrosRequisitos());
 
         return citaMedica;
+    }
+
+    private void crearComentarioCierreCitasMedicas(ComentarioCitaMedicaRequest comentarioCitaMedicaRequest, CitaMedica citaMedica){
+        Usuario usuario = this.usuariosService.getUsuario(comentarioCitaMedicaRequest.getUsuarioComentaId());
+
+        ComentarioCitasMedicas comentarioCitasMedicas = new ComentarioCitasMedicas();
+        comentarioCitasMedicas.setEstado(comentarioCitaMedicaRequest.getEstado());
+        comentarioCitasMedicas.setUsuarioComenta(usuario);
+        comentarioCitasMedicas.setCitaMedica(citaMedica);
+
+        if (comentarioCitaMedicaRequest.getContenido().isEmpty()) {
+            String textoCierre = "Se ha cerrado por el " + usuario.getRol().getNombre() + " " +
+                    usuario.getNombres() + " " + usuario.getApellidos() + " (" + usuario.getNombreUsuario() + ")";
+            comentarioCitasMedicas.setContenido(textoCierre);
+        }else
+            comentarioCitasMedicas.setContenido(comentarioCitaMedicaRequest.getContenido());
+
+        comentarioCitasMedicasService.saveComentario(comentarioCitasMedicas);
     }
 }

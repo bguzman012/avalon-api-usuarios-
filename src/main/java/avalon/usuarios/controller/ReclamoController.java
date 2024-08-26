@@ -35,6 +35,8 @@ public class ReclamoController {
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
     @Autowired
+    private ComentarioService comentarioService;
+    @Autowired
     private CasoService casoService;
     @Autowired
     private ImagenService imagenService;
@@ -150,6 +152,9 @@ public class ReclamoController {
     public ResponseEntity<Reclamacion> partiallyUpdateReclamacion(@RequestBody PartiallyUpdateReclamacionRequest request, @PathVariable Long reclamacionId) {
         Reclamacion result = service.partiallyUpdateReclamacion(request, reclamacionId);
 
+        if (request.getEstado().equals("C") && request.getComentarioRequest() != null && result != null)
+            this.crearComentarioCierreReclamaciones(request.getComentarioRequest(), result);
+
         if (result != null) {
             return ResponseEntity.ok(result);
         } else {
@@ -179,6 +184,24 @@ public class ReclamoController {
         reclamacion.setInfoAdicional(request.getInfoAdicional());
 
         return reclamacion;
+    }
+
+    private void crearComentarioCierreReclamaciones(ComentarioRequest comentarioRequest, Reclamacion reclamacion){
+        Usuario usuario = this.usuariosService.getUsuario(comentarioRequest.getUsuarioComentaId());
+
+        Comentario comentarioReclamo = new Comentario();
+        comentarioReclamo.setEstado(comentarioRequest.getEstado());
+        comentarioReclamo.setUsuarioComenta(usuario);
+        comentarioReclamo.setReclamacion(reclamacion);
+
+        if (comentarioRequest.getContenido().isEmpty()) {
+            String textoCierre = "Se ha cerrado por el " + usuario.getRol().getNombre() + " " +
+                    usuario.getNombres() + " " + usuario.getApellidos() + " (" + usuario.getNombreUsuario() + ")";
+            comentarioReclamo.setContenido(textoCierre);
+        }else
+            comentarioReclamo.setContenido(comentarioRequest.getContenido());
+
+        comentarioService.saveComentario(comentarioReclamo);
     }
 
 }
