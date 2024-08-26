@@ -1,11 +1,11 @@
 package avalon.usuarios.controller;
 
-import avalon.usuarios.model.pojo.Emergencia;
-import avalon.usuarios.model.pojo.ComentarioEmergencia;
-import avalon.usuarios.model.pojo.Usuario;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.ComentarioEmergenciaRequest;
+import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
 import avalon.usuarios.service.EmergenciaService;
 import avalon.usuarios.service.ComentarioEmergenciaService;
+import avalon.usuarios.service.ImagenService;
 import avalon.usuarios.service.UsuariosService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,9 @@ public class ComentarioEmergenciaController {
     private final EmergenciaService emergenciaService;
     private final UsuariosService usuarioService;
     private final ComentarioEmergenciaService comentarioEmergenciaService;
+    private String TOPICO = "IMAGEN_CITA_MEDICA_EMERGENCIA";
+    @Autowired
+    private ImagenService imagenService;
 
     @Autowired
     public ComentarioEmergenciaController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioEmergenciaService comentarioEmergenciaService, EmergenciaService emergenciaService) {
@@ -33,9 +37,29 @@ public class ComentarioEmergenciaController {
     }
 
     @PostMapping("/comentariosEmergencias")
-    public ResponseEntity<ComentarioEmergencia> createComentario(@RequestBody ComentarioEmergenciaRequest request) {
+    public ResponseEntity<ComentarioEmergencia> createComentario(@RequestPart("comentarioEmergencia") ComentarioEmergenciaRequest request,
+                                                                 @RequestPart(value = "fotoComentarioEmergencia", required = false) MultipartFile fotoComentarioEmergencia) {
         try {
+            Emergencia emergencia = this.emergenciaService.getEmergencia(request.getEmergenciaId())
+                    .orElseThrow(() -> new IllegalArgumentException("Cita Medica no encontrada"));
+
+            List<ComentarioEmergencia> comentariosEmergencias = this.comentarioEmergenciaService.getComentariosByEmergencia(emergencia);
+
+            // Si no tiene comentarios, cambia el estado de la cita medica a G --> Gestionando
+            if (comentariosEmergencias.isEmpty()) {
+                PartiallyUpdateEmergenciasRequest partiallyUpdateEmergenciaRequest = new PartiallyUpdateEmergenciasRequest();
+                partiallyUpdateEmergenciaRequest.setEstado("G");
+                this.emergenciaService.partiallyUpdateEmergencia(partiallyUpdateEmergenciaRequest, emergencia.getId());
+            }
+
             ComentarioEmergencia comentarioEmergencia = this.mapToComentario(request, new ComentarioEmergencia());
+
+            if (fotoComentarioEmergencia != null && !fotoComentarioEmergencia.isEmpty()) {
+                Imagen imagen = new Imagen(fotoComentarioEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                comentarioEmergencia.setImagenId(imagen.getId());
+            }
+
             comentarioEmergenciaService.saveComentario(comentarioEmergencia);
             return comentarioEmergencia.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentarioEmergencia) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -68,11 +92,30 @@ public class ComentarioEmergenciaController {
     }
 
     @PutMapping("/comentariosEmergencias/{comentarioEmergenciaId}")
-    public ResponseEntity<ComentarioEmergencia> updateComentario(@PathVariable Long comentarioEmergenciaId, @RequestBody ComentarioEmergenciaRequest request) {
-        ComentarioEmergencia comentarioEmergencia = comentarioEmergenciaService.getComentario(comentarioEmergenciaId).orElseThrow(() -> new IllegalArgumentException("Comentario no encontrado"));
-        ComentarioEmergencia comentarioMapped = this.mapToComentario(request, comentarioEmergencia);
-        comentarioEmergenciaService.saveComentario(comentarioMapped);
-        return comentarioMapped.getId() != null ? ResponseEntity.ok(comentarioEmergencia) : ResponseEntity.badRequest().build();
+    public ResponseEntity<ComentarioEmergencia> updateComentario(@PathVariable Long comentarioEmergenciaId,
+                                                                 @RequestPart("comentarioEmergencia") ComentarioEmergenciaRequest request,
+                                                                 @RequestPart(value = "fotoComentarioEmergencia", required = false) MultipartFile fotoComentarioEmergencia) {
+        try {
+
+            ComentarioEmergencia comentarioEmergencia = comentarioEmergenciaService.getComentario(comentarioEmergenciaId).orElseThrow(() -> new IllegalArgumentException("Comentario no encontrado"));
+            ComentarioEmergencia comentarioMapped = this.mapToComentario(request, comentarioEmergencia);
+
+            if (comentarioMapped.getImagenId() != null) {
+                this.imagenService.deleteImagen(comentarioEmergencia.getImagenId());
+                comentarioMapped.setImagenId(null);
+            }
+
+            if (fotoComentarioEmergencia != null && !fotoComentarioEmergencia.isEmpty()) {
+                Imagen imagen = new Imagen(fotoComentarioEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
+                this.imagenService.saveImagen(imagen);
+                comentarioMapped.setImagenId(imagen.getId());
+            }
+
+            comentarioEmergenciaService.saveComentario(comentarioMapped);
+            return comentarioMapped.getId() != null ? ResponseEntity.ok(comentarioEmergencia) : ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @DeleteMapping("/comentariosEmergencias/{comentarioEmergenciaId}")

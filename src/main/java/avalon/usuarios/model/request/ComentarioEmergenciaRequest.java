@@ -20,5 +20,6 @@ public class ComentarioEmergenciaRequest {
 	private Long usuarioComentaId;
 	@NotNull
 	private String estado;
+	private String nombreDocumento;
 
 }

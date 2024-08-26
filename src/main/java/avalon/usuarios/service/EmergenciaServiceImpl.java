@@ -11,6 +11,7 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,15 +29,19 @@ import java.util.Optional;
 public class EmergenciaServiceImpl implements EmergenciaService {
 
     private final EmergenciaRepository repository;
+    private final UsuariosService usuariosService;
+
     private final String ROL_CLIENTE = "CLI";
+    private final String ROL_ADMIN = "ADM";
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    public EmergenciaServiceImpl(EmergenciaRepository repository) {
+    public EmergenciaServiceImpl(EmergenciaRepository repository, @Qualifier("usuariosServiceImpl") UsuariosService usuariosService) {
         this.repository = repository;
+        this.usuariosService = usuariosService;
     }
 
     @Override
@@ -55,11 +60,9 @@ public class EmergenciaServiceImpl implements EmergenciaService {
     @Override
     public Emergencia partiallyUpdateEmergencia(PartiallyUpdateEmergenciasRequest request, Long casoId) {
         Emergencia emergencia = repository.findById(casoId).orElse(null);
-        if (emergencia == null) return null;
+        if (emergencia == null || request.getEstado() == null) return null;
 
-        if (request.getEstado() != null)
-            emergencia.setEstado(request.getEstado());
-
+        emergencia.setEstado(request.getEstado());
         return repository.save(emergencia);
     }
 
@@ -140,8 +143,8 @@ public class EmergenciaServiceImpl implements EmergenciaService {
             ));
         }
 
-        if (estado != null && !estado.isEmpty()) {
-            predicates.add(cb.equal(rRoot.get("estado"), estado));
+        if ((estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
+            predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
         }
 
         if (clientePoliza != null) {

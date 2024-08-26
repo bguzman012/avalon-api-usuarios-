@@ -2,9 +2,7 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
-import avalon.usuarios.model.request.CitaMedicaRequest;
-import avalon.usuarios.model.request.EmergenciaRequest;
-import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
+import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +34,8 @@ public class EmergenciaController {
     private ImagenService imagenService;
     @Autowired
     private MedicoCentroMedicoAseguradoraService medicoCentroMedicoAseguradoraService;
+    @Autowired
+    private ComentarioEmergenciaService comentarioEmergenciaService;
     @Autowired
     private CasoService casoService;
     @Autowired
@@ -126,6 +126,10 @@ public class EmergenciaController {
     public ResponseEntity<Emergencia> partiallyUpdateEmergencia(@RequestBody PartiallyUpdateEmergenciasRequest request, @PathVariable Long emergenciaId) {
         try {
             Emergencia emergencia = service.partiallyUpdateEmergencia(request, emergenciaId);
+
+            if (request.getEstado().equals("C") && request.getComentarioEmergenciaRequest() != null && emergencia != null)
+                this.crearComentarioCierreCitasMedicas(request.getComentarioEmergenciaRequest(), emergencia);
+
             return emergencia == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(emergencia);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -194,5 +198,23 @@ public class EmergenciaController {
 
         emergencia.setDireccion(direccion);
         return emergencia;
+    }
+
+    private void crearComentarioCierreCitasMedicas(ComentarioEmergenciaRequest comentarioEmergenciaRequest, Emergencia emergencia){
+        Usuario usuario = this.usuariosService.getUsuario(comentarioEmergenciaRequest.getUsuarioComentaId());
+
+        ComentarioEmergencia comentarioEmergencia = new ComentarioEmergencia();
+        comentarioEmergencia.setEstado(comentarioEmergenciaRequest.getEstado());
+        comentarioEmergencia.setUsuarioComenta(usuario);
+        comentarioEmergencia.setEmergencia(emergencia);
+
+        if (comentarioEmergenciaRequest.getContenido().isEmpty()) {
+            String textoCierre = "Se ha cerrado por el " + usuario.getRol().getNombre() + " " +
+                    usuario.getNombres() + " " + usuario.getApellidos() + " (" + usuario.getNombreUsuario() + ")";
+            comentarioEmergencia.setContenido(textoCierre);
+        }else
+            comentarioEmergencia.setContenido(comentarioEmergenciaRequest.getContenido());
+
+        comentarioEmergenciaService.saveComentario(comentarioEmergencia);
     }
 }
