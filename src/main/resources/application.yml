@@ -15,6 +15,20 @@ spring:
       ddl-auto: update
 #      ddl-auto: create
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: bryamgmfn@gmail.com
+    password: magaly00
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: "*"
+
 server:
   port: 8086
 
