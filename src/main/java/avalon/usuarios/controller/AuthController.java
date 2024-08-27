@@ -26,6 +26,7 @@ public class AuthController {
     private final UsuariosService service;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    private final int ROL_CLIENTE = 3;
 
     @Autowired
     public AuthController(@Qualifier("usuariosServiceImpl") UsuariosService service) {
@@ -37,23 +38,30 @@ public class AuthController {
         String usuario = loginRequest.getUsuario();
         String contrasenia = loginRequest.getContrasenia();
 
-        Usuario usuarioEncontrado = service.validarCredenciales(usuario,contrasenia);
+        Usuario usuarioEncontrado = service.validarCredenciales(usuario, contrasenia);
 
         // Validar credenciales
         if (usuarioEncontrado != null) {
-            // Generar y devolver el token JWT
+            if (usuarioEncontrado.getContraseniaTemporalModificada().equals(Boolean.FALSE) &&
+                    Objects.equals(usuarioEncontrado.getEstado(), "A"))
+                return ResponseEntity.badRequest().body(new ApiResponse(false,
+                        "Para iniciar sesión por primera vez es necesario que cambie la contraseña que se le ha sido asignada por una segura",
+                        "CAMBIO_CONTRASENIA"));
 
-            if (!Objects.equals(usuarioEncontrado.getEstado(), "A")) return ResponseEntity.badRequest().body(new ApiResponse(false, "Su cuenta no se encuentra activa"));
+            if (!Objects.equals(usuarioEncontrado.getEstado(), "A"))
+                return ResponseEntity.badRequest().body(new ApiResponse(false,
+                        "Su cuenta no se encuentra activa", "INACTIVA"));
 
-            if (usuarioEncontrado.getRol().getId() == 3 ) {
+            if (usuarioEncontrado.getRol().getId() == this.ROL_CLIENTE) {
                 Cliente cliente = (Cliente) usuarioEncontrado;
-                if (!cliente.tiene18OMasAnios()) return ResponseEntity.badRequest().body(new ApiResponse(false, "El usuario no tiene la edad suficiente para utilizar el sistema"));
+                if (!cliente.tiene18OMasAnios()) return ResponseEntity.badRequest().body(new ApiResponse(false,
+                        "El usuario no tiene la edad suficiente para utilizar el sistema", "MENOR_EDAD"));
             }
 
             String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
             return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId()));
         } else {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Credenciales inválidas"));
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Credenciales inválidas", "CREDENCIALES_INVALIDAS"));
         }
     }
 
