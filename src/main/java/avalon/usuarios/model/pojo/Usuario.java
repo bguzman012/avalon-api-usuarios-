@@ -42,6 +42,9 @@ public class Usuario extends AuditingData {
     @Column(name = "correo_electronico", unique = true)
     private String correoElectronico;
 
+    @Column(name = "contrasenia_temporal")
+    private String contraseniaTemporal;
+
     @NotNull
     @Column(name = "numero_telefono")
     private String numeroTelefono;
@@ -49,6 +52,9 @@ public class Usuario extends AuditingData {
     @NotNull
     @Column(name = "nombre_usuario", unique = true)
     private String nombreUsuario;
+
+    @Column(name = "contrasenia_temporal_modificada", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean contraseniaTemporalModificada;
 
     @JsonIgnore
     @NotNull

@@ -208,9 +208,11 @@ public class ClienteServiceImpl extends UsuariosServiceImpl<Cliente> implements 
 
         if (usuario.getRol().getCodigo().equals(this.ROL_ADMIN) || usuario.getRol().getCodigo().equals(this.ROL_CLIENTE) ) {
             // Predicados para el rol ADMIN
-            if (estado != null && !estado.isEmpty() && usuario.getRol().getCodigo().equals(this.ROL_ADMIN))
+
+            if (estado != null && !estado.isBlank() && usuario.getRol().getCodigo().equals(this.ROL_ADMIN))
                 predicates.add(cb.equal(root.get("estado"), estado));
-            else
+
+            if (!usuario.getRol().getCodigo().equals(this.ROL_ADMIN))
                 predicates.add(cb.equal(root.get("estado"), "A"));
 
             if (busqueda != null && !busqueda.isEmpty()) {

@@ -7,6 +7,7 @@ import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.EstadosService;
 import avalon.usuarios.service.PaisService;
 import avalon.usuarios.service.RolesService;
+import avalon.usuarios.util.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -28,10 +29,10 @@ public class UsuarioMapper {
     }
 
     public <T extends Usuario> T mapToUsuario(UsuarioRequest request, T usuario) {
-        String contrasenia = "";
-        if (request.getContrasenia() != null)
-            contrasenia = passwordEncoder.encode(request.getContrasenia());
+        String contrasenia = PasswordGenerator.generateTemporaryPassword();
 
+        usuario.setContrasenia(passwordEncoder.encode(contrasenia));
+        usuario.setContraseniaTemporalModificada(Boolean.FALSE);
         usuario.setNombres(request.getNombres());
         usuario.setNombresDos(request.getNombresDos());
         usuario.setApellidos(request.getApellidos());
@@ -41,9 +42,6 @@ public class UsuarioMapper {
         if (usuario.getId() == null) {
             usuario.setNombreUsuario(request.getNombreUsuario());
         }
-
-        if (!contrasenia.isEmpty())
-            usuario.setContrasenia(contrasenia);
 
         usuario.setUrlImagen(request.getUrlImagen());
         usuario.setEstado(request.getEstado());

@@ -6,6 +6,8 @@ import avalon.usuarios.data.UsuarioRepository;
 import avalon.usuarios.model.pojo.Rol;
 import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
+import avalon.usuarios.service.mail.MailService;
+import avalon.usuarios.util.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,19 +29,15 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
     private RolRepository rolRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private MailService mailService;
+
+    private final String ESTADO_PENDIENTE_APROBACION = "P";
+    private final String ESTADO_ACTIVO = "A";
+    private final String ROL_CLIENTE = "CLI";
 
     @Override
     public T save(T entity) {
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario(entity.getNombreUsuario());
-        usuario.setContrasenia(entity.getContrasenia());
-        usuario.setCorreoElectronico(entity.getCorreoElectronico());
-        usuario.setEstado(entity.getEstado());
-        usuario.setNombres(entity.getNombres());
-        usuario.setApellidos(entity.getApellidos());
-        usuario.setNumeroTelefono(entity.getNumeroTelefono());
-        usuario.setRol(entity.getRol());
-
         return repository.save(entity);
     }
 
@@ -65,8 +63,24 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
 
     @Override
     public T partiallyUpdateUsuario(PartiallyUpdateUsuario request, T entity) {
-        if (request.getEstado() != null)
-            entity.setEstado(request.getEstado());
+        if (request.getEstado() != null && request.getEstado().equals(this.ESTADO_ACTIVO)
+                && entity.getEstado().equals(this.ESTADO_PENDIENTE_APROBACION) && entity.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
+            String contraseniaTemporal = PasswordGenerator.generateTemporaryPassword();
+
+            entity.setContrasenia(passwordEncoder.encode(contraseniaTemporal));
+
+            // Guardamos la contraseña temporal en texto
+            entity.setContraseniaTemporal(contraseniaTemporal);
+            entity.setEstado(this.ESTADO_ACTIVO);
+
+            // Descomentar para enviar correo de
+            String textoMail = "Estimado cliente " + entity.getNombres() + " " + entity.getNombresDos() + " "
+                    + entity.getApellidos() + " " + entity.getApellidosDos() + " [" + entity.getNombreUsuario() +
+                    "], su usuario ha sido aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                    "inicio de sesión es la siguiente: " + contraseniaTemporal;
+
+            this.mailService.sendSimpleEmail(entity.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
+        }
 
         if (request.getContrasenia() != null)
             entity.setContrasenia(passwordEncoder.encode(request.getContrasenia()));
