@@ -1,15 +1,19 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Cliente;
+import avalon.usuarios.model.pojo.VerificationCode;
 import avalon.usuarios.model.request.ChangePasswordRequest;
+import avalon.usuarios.model.request.SendCodeRequest;
+import avalon.usuarios.model.request.VerificationRequest;
 import avalon.usuarios.model.response.JwtAuthenticationResponse;
 import avalon.usuarios.config.JwtTokenProvider;
 import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.LoginRequest;
 import avalon.usuarios.model.response.ApiResponse;
 import avalon.usuarios.service.UsuariosService;
-import avalon.usuarios.service.UsuariosServiceImpl;
-import lombok.RequiredArgsConstructor;
+import avalon.usuarios.service.VerificationCodeService;
+import avalon.usuarios.service.mail.MailService;
+import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,8 +21,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -27,6 +34,10 @@ public class AuthController {
     private final UsuariosService service;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private VerificationCodeService verificationCodeService;
+    @Autowired
+    private MailService mailService;
     private final int ROL_CLIENTE = 3;
 
     @Autowired
@@ -35,7 +46,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) throws MessagingException, IOException {
         String usuario = loginRequest.getUsuario();
         String contrasenia = loginRequest.getContrasenia();
 
@@ -60,8 +71,10 @@ public class AuthController {
                         "El usuario no tiene la edad suficiente para utilizar el sistema", "MENOR_EDAD"));
             }
 
+            this.enviarCodigo2FA(usuarioEncontrado);
+
             String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
-            return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId(), "LOGIN_EXITOSO", "Usuario loggeado extosamente"));
+            return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId(), "LOGIN_EXITOSO_2FA", "Usuario loggeado extosamente"));
         } else {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Credenciales inválidas", "CREDENCIALES_INVALIDAS"));
         }
@@ -89,5 +102,68 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
     }
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@RequestBody VerificationRequest verificationRequest) {
+        String usuario = verificationRequest.getUsuario();
+        String codigo = verificationRequest.getCodigo();
+        LocalDateTime now = LocalDateTime.now();
+
+        Optional<VerificationCode> verificationCode = verificationCodeService.
+                findByUsernameAndCodeAndExpiresAtAfterAndUsedFalse(usuario, codigo, now);
+
+        if (!verificationCode.isEmpty()) {
+            VerificationCode verificationCodeFounded = verificationCode.get();
+            verificationCodeFounded.setUsed(true);
+            this.verificationCodeService.saveVerificationCode(verificationCodeFounded);
+
+            return ResponseEntity.ok(new ApiResponse(true, "Código válido", "CODIGO_CORRECTO"));
+        } else {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Código de verificación incorrecto o expirado", "CODIGO_INVALIDO"));
+        }
+    }
+
+    @PostMapping("/send-code")
+    public ResponseEntity<?> sendCode(@RequestBody SendCodeRequest sendCodeRequest) throws MessagingException, IOException {
+        String userName = sendCodeRequest.getUserName();
+        Usuario usuario = service.findByNombreUsuario(userName);
+        if (usuario != null) {
+            this.enviarCodigo2FA(usuario);
+            return ResponseEntity.ok(new ApiResponse(true, "Código enviado", "CODIGO_ENVIADO"));
+        } else {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Credenciales inválidas", "CREDENCIALES_INVALIDAS"));
+        }
+    }
+
+    private void enviarCodigo2FA(Usuario usuario) throws MessagingException, IOException {
+        String codigo2FA = service.generateCodigo2FA();
+        VerificationCode verificationCode = this.generateVerificationCode(usuario, codigo2FA);
+//        this.enviarMailCodigo2FA(usuario, verificationCode);
+    }
+
+    private VerificationCode generateVerificationCode(Usuario usuario, String codigo2FA) {
+        LocalDateTime createdAt = LocalDateTime.now(); // Fecha y hora actual
+        LocalDateTime expiresAt = createdAt.plusMinutes(1); // Expira en 1 minuto
+
+        VerificationCode verificationCode = new VerificationCode(usuario.getNombreUsuario(), codigo2FA, createdAt, expiresAt, false);
+        return verificationCodeService.saveVerificationCode(verificationCode); // Guardar en la base de datos
+    }
+
+    private void enviarMailCodigo2FA(Usuario usuario, VerificationCode verificationCode) throws MessagingException, IOException {
+
+        String nombreCompleto = usuario.getNombres() + " " + usuario.getNombresDos() + " "
+                + usuario.getApellidos() + " " + usuario.getApellidosDos();
+        String nombreUsuario = usuario.getNombreUsuario();
+        String codigo2FA = verificationCode.getCode(); // Obtener el código 2FA
+        LocalDateTime fechaExpiracion = verificationCode.getExpiresAt(); // Obtener la fecha de expiración
+        String fechaExpiracionFormateada = fechaExpiracion.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+
+        String textoMail = "<p><b>" + nombreCompleto + " [" + nombreUsuario + "]</b></p>" +
+                "<p>El código 2FA para su acceso es el siguiente: </p>" +
+                "<p><b>" + codigo2FA + "</b></p>" +
+                "<p>Este código es válido hasta: <b>" + fechaExpiracionFormateada + "</b></p>";
+
+        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
+    }
+
 
 }

@@ -112,6 +112,11 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
         this.usuarioRepository.save(usuario);
     }
 
+    @Override
+    public String generateCodigo2FA() {
+        return String.valueOf((int)((Math.random() * 900000) + 100000));
+    }
+
     //
     @Override
     public Usuario findByNombreUsuario(String nombreUsuario) {
