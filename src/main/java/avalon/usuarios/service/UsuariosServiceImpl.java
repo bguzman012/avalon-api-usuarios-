@@ -8,11 +8,13 @@ import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.service.mail.MailService;
 import avalon.usuarios.util.PasswordGenerator;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,7 +64,7 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
     }
 
     @Override
-    public T partiallyUpdateUsuario(PartiallyUpdateUsuario request, T entity) {
+    public T partiallyUpdateUsuario(PartiallyUpdateUsuario request, T entity) throws MessagingException, IOException {
         if (request.getEstado() != null && request.getEstado().equals(this.ESTADO_ACTIVO)
                 && entity.getEstado().equals(this.ESTADO_PENDIENTE_APROBACION) && entity.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
             String contraseniaTemporal = PasswordGenerator.generateTemporaryPassword();
@@ -74,12 +76,14 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
             entity.setEstado(this.ESTADO_ACTIVO);
 
             // Descomentar para enviar correo de
-            String textoMail = "Estimado cliente " + entity.getNombres() + " " + entity.getNombresDos() + " "
+            String textoMail = "<p><b>" + entity.getNombres() + " " + entity.getNombresDos() + " "
                     + entity.getApellidos() + " " + entity.getApellidosDos() + " [" + entity.getNombreUsuario() +
-                    "], su usuario ha sido aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
-                    "inicio de sesión es la siguiente: " + contraseniaTemporal;
+                    "]</b></p>" +
+                    "<p>Su usuario ha sido aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                    "inicio de sesión es la siguiente: </p>" +
+                    "<p><b>" + contraseniaTemporal + "</b></p>";
 
-            this.mailService.sendSimpleEmail(entity.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
+            this.mailService.sendHtmlEmail(entity.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
         }
 
         if (request.getContrasenia() != null)
@@ -96,6 +100,18 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
         }
         return null;
     }
+
+    @Override
+    public void actualizarContrasenia(Usuario usuario, String nuevaContrasenia) {
+        if (usuario.getContraseniaTemporalModificada().equals(Boolean.FALSE)) {
+            usuario.setContraseniaTemporal(null);
+            usuario.setContraseniaTemporalModificada(Boolean.TRUE);
+        }
+
+        usuario.setContrasenia(passwordEncoder.encode(nuevaContrasenia));
+        this.usuarioRepository.save(usuario);
+    }
+
     //
     @Override
     public Usuario findByNombreUsuario(String nombreUsuario) {

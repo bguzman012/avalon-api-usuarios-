@@ -9,6 +9,7 @@ import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.AgenteService;
 import avalon.usuarios.service.BrokerService;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -107,7 +110,7 @@ public class AgenteController {
     }
 
     @PatchMapping("/agentes/{agenteId}")
-    public ResponseEntity<Agente> partiallyUpdateAgente(@RequestBody PartiallyUpdateUsuario request, @PathVariable Long agenteId) {
+    public ResponseEntity<Agente> partiallyUpdateAgente(@RequestBody PartiallyUpdateUsuario request, @PathVariable Long agenteId) throws MessagingException, IOException {
         Agente agente = this.service.findById(agenteId).orElseThrow(() -> new IllegalArgumentException("Agente no encontrado"));
 
         Agente result = this.service.partiallyUpdateUsuario(request, agente);

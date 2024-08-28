@@ -1,0 +1,44 @@
+<!-- src/main/resources/templates/email-template.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .header {
+            background-color: #033E80;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .content {
+            margin: 20px;
+            font-family: Arial, sans-serif;
+            color: #333;
+        }
+
+        .footer {
+            background-color: #033E80;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Avalon</h1>
+</div>
+<div class="content">
+    <p>Estimado/a,</p>
+    <p>[[BODY]]</p>
+    <p>Saludos cordiales,<br>Avalon</p>
+</div>
+<div class="footer">
+    &copy; 2024 Avalon. Todos los derechos reservados.
+</div>
+</body>
+</html>

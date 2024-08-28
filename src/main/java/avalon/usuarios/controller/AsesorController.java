@@ -7,6 +7,7 @@ import avalon.usuarios.model.request.AsesorRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,7 +77,7 @@ public class AsesorController {
     }
 
     @PatchMapping("/asesores/{asesorId}")
-    public ResponseEntity<Asesor> partiallyUpdateAsesor(@RequestBody PartiallyUpdateUsuario request, @PathVariable Long asesorId) {
+    public ResponseEntity<Asesor> partiallyUpdateAsesor(@RequestBody PartiallyUpdateUsuario request, @PathVariable Long asesorId) throws MessagingException, IOException {
         Asesor asesor = service.findById(asesorId).orElseThrow(() -> new IllegalArgumentException("Asesor no encontrado"));
 
         Asesor result = service.partiallyUpdateUsuario(request, asesor);
