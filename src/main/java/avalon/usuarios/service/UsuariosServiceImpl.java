@@ -83,7 +83,7 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
                     "inicio de sesión es la siguiente: </p>" +
                     "<p><b>" + contraseniaTemporal + "</b></p>";
 
-            this.mailService.sendHtmlEmail(entity.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
+//            this.mailService.sendHtmlEmail(entity.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
         }
 
         if (request.getContrasenia() != null)
