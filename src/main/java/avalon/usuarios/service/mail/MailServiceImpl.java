@@ -12,6 +12,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,9 +64,11 @@ public class MailServiceImpl implements MailService {
     public String loadHtmlTemplate(String path) throws IOException {
         // Cargar el recurso usando ResourceLoader
         Resource resource = resourceLoader.getResource("classpath:" + path);
-        // Leer el contenido del recurso
-        byte[] encoded = Files.readAllBytes(Paths.get(resource.getURI()));
-        return new String(encoded, StandardCharsets.UTF_8);
+
+        // Leer el contenido del recurso como InputStream
+        try (InputStream inputStream = resource.getInputStream()) {
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
 }
