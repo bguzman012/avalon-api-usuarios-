@@ -4,20 +4,26 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
-public class MailServiceImpl implements MailService{
+public class MailServiceImpl implements MailService {
 
     @Autowired
     private JavaMailSender mailSender;
+    @Autowired
+    private ResourceLoader resourceLoader;
 
     @Override
     public void sendSimpleEmail(String to, String subject, String text) {
@@ -49,10 +55,17 @@ public class MailServiceImpl implements MailService{
         mailSender.send(message);
     }
 
-    private String loadHtmlTemplate(String filePath) throws IOException {
-        // Cargar el archivo desde el classpath
-        Path path = new ClassPathResource(filePath).getFile().toPath();
-        return new String(Files.readAllBytes(path));
+    //    private String loadHtmlTemplate(String filePath) throws IOException {
+//        // Cargar el archivo desde el classpath
+//        Path path = new ClassPathResource(filePath).getFile().toPath();
+//        return new String(Files.readAllBytes(path));
+//    }
+    public String loadHtmlTemplate(String path) throws IOException {
+        // Cargar el recurso usando ResourceLoader
+        Resource resource = resourceLoader.getResource("classpath:" + path);
+        // Leer el contenido del recurso
+        byte[] encoded = Files.readAllBytes(Paths.get(resource.getURI()));
+        return new String(encoded, StandardCharsets.UTF_8);
     }
 
 }
