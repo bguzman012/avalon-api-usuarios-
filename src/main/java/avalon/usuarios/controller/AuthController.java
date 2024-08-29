@@ -137,7 +137,7 @@ public class AuthController {
     private void enviarCodigo2FA(Usuario usuario) throws MessagingException, IOException {
         String codigo2FA = service.generateCodigo2FA();
         VerificationCode verificationCode = this.generateVerificationCode(usuario, codigo2FA);
-//        this.enviarMailCodigo2FA(usuario, verificationCode);
+        this.enviarMailCodigo2FA(usuario, verificationCode);
     }
 
     private VerificationCode generateVerificationCode(Usuario usuario, String codigo2FA) {
@@ -149,7 +149,6 @@ public class AuthController {
     }
 
     private void enviarMailCodigo2FA(Usuario usuario, VerificationCode verificationCode) throws MessagingException, IOException {
-
         String nombreCompleto = usuario.getNombres() + " " + usuario.getNombresDos() + " "
                 + usuario.getApellidos() + " " + usuario.getApellidosDos();
         String nombreUsuario = usuario.getNombreUsuario();
