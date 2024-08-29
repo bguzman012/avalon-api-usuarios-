@@ -8,6 +8,11 @@ import avalon.usuarios.model.pojo.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.aspectj.weaver.loadtime.Agent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -76,6 +83,55 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         Long totalRecords = countClientesMembresias(busqueda, cliente, poliza, usuario);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
+    }
+
+    @Override
+    public ByteArrayOutputStream generateExcelClientesPolizas() throws IOException {
+        // Crear un libro de trabajo (Workbook) y una hoja (Sheet)
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Datos");
+
+        // Crear una fila (Row) y una celda (Cell)
+        Row headerRow = sheet.createRow(0);
+        Cell headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("ID");
+
+        headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("Nombre");
+
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("Apellido");
+
+        // Agregar datos a las filas
+        List<Object[]> data = getData(); // Método para obtener los datos
+        int rowNum = 1;
+        for (Object[] datum : data) {
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue((Integer) datum[0]);
+            row.createCell(1).setCellValue((String) datum[1]);
+            row.createCell(2).setCellValue((String) datum[2]);
+        }
+
+        // Autoajustar el ancho de las columnas
+        for (int i = 0; i < 3; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Escribir el libro de trabajo a un ByteArrayOutputStream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        return outputStream;
+    }
+
+    // Método ficticio para obtener los datos
+    private List<Object[]> getData() {
+        return List.of(
+                new Object[]{1, "John", "Doe"},
+                new Object[]{2, "Jane", "Doe"},
+                new Object[]{3, "Michael", "Smith"}
+        );
     }
 
     private Long countClientesMembresias(String busqueda, Cliente cliente, Poliza poliza, Usuario usuario) {
