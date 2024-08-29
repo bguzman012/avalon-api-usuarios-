@@ -13,10 +13,17 @@ import java.util.Optional;
 public interface ClientesPolizaService {
 
     String generarNuevoCodigo();
+
     Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario);
-    ByteArrayOutputStream generateExcelClientesPolizas() throws IOException;
+
+    List<ClientePoliza> searchAllClienesPolizas(String busqueda, String sortField, String sortOrder);
+
+    ByteArrayOutputStream generateExcelClientesPolizas(String busqueda, String sortField, String sortOrder) throws IOException;
+
     //    List<ClientePoliza> exportClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario);
     Optional<ClientePoliza> getClientePoliza(Long clientePolizaId);
+
     ClientePoliza savePoliza(ClientePoliza request);
+
     void deleteClientePoliza(Long clientePolizaId);
 }

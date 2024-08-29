@@ -42,8 +42,10 @@ public class ClientePolizaController {
     private PolizaService polizaService;
 
     @GetMapping("/clientesPolizas/excel")
-    public ResponseEntity<byte[]> downloadExcel() throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelClientesPolizas();;
+    public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String busqueda,
+                                                @RequestParam(defaultValue = "createdDate") String sortField,
+                                                @RequestParam(defaultValue = "desc") String sortOrder) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelClientesPolizas(busqueda, sortField, sortOrder);
 
         // Configurar las cabeceras de la respuesta
         HttpHeaders headers = new HttpHeaders();

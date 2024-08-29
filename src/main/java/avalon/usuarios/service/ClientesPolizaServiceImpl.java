@@ -67,7 +67,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         CriteriaQuery<ClientePoliza> query = cb.createQuery(ClientePoliza.class);
         Root<ClientePoliza> cmRoot = query.from(ClientePoliza.class);
 
-        List<Predicate> predicates = buildPredicates(cb, cmRoot,busqueda, cliente, poliza, usuario);
+        List<Predicate> predicates = buildPredicates(cb, cmRoot, busqueda, cliente, poliza, usuario);
 
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
@@ -86,30 +86,71 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     }
 
     @Override
-    public ByteArrayOutputStream generateExcelClientesPolizas() throws IOException {
-        // Crear un libro de trabajo (Workbook) y una hoja (Sheet)
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Datos");
+    public List<ClientePoliza> searchAllClienesPolizas(String busqueda, String sortField, String sortOrder) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<ClientePoliza> query = cb.createQuery(ClientePoliza.class);
+        Root<ClientePoliza> cmRoot = query.from(ClientePoliza.class);
 
-        // Crear una fila (Row) y una celda (Cell)
+        List<Predicate> predicates = buildAllPredicates(cb, cmRoot, busqueda);
+
+        query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        Order order;
+        if ("asc".equalsIgnoreCase(sortOrder)) {
+            order = cb.asc(cmRoot.get(sortField));
+        } else {
+            order = cb.desc(cmRoot.get(sortField));
+        }
+        query.orderBy(order);
+
+        List<ClientePoliza> resultList = entityManager.createQuery(query)
+                .getResultList();
+
+        return resultList;
+    }
+
+    @Override
+    public ByteArrayOutputStream generateExcelClientesPolizas(String busqueda, String sortField, String sortOrder ) throws IOException {
+        List<ClientePoliza> allClientesPolizas = this.searchAllClienesPolizas(busqueda, sortField, sortOrder);
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Clientes");
+
         Row headerRow = sheet.createRow(0);
         Cell headerCell = headerRow.createCell(0);
-        headerCell.setCellValue("ID");
+        headerCell.setCellValue("#");
 
         headerCell = headerRow.createCell(1);
-        headerCell.setCellValue("Nombre");
+        headerCell.setCellValue("CLIENTE");
 
         headerCell = headerRow.createCell(2);
-        headerCell.setCellValue("Apellido");
+        headerCell.setCellValue("POLIZA");
 
-        // Agregar datos a las filas
-        List<Object[]> data = getData(); // Método para obtener los datos
+        headerCell = headerRow.createCell(3);
+        headerCell.setCellValue("ASESOR");
+
+        headerCell = headerRow.createCell(4);
+        headerCell.setCellValue("AGENTE");
+
+        headerCell = headerRow.createCell(5);
+        headerCell.setCellValue("CODIGO");
+
+        headerCell = headerRow.createCell(6);
+        headerCell.setCellValue("NUM. CERT.");
+
         int rowNum = 1;
-        for (Object[] datum : data) {
+        int registro = 1;
+        for(ClientePoliza clientePoliza: allClientesPolizas){
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue((Integer) datum[0]);
-            row.createCell(1).setCellValue((String) datum[1]);
-            row.createCell(2).setCellValue((String) datum[2]);
+            row.createCell(0).setCellValue((int) registro);
+            row.createCell(1).setCellValue((String) clientePoliza.getCliente().getNombreUsuario());
+            row.createCell(2).setCellValue((String) clientePoliza.getPoliza().getNombre());
+            row.createCell(3).setCellValue((String) clientePoliza.getAsesor().getNombreUsuario());
+            row.createCell(4).setCellValue((String) clientePoliza.getAgente().getNombreUsuario());
+            row.createCell(5).setCellValue((String) clientePoliza.getCodigo());
+            row.createCell(6).setCellValue((String) clientePoliza.getNumeroCertificado());
+
+            registro ++;
         }
 
         // Autoajustar el ancho de las columnas
@@ -123,15 +164,6 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         workbook.close();
 
         return outputStream;
-    }
-
-    // Método ficticio para obtener los datos
-    private List<Object[]> getData() {
-        return List.of(
-                new Object[]{1, "John", "Doe"},
-                new Object[]{2, "Jane", "Doe"},
-                new Object[]{3, "Michael", "Smith"}
-        );
     }
 
     private Long countClientesMembresias(String busqueda, Cliente cliente, Poliza poliza, Usuario usuario) {
@@ -178,9 +210,9 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         }
 
         // Si se esta consultando las polizas por cliente y si el usuario loggeado es cliente
-        if (usuario.getRol().getCodigo().equals(this.ROL_CLIENTE) && cliente != null){
+        if (usuario.getRol().getCodigo().equals(this.ROL_CLIENTE) && cliente != null) {
             // Si el cliente loggeado es diferente al cliente que se esta consultando
-            if (!Objects.equals(usuario.getId(), cliente.getId())){
+            if (!Objects.equals(usuario.getId(), cliente.getId())) {
                 predicates.add(cb.equal(cmRoot.get("titular").get("cliente").get("id"), usuario.getId()));
             }
         }
@@ -202,6 +234,28 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         return predicates;
     }
 
+    private List<Predicate> buildAllPredicates(CriteriaBuilder cb,
+                                               Root<ClientePoliza> cmRoot,
+                                               String busqueda) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (busqueda != null && !busqueda.isEmpty()) {
+            String likePattern = "%" + busqueda.toLowerCase() + "%";
+
+            predicates.add(cb.or(
+                    cb.like(cb.lower(cmRoot.get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("asesor").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("agente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("poliza").get("nombre")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("numeroCertificado")), likePattern),
+                    cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
+                    cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaFin"), cb.literal("yyyy-MM-dd")), likePattern)
+            ));
+        }
+        return predicates;
+    }
+
     @Override
     public Optional<ClientePoliza> getClientePoliza(Long clientePolizaId) {
         return this.repository.findById(clientePolizaId);
@@ -218,7 +272,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
     @Override
     public void deleteClientePoliza(Long clientePolizaId) {
-        ClientePoliza clientePoliza = this.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));;
+        ClientePoliza clientePoliza = this.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+        ;
         this.repository.delete(clientePoliza);
     }
 }

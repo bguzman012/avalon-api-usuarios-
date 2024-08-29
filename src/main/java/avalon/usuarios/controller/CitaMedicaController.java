@@ -13,11 +13,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +52,24 @@ public class CitaMedicaController {
     public CitaMedicaController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, CitaMedicaService citaMedicaService) {
         this.service = citaMedicaService;
         this.usuariosService = usuariosService;
+    }
+
+    @GetMapping("/citasMedicas/excel")
+    public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String estado,
+                                                @RequestParam(required = false) String casoId,
+                                                @RequestParam(required = false) String busqueda,
+                                                @RequestParam(defaultValue = "createdDate") String sortField,
+                                                @RequestParam(defaultValue = "desc") String sortOrder) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelClientesPolizas(busqueda, sortField, sortOrder);
+
+        // Configurar las cabeceras de la respuesta
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=datos.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(byteArrayOutputStream.toByteArray());
     }
 
 

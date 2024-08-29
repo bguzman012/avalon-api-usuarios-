@@ -15,10 +15,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,16 +57,27 @@ public class CargaFamiliarController {
         }
     }
 
-//    @GetMapping("/cargasFamiliares")
-//    public ResponseEntity<List<CargaFamiliar>> getCargaFamiliars() {
-//        List<CargaFamiliar> cargasFamiliares = service.findAll();
-//
-//        if (!cargasFamiliares.isEmpty()) {
-//            return ResponseEntity.ok(cargasFamiliares);
-//        } else {
-//            return ResponseEntity.ok(Collections.emptyList());
-//        }
-//    }
+    @GetMapping("/cargasFamiliares/excel")
+    public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String clientePoliza,
+                                                @RequestParam(required = false) String busqueda,
+                                                @RequestParam(defaultValue = "createdDate") String sortField,
+                                                @RequestParam(defaultValue = "desc") String sortOrder) throws IOException {
+        ClientePoliza clientePolizaObj = null;
+        if (clientePoliza != null && !clientePoliza.isEmpty())
+            clientePolizaObj = this.clientesPolizaService.getClientePoliza(Long.valueOf(clientePoliza)).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
+
+        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelClientesPolizas(clientePolizaObj, busqueda, sortField, sortOrder);
+
+        // Configurar las cabeceras de la respuesta
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=datos.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(byteArrayOutputStream.toByteArray());
+    }
+
 
     @GetMapping("/clientesPolizas/{clientePolizaId}/cargasFamiliares")
     public ResponseEntity<PaginatedResponse<ClientePoliza>> getCargaFamiliarByClientePoliza(@PathVariable Long clientePolizaId,

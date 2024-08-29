@@ -7,6 +7,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -15,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -63,6 +70,88 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     @Override
     public void deleteCitaMedica(Long citaMedicaId) {
         repository.deleteById(citaMedicaId);
+    }
+
+    @Override
+    public List<CitaMedica> searchAllCitasMedicas(String busqueda, String sortField, String sortOrder, Caso caso) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // Consulta principal para los resultados paginados
+        CriteriaQuery<CitaMedica> query = cb.createQuery(CitaMedica.class);
+        Root<CitaMedica> rRoot = query.from(CitaMedica.class);
+
+        List<Predicate> predicates = buildPredicates(cb, rRoot, busqueda, null, null, caso, null);
+        query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        Order order;
+        if ("asc".equalsIgnoreCase(sortOrder)) {
+            order = cb.asc(rRoot.get(sortField));
+        } else {
+            order = cb.desc(rRoot.get(sortField));
+        }
+        query.orderBy(order);
+
+        List<CitaMedica> resultList = entityManager.createQuery(query)
+                .getResultList();
+
+        return resultList;
+    }
+
+    @Override
+    public ByteArrayOutputStream generateExcelCitasMedicas(String busqueda, String sortField, String sortOrder, Caso caso) throws IOException {
+        List<CitaMedica> allCitasMedicas = this.searchAllCitasMedicas(busqueda, sortField, sortOrder, caso);
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Clientes");
+
+        Row headerRow = sheet.createRow(0);
+        Cell headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("#");
+
+        headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("CLIENTE");
+
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("POLIZA");
+
+        headerCell = headerRow.createCell(3);
+        headerCell.setCellValue("ASESOR");
+
+        headerCell = headerRow.createCell(4);
+        headerCell.setCellValue("AGENTE");
+
+        headerCell = headerRow.createCell(5);
+        headerCell.setCellValue("CODIGO");
+
+        headerCell = headerRow.createCell(6);
+        headerCell.setCellValue("NUM. CERT.");
+
+        int rowNum = 1;
+        int registro = 1;
+        for(CitaMedica citaMedica: allCitasMedicas){
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue((int) registro);
+            row.createCell(1).setCellValue((String) citaMedica.getCliente().getNombreUsuario());
+            row.createCell(2).setCellValue((String) citaMedica.getPoliza().getNombre());
+            row.createCell(3).setCellValue((String) citaMedica.getAsesor().getNombreUsuario());
+            row.createCell(4).setCellValue((String) citaMedica.getAgente().getNombreUsuario());
+            row.createCell(5).setCellValue((String) citaMedica.getCodigo());
+            row.createCell(6).setCellValue((String) citaMedica.getNumeroCertificado());
+
+            registro ++;
+        }
+
+        // Autoajustar el ancho de las columnas
+        for (int i = 0; i < 3; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Escribir el libro de trabajo a un ByteArrayOutputStream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        return outputStream;
     }
 
     @Override
@@ -133,7 +222,16 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
             predicates.add(cb.or(
-                    cb.like(cb.lower(rRoot.get("codigo")), likePattern)
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
             ));
         }
 
@@ -141,7 +239,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             predicates.add(cb.equal(rRoot.get("estado"), estado));
         }
 
-        if ((estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
+        if (usuario != null && (estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
             predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
         }
 
@@ -153,15 +251,15 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             predicates.add(cb.equal(rRoot.get("caso"), caso));
         }
 
-        if (usuario.getRol().getCodigo().equals(this.ROL_ASESOR))
+        if (usuario!= null && usuario.getRol().getCodigo().equals(this.ROL_ASESOR))
             predicates.add(cb.equal(rRoot.get("clientePoliza").get("asesor").get("id"), usuario.getId()));
 
-        if (usuario.getRol().getCodigo().equals(this.ROL_AGENTE))
+        if (usuario!= null && usuario.getRol().getCodigo().equals(this.ROL_AGENTE))
             predicates.add(cb.equal(rRoot.get("clientePoliza").get("agente").get("id"), usuario.getId()));
 
         // Si el usuario loggeado es cliente, se obtiene todos los casos del cliente,
         // o se obtiene tambien los casos de los dependientes menores de 18 años donde sea titular el cliente loggeado
-        if (usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
+        if (usuario!= null && usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
             LocalDate today = LocalDate.now();
             LocalDate eighteenYearsAgo = today.minusYears(18);
             Date fechaLimite = Date.from(eighteenYearsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant());
