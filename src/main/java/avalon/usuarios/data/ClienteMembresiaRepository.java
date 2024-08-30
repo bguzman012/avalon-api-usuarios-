@@ -11,6 +11,7 @@ public interface ClienteMembresiaRepository extends JpaRepository<ClienteMembres
 
     List<ClienteMembresia> findAllByMembresia(Membresia membresia);
     List<ClienteMembresia> findAllByCliente(Cliente cliente);
+    List<ClienteMembresia> findAllByEstado(String estado);
 
 
 }

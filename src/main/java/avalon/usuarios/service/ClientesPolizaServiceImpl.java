@@ -5,9 +5,11 @@ import avalon.usuarios.data.ClienteRepository;
 import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.data.UsuarioRepository;
 import avalon.usuarios.model.pojo.*;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
+import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -19,14 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ClientesPolizaServiceImpl implements ClientesPolizaService {
@@ -80,7 +80,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                 .setMaxResults(pageable.getPageSize())
                 .getResultList();
 
-        Long totalRecords = countClientesMembresias(busqueda, cliente, poliza, usuario);
+        Long totalRecords = countClientesPolizas(busqueda, cliente, poliza, usuario);
 
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
@@ -166,7 +166,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         return outputStream;
     }
 
-    private Long countClientesMembresias(String busqueda, Cliente cliente, Poliza poliza, Usuario usuario) {
+    private Long countClientesPolizas(String busqueda, Cliente cliente, Poliza poliza, Usuario usuario) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -275,5 +275,30 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         ClientePoliza clientePoliza = this.getClientePoliza(clientePolizaId).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         ;
         this.repository.delete(clientePoliza);
+    }
+
+    // Ejecutar cada 10 minutos
+    @Scheduled(cron = "0 0 0 * * ?")  // Ejemplo: se ejecuta a la medianoche todos los días
+    @Transactional
+    public void actualizarPolizasVencidas() {
+        cambiarEstadoPolizasVencidas();
+    }
+
+    // Ejecutar al iniciar la aplicación
+    @PostConstruct
+    public void actualizarPolizasAlIniciar() {
+        cambiarEstadoPolizasVencidas();
+    }
+
+    private void cambiarEstadoPolizasVencidas() {
+        List<ClientePoliza> clientePolizas = repository.findAllByEstado("A");
+
+        Date hoy = new Date();
+        for (ClientePoliza clientePoliza : clientePolizas) {
+            if (clientePoliza.getFechaFin() != null && clientePoliza.getFechaFin().before(hoy)) {
+                clientePoliza.setEstado("V");
+                repository.save(clientePoliza);
+            }
+        }
     }
 }

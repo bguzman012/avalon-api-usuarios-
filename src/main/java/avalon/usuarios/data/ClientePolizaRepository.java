@@ -14,5 +14,6 @@ public interface ClientePolizaRepository extends JpaRepository<ClientePoliza, Lo
 
     List<ClientePoliza> findAllByPoliza(Poliza poliza);
     List<ClientePoliza> findAllByCliente(Cliente cliente);
+    List<ClientePoliza> findAllByEstado(String estado);
 
 }

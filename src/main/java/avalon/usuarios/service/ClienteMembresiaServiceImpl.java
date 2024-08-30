@@ -252,7 +252,7 @@ public class ClienteMembresiaServiceImpl implements ClienteMembresiaService {
     }
 
     private void cambiarEstadoMembresiasVencidas() {
-        List<ClienteMembresia> membresias = repository.findAll();
+        List<ClienteMembresia> membresias = repository.findAllByEstado("A");
 
         Date hoy = new Date();
         for (ClienteMembresia membresia : membresias) {
