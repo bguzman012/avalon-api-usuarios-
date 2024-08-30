@@ -139,7 +139,16 @@ public class EmergenciaServiceImpl implements EmergenciaService {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
             predicates.add(cb.or(
-                    cb.like(cb.lower(rRoot.get("razon")), likePattern)
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
             ));
         }
 

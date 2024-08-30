@@ -6,6 +6,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -13,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -104,15 +111,15 @@ public class CasoServiceImpl implements CasoService {
             predicates.add(cb.equal(root.get("clientePoliza").get("id"), clientePoliza.getId()));
         }
 
-        if (usuario.getRol().getCodigo().equals(this.ROL_ASESOR))
+        if (usuario != null && usuario.getRol().getCodigo().equals(this.ROL_ASESOR))
             predicates.add(cb.equal(root.get("clientePoliza").get("asesor").get("id"), usuario.getId()));
 
-        if (usuario.getRol().getCodigo().equals(this.ROL_AGENTE))
+        if (usuario != null && usuario.getRol().getCodigo().equals(this.ROL_AGENTE))
             predicates.add(cb.equal(root.get("clientePoliza").get("agente").get("id"), usuario.getId()));
 
         // Si el usuario loggeado es cliente, se obtiene todos los casos del cliente,
         // o se obtiene tambien los casos de los dependientes menores de 18 años donde sea titular el cliente loggeado
-        if (usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
+        if (usuario != null && usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
             LocalDate today = LocalDate.now();
             LocalDate eighteenYearsAgo = today.minusYears(18);
             Date fechaLimite = Date.from(eighteenYearsAgo.atStartOfDay(ZoneId.systemDefault()).toInstant());
@@ -148,6 +155,77 @@ public class CasoServiceImpl implements CasoService {
     @Override
     public void deleteCaso(Long casoId) {
         repository.deleteById(casoId);
+    }
+
+    @Override
+    public List<Caso> searchAllCasos(String busqueda, String sortField, String sortOrder, ClientePoliza clientePoliza) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // Consulta principal para los resultados paginados
+        CriteriaQuery<Caso> query = cb.createQuery(Caso.class);
+        Root<Caso> root = query.from(Caso.class);
+
+        List<Predicate> predicates = buildPredicates(cb, root, busqueda, clientePoliza, null);
+
+        query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        Order order;
+        if ("asc".equalsIgnoreCase(sortOrder)) {
+            order = cb.asc(root.get(sortField));
+        } else {
+            order = cb.desc(root.get(sortField));
+        }
+        query.orderBy(order);
+
+        List<Caso> resultList = entityManager.createQuery(query)
+                .getResultList();
+
+        return resultList;
+    }
+
+    @Override
+    public ByteArrayOutputStream generateExcelCasos(String busqueda, String sortField, String sortOrder, ClientePoliza clientePoliza) throws IOException {
+        List<Caso> allCasos = this.searchAllCasos(busqueda, sortField, sortOrder, clientePoliza);
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("casos");
+
+        Row headerRow = sheet.createRow(0);
+        Cell headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("#");
+
+        headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("CÓDIGO");
+
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("CLIENTE");
+
+        headerCell = headerRow.createCell(3);
+        headerCell.setCellValue("PÓLIZA");
+
+        int rowNum = 1;
+        int registro = 1;
+        for(Caso caso: allCasos){
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue((int) registro);
+            row.createCell(1).setCellValue((String) caso.getCodigo());
+            row.createCell(2).setCellValue((String) caso.getClienteDisplayName());
+            row.createCell(3).setCellValue((String) caso.getClientePoliza().getDisplayName());
+
+            registro ++;
+        }
+
+        // Autoajustar el ancho de las columnas
+        for (int i = 0; i < 3; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Escribir el libro de trabajo a un ByteArrayOutputStream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        return outputStream;
     }
 
     public String generarNuevoCodigo() {

@@ -1,10 +1,6 @@
 package avalon.usuarios.service;
 
-import avalon.usuarios.data.AsesorRepository;
 import avalon.usuarios.data.CargaFamiliarRepository;
-import avalon.usuarios.model.pojo.Asesor;
-import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.ClientePoliza;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -25,7 +21,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CargaFamiliarServiceImpl implements CargaFamiliarService {

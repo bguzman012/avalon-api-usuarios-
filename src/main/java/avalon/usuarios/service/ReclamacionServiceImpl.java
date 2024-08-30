@@ -11,6 +11,11 @@ import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import jakarta.persistence.criteria.Join;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
@@ -19,6 +24,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -36,6 +43,10 @@ public class ReclamacionServiceImpl implements ReclamacionService {
     private final String ROL_CLIENTE = "CLI";
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
+
+    private final String ESTADO_POR_GESTIONAR = "N";
+    private final String ESTADO_GESTIONADO = "G";
+    private final String ESTADO_CERRADO = "C";
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -70,6 +81,107 @@ public class ReclamacionServiceImpl implements ReclamacionService {
     @Override
     public void deleteReclamacion(Long reclamacionId) {
         repository.deleteById(reclamacionId);
+    }
+
+    @Override
+    public List<Reclamacion> searchAllReclamaciones(String busqueda, String sortField, String sortOrder, Caso caso) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        // Consulta principal para los resultados paginados
+        CriteriaQuery<Reclamacion> query = cb.createQuery(Reclamacion.class);
+        Root<Reclamacion> rRoot = query.from(Reclamacion.class);
+
+        List<Predicate> predicates = buildAllPredicates(cb, rRoot, busqueda, caso);
+        query.where(cb.and(predicates.toArray(new Predicate[0])));
+
+        Order order;
+        if ("asc".equalsIgnoreCase(sortOrder)) {
+            order = cb.asc(rRoot.get(sortField));
+        } else {
+            order = cb.desc(rRoot.get(sortField));
+        }
+        query.orderBy(order);
+
+        List<Reclamacion> resultList = entityManager.createQuery(query)
+                .getResultList();
+
+        return resultList;
+    }
+
+    @Override
+    public ByteArrayOutputStream generateExcelReclamaciones(String busqueda, String sortField, String sortOrder, Caso caso) throws IOException {
+        List<Reclamacion> allReclamaciones = this.searchAllReclamaciones(busqueda, sortField, sortOrder, caso);
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("reembolsos");
+
+        Row headerRow = sheet.createRow(0);
+        Cell headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("#");
+
+        headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("CASO");
+
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("CÓDIGO");
+
+        headerCell = headerRow.createCell(3);
+        headerCell.setCellValue("CLIENTE");
+
+        headerCell = headerRow.createCell(4);
+        headerCell.setCellValue("POLIZA");
+
+        headerCell = headerRow.createCell(5);
+        headerCell.setCellValue("CENTRO MÉDICO");
+
+        headerCell = headerRow.createCell(6);
+        headerCell.setCellValue("MÉDICO");
+
+        headerCell = headerRow.createCell(7);
+        headerCell.setCellValue("ASEGURADORA");
+
+        headerCell = headerRow.createCell(8);
+        headerCell.setCellValue("ESTADO");
+
+        int rowNum = 1;
+        int registro = 1;
+        for(Reclamacion reclamacion: allReclamaciones){
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue((int) registro);
+            row.createCell(1).setCellValue((String) reclamacion.getCaso().getCodigo());
+            row.createCell(2).setCellValue((String) reclamacion.getCodigo());
+            row.createCell(3).setCellValue((String) reclamacion.getClientePoliza().getCliente().getNombreUsuario());
+            row.createCell(4).setCellValue((String) reclamacion.getClientePoliza().getDisplayName());
+            row.createCell(5).setCellValue((String) reclamacion.getMedicoCentroMedicoAseguradora().getCentroMedico().getNombre());
+            row.createCell(6).setCellValue((String) reclamacion.getMedicoCentroMedicoAseguradora().getMedico().getNombres() +
+                    " " + reclamacion.getMedicoCentroMedicoAseguradora().getMedico().getApellidos());
+            row.createCell(7).setCellValue((String) reclamacion.getMedicoCentroMedicoAseguradora().getAseguradora().getNombre());
+
+            String estado = "";
+            if (reclamacion.getEstado().equals(this.ESTADO_POR_GESTIONAR))
+                estado = "POR GESTIONAR";
+
+            if (reclamacion.getEstado().equals(this.ESTADO_GESTIONADO))
+                estado = "GESTIONADO";
+
+            if (reclamacion.getEstado().equals(this.ESTADO_CERRADO))
+                estado = "CERRADO";
+
+            row.createCell(8).setCellValue((String) estado);
+            registro ++;
+        }
+
+        // Autoajustar el ancho de las columnas
+        for (int i = 0; i < 3; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Escribir el libro de trabajo a un ByteArrayOutputStream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+        return outputStream;
     }
 
     @Override
@@ -141,7 +253,16 @@ public class ReclamacionServiceImpl implements ReclamacionService {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
             predicates.add(cb.or(
-                    cb.like(cb.lower(rRoot.get("razon")), likePattern)
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
             ));
         }
 
@@ -180,6 +301,35 @@ public class ReclamacionServiceImpl implements ReclamacionService {
             Predicate dependienteMenorDe18 = cb.greaterThan(rRoot.get("clientePoliza").get("cliente").get("fechaNacimiento"), fechaLimite);
 
             predicates.add(cb.or(clienteDirecto, cb.and(titularCliente, dependienteMenorDe18)));
+        }
+
+        return predicates;
+    }
+
+    private List<Predicate> buildAllPredicates(CriteriaBuilder cb, Root<Reclamacion> rRoot, String busqueda, Caso caso) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (busqueda != null && !busqueda.isEmpty()) {
+            String likePattern = "%" + busqueda.toLowerCase() + "%";
+
+            predicates.add(cb.or(
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
+            ));
+        }
+
+        predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
+
+        if (caso != null) {
+            predicates.add(cb.equal(rRoot.get("caso"), caso));
         }
 
         return predicates;

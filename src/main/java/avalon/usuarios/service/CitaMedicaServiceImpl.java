@@ -36,6 +36,11 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
     private final String ROL_ADMIN = "ADM";
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
+
+    private final String ESTADO_POR_GESTIONAR = "N";
+    private final String ESTADO_GESTIONADO = "G";
+    private final String ESTADO_CERRADO = "C";
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -80,7 +85,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         CriteriaQuery<CitaMedica> query = cb.createQuery(CitaMedica.class);
         Root<CitaMedica> rRoot = query.from(CitaMedica.class);
 
-        List<Predicate> predicates = buildPredicates(cb, rRoot, busqueda, null, null, caso, null);
+        List<Predicate> predicates = buildAllPredicates(cb, rRoot, busqueda, caso);
         query.where(cb.and(predicates.toArray(new Predicate[0])));
 
         Order order;
@@ -102,42 +107,61 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
         List<CitaMedica> allCitasMedicas = this.searchAllCitasMedicas(busqueda, sortField, sortOrder, caso);
 
         Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Clientes");
+        Sheet sheet = workbook.createSheet("citas-medicas");
 
         Row headerRow = sheet.createRow(0);
         Cell headerCell = headerRow.createCell(0);
         headerCell.setCellValue("#");
 
         headerCell = headerRow.createCell(1);
-        headerCell.setCellValue("CLIENTE");
+        headerCell.setCellValue("CASO");
 
         headerCell = headerRow.createCell(2);
-        headerCell.setCellValue("POLIZA");
+        headerCell.setCellValue("CÓDIGO");
 
         headerCell = headerRow.createCell(3);
-        headerCell.setCellValue("ASESOR");
+        headerCell.setCellValue("CLIENTE");
 
         headerCell = headerRow.createCell(4);
-        headerCell.setCellValue("AGENTE");
+        headerCell.setCellValue("POLIZA");
 
         headerCell = headerRow.createCell(5);
-        headerCell.setCellValue("CODIGO");
+        headerCell.setCellValue("CENTRO MÉDICO");
 
         headerCell = headerRow.createCell(6);
-        headerCell.setCellValue("NUM. CERT.");
+        headerCell.setCellValue("MÉDICO");
+
+        headerCell = headerRow.createCell(7);
+        headerCell.setCellValue("ASEGURADORA");
+
+        headerCell = headerRow.createCell(8);
+        headerCell.setCellValue("ESTADO");
 
         int rowNum = 1;
         int registro = 1;
         for(CitaMedica citaMedica: allCitasMedicas){
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue((int) registro);
-            row.createCell(1).setCellValue((String) citaMedica.getCliente().getNombreUsuario());
-            row.createCell(2).setCellValue((String) citaMedica.getPoliza().getNombre());
-            row.createCell(3).setCellValue((String) citaMedica.getAsesor().getNombreUsuario());
-            row.createCell(4).setCellValue((String) citaMedica.getAgente().getNombreUsuario());
-            row.createCell(5).setCellValue((String) citaMedica.getCodigo());
-            row.createCell(6).setCellValue((String) citaMedica.getNumeroCertificado());
+            row.createCell(1).setCellValue((String) citaMedica.getCaso().getCodigo());
+            row.createCell(2).setCellValue((String) citaMedica.getCodigo());
+            row.createCell(3).setCellValue((String) citaMedica.getClientePoliza().getCliente().getNombreUsuario());
+            row.createCell(4).setCellValue((String) citaMedica.getClientePoliza().getDisplayName());
+            row.createCell(5).setCellValue((String) citaMedica.getMedicoCentroMedicoAseguradora().getCentroMedico().getNombre());
+            row.createCell(6).setCellValue((String) citaMedica.getMedicoCentroMedicoAseguradora().getMedico().getNombres() +
+                    " " + citaMedica.getMedicoCentroMedicoAseguradora().getMedico().getApellidos());
+            row.createCell(7).setCellValue((String) citaMedica.getMedicoCentroMedicoAseguradora().getAseguradora().getNombre());
 
+            String estado = "";
+            if (citaMedica.getEstado().equals(this.ESTADO_POR_GESTIONAR))
+                 estado = "POR GESTIONAR";
+
+            if (citaMedica.getEstado().equals(this.ESTADO_GESTIONADO))
+                estado = "GESTIONADO";
+
+            if (citaMedica.getEstado().equals(this.ESTADO_CERRADO))
+                estado = "CERRADO";
+
+            row.createCell(8).setCellValue((String) estado);
             registro ++;
         }
 
@@ -274,6 +298,38 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             Predicate dependienteMenorDe18 = cb.greaterThan(rRoot.get("clientePoliza").get("cliente").get("fechaNacimiento"), fechaLimite);
 
             predicates.add(cb.or(clienteDirecto, cb.and(titularCliente, dependienteMenorDe18)));
+        }
+
+        return predicates;
+    }
+
+    private List<Predicate> buildAllPredicates(CriteriaBuilder cb, Root<CitaMedica> rRoot, String busqueda, Caso caso) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        if (busqueda != null && !busqueda.isEmpty()) {
+            String likePattern = "%" + busqueda.toLowerCase() + "%";
+
+            predicates.add(cb.or(
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
+
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
+                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
+            ));
+        }
+//
+//        if (estado != null && !estado.isEmpty()) {
+//            predicates.add(cb.equal(rRoot.get("estado"), estado));
+//        }
+        predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
+
+        if (caso != null) {
+            predicates.add(cb.equal(rRoot.get("caso"), caso));
         }
 
         return predicates;

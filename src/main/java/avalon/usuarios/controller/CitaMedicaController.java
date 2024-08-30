@@ -55,12 +55,16 @@ public class CitaMedicaController {
     }
 
     @GetMapping("/citasMedicas/excel")
-    public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String estado,
-                                                @RequestParam(required = false) String casoId,
+    public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String casoId,
                                                 @RequestParam(required = false) String busqueda,
                                                 @RequestParam(defaultValue = "createdDate") String sortField,
                                                 @RequestParam(defaultValue = "desc") String sortOrder) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelClientesPolizas(busqueda, sortField, sortOrder);
+        Caso caso = null;
+        if (casoId != null && !casoId.isBlank()) {
+            caso = casoService.getCaso(Long.valueOf(casoId))
+                    .orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
+        }
+        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelCitasMedicas(busqueda, sortField, sortOrder, caso);
 
         // Configurar las cabeceras de la respuesta
         HttpHeaders headers = new HttpHeaders();
