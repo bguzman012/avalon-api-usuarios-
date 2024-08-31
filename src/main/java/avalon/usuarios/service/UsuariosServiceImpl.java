@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<T> {
+public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T> {
 
     @Autowired
     @Qualifier("baseUsuarioRepository")
@@ -37,9 +37,31 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
     private final String ESTADO_PENDIENTE_APROBACION = "P";
     private final String ESTADO_ACTIVO = "A";
     private final String ROL_CLIENTE = "CLI";
+    private final String ROL_ASESOR = "ASR";
+    private final String ROL_AGENTE = "BRO";
 
     @Override
-    public T save(T entity) {
+    public T save(T entity) throws MessagingException, IOException {
+        if (entity.getId() == null && (entity.getRol().getCodigo().equals(this.ROL_AGENTE) || entity.getRol().getCodigo().equals(this.ROL_ASESOR))) {
+            String contraseniaTemporal = PasswordGenerator.generateTemporaryPassword();
+
+            entity.setContrasenia(passwordEncoder.encode(contraseniaTemporal));
+
+            // Guardamos la contraseña temporal en texto
+            entity.setContraseniaTemporal(contraseniaTemporal);
+            entity.setEstado(this.ESTADO_ACTIVO);
+
+            // Descomentar para enviar correo de
+            String textoMail = "<p><b>" + entity.getNombres() + " " + entity.getNombresDos() + " "
+                    + entity.getApellidos() + " " + entity.getApellidosDos() + " [" + entity.getNombreUsuario() +
+                    "]</b></p>" +
+                    "<p>Su usuario ha sido creado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                    "inicio de sesión es la siguiente: </p>" +
+                    "<p><b>" + contraseniaTemporal + "</b></p>";
+
+            this.mailService.sendHtmlEmail(entity.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
+        }
+
         return repository.save(entity);
     }
 
@@ -114,7 +136,7 @@ public class UsuariosServiceImpl <T extends Usuario> implements UsuariosService<
 
     @Override
     public String generateCodigo2FA() {
-        return String.valueOf((int)((Math.random() * 900000) + 100000));
+        return String.valueOf((int) ((Math.random() * 900000) + 100000));
     }
 
     //

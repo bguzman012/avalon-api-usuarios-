@@ -37,6 +37,8 @@ public class CargaFamiliarController {
     @Autowired
     private ClientesPolizaService clientesPolizaService;
     @Autowired
+    private ClienteMembresiaService clienteMembresiaService;
+    @Autowired
     private UsuarioMapper usuarioMapper;
 
     @PostMapping("/cargasFamiliares")
@@ -45,7 +47,20 @@ public class CargaFamiliarController {
             Cliente cliente;
             if (request.getClienteId() == null) {
                 cliente = usuarioMapper.mapToUsuarioFromCargaFamiliar(request, new Cliente(), new Direccion());
+
                 this.clienteService.save(cliente);
+
+                ClienteMembresia clienteMembresiaTitular = this.clienteMembresiaService.getClienteMembresia(request.getClienteMembresiaTitularId()).orElseThrow(() -> new IllegalArgumentException("Cliente membresía titular no encontrada"));
+                ClienteMembresia clienteMembresiaDependiente = new ClienteMembresia();
+                clienteMembresiaDependiente.setCodigo(request.getCodigoMembresia());
+                clienteMembresiaDependiente.setMembresia(clienteMembresiaTitular.getMembresia());
+                clienteMembresiaDependiente.setCliente(cliente);
+                clienteMembresiaDependiente.setAsesor(clienteMembresiaTitular.getAsesor());
+                clienteMembresiaDependiente.setFechaInicio(clienteMembresiaTitular.getFechaInicio());
+                clienteMembresiaDependiente.setFechaFin(clienteMembresiaTitular.getFechaFin());
+                clienteMembresiaDependiente.setEstado(clienteMembresiaTitular.getEstado());
+
+                this.clienteMembresiaService.saveClienteMembresia(clienteMembresiaDependiente);
             }else
                 cliente = this.clienteService.findById(request.getClienteId()).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
 
@@ -141,6 +156,7 @@ public class CargaFamiliarController {
 
     private ClientePoliza mapToClientePolizaCargaFamiliar(CargaFamiliarRequest request, Cliente cliente, ClientePoliza clientePolizaeference) {
         ClientePoliza clientePolizaTitular = this.clientesPolizaService.getClientePoliza(request.getClientePolizaTitularId()).orElseThrow(() -> new IllegalArgumentException("Cliente poliza titular no encontrado"));
+
         Asesor asesor = clientePolizaTitular.getAsesor();
         Agente agente = clientePolizaTitular.getAgente();
         Poliza poliza = clientePolizaTitular.getPoliza();

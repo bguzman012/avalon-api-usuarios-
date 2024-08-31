@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface UsuariosService<T extends Usuario> {
 
-    T save(T entity);
+    T save(T entity) throws MessagingException, IOException;
     Optional<T> findById(Long id);
     List<T> findAll();
     List<T> findAllByEstado(String estado);

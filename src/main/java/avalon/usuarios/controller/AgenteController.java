@@ -123,7 +123,7 @@ public class AgenteController {
     }
 
     @PutMapping("/agentes/{agenteId}")
-    public ResponseEntity<Agente> updateAgente(@PathVariable Long agenteId, @RequestBody AgenteRequest request) {
+    public ResponseEntity<Agente> updateAgente(@PathVariable Long agenteId, @RequestBody AgenteRequest request) throws MessagingException, IOException {
         Agente agente = this.service.findById(agenteId).orElseThrow(() -> new IllegalArgumentException("Agente no encontrado"));
         Agente agenteUpdate = usuarioMapper.mapToUsuario(request, agente);
         Broker broker = brokerService.getBroker(request.getBrokerId());

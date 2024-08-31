@@ -119,7 +119,7 @@ public class ClienteController {
     }
 
     @PutMapping("/clientes/{clienteId}")
-    public ResponseEntity<Cliente> updateCliente(@PathVariable Long clienteId, @RequestBody ClienteRequest request) {
+    public ResponseEntity<Cliente> updateCliente(@PathVariable Long clienteId, @RequestBody ClienteRequest request) throws MessagingException, IOException {
         Cliente cliente = service.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
         Cliente clienteUpdate = usuarioMapper.mapToUsuario(request, cliente, cliente.getDireccion());
 

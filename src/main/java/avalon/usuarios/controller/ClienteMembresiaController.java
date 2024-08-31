@@ -92,7 +92,7 @@ public class ClienteMembresiaController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ClienteMembresia> clienteMembresiaPage = service.searchClientesMembresias(busqueda, pageable, clienteObj, membresiaObj);
+        Page<ClienteMembresia> clienteMembresiaPage = service.searchClientesMembresias(busqueda, null, pageable, clienteObj, membresiaObj);
 
         List<ClienteMembresia> clienteMembresias = clienteMembresiaPage.getContent();
         long totalRecords = clienteMembresiaPage.getTotalElements();
@@ -112,7 +112,7 @@ public class ClienteMembresiaController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ClienteMembresia> clienteMembresiaPage = service.searchClientesMembresias(busqueda, pageable, null, membresia);
+        Page<ClienteMembresia> clienteMembresiaPage = service.searchClientesMembresias(busqueda, null, pageable, null, membresia);
 
         List<ClienteMembresia> clienteMembresias = clienteMembresiaPage.getContent();
         long totalRecords = clienteMembresiaPage.getTotalElements();
@@ -124,6 +124,7 @@ public class ClienteMembresiaController {
     @GetMapping("clientes/{clienteId}/clienteMembresias")
     public ResponseEntity<PaginatedResponse<ClienteMembresia>> getUsuarioMembresiasByUsuario(@PathVariable Long clienteId,
                                                                                              @RequestParam(required = false) String busqueda,
+                                                                                             @RequestParam(required = false) String estado,
                                                                                              @RequestParam(defaultValue = "0") int page,
                                                                                              @RequestParam(defaultValue = "10") int size,
                                                                                              @RequestParam(defaultValue = "createdDate") String sortField,
@@ -132,7 +133,7 @@ public class ClienteMembresiaController {
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<ClienteMembresia> clienteMembresiaPage = service.searchClientesMembresias(busqueda, pageable, cliente, null);
+        Page<ClienteMembresia> clienteMembresiaPage = service.searchClientesMembresias(busqueda, estado, pageable, cliente, null);
 
         List<ClienteMembresia> clienteMembresias = clienteMembresiaPage.getContent();
         long totalRecords = clienteMembresiaPage.getTotalElements();

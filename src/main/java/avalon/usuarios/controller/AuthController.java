@@ -20,7 +20,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,7 +48,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) throws MessagingException, IOException {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest,
+                                              @RequestParam(required = false) String generate2FA) throws MessagingException, IOException {
         String usuario = loginRequest.getUsuario();
         String contrasenia = loginRequest.getContrasenia();
 
@@ -71,7 +74,8 @@ public class AuthController {
                         "El usuario no tiene la edad suficiente para utilizar el sistema", "MENOR_EDAD"));
             }
 
-            this.enviarCodigo2FA(usuarioEncontrado);
+            if (generate2FA != null && generate2FA.equals("SI"))
+                this.enviarCodigo2FA(usuarioEncontrado);
 
             String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
             return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId(), "LOGIN_EXITOSO_2FA", "Usuario loggeado extosamente"));
@@ -102,6 +106,7 @@ public class AuthController {
             return ResponseEntity.badRequest().build();
         }
     }
+
     @PostMapping("/verify-code")
     public ResponseEntity<?> verifyCode(@RequestBody VerificationRequest verificationRequest) {
         String usuario = verificationRequest.getUsuario();
@@ -142,7 +147,7 @@ public class AuthController {
 
     private VerificationCode generateVerificationCode(Usuario usuario, String codigo2FA) {
         LocalDateTime createdAt = LocalDateTime.now(); // Fecha y hora actual
-        LocalDateTime expiresAt = createdAt.plusMinutes(1); // Expira en 1 minuto
+        LocalDateTime expiresAt = createdAt.plusMinutes(5); // Expira en 5 minuto
 
         VerificationCode verificationCode = new VerificationCode(usuario.getNombreUsuario(), codigo2FA, createdAt, expiresAt, false);
         return verificationCodeService.saveVerificationCode(verificationCode); // Guardar en la base de datos
@@ -161,7 +166,7 @@ public class AuthController {
                 "<p><b>" + codigo2FA + "</b></p>" +
                 "<p>Este código es válido hasta: <b>" + fechaExpiracionFormateada + "</b></p>";
 
-        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), "Avalon Usuario aprobado", textoMail);
+        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), "Código Inicio de Sesión", textoMail);
     }
 
 

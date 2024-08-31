@@ -39,6 +39,9 @@ public class UsuarioMapper {
         usuario.setApellidosDos(request.getApellidosDos());
         usuario.setCorreoElectronico(request.getCorreoElectronico());
         usuario.setNumeroTelefono(request.getNumeroTelefono());
+        usuario.setNumeroIdentificacion(request.getNumeroIdentificacion());
+        usuario.setTipoIdentificacion(request.getTipoIdentificacion());
+
         if (usuario.getId() == null) {
             usuario.setNombreUsuario(request.getNombreUsuario());
         }
@@ -71,9 +74,10 @@ public class UsuarioMapper {
     }
 
     public Cliente mapToUsuarioFromCargaFamiliar(CargaFamiliarRequest request, Cliente cliente, Direccion direccion) {
-        String contrasenia = "";
-        if (request.getContrasenia() != null)
-            contrasenia = passwordEncoder.encode(request.getContrasenia());
+        String contrasenia = PasswordGenerator.generateTemporaryPassword();
+
+        cliente.setContrasenia(passwordEncoder.encode(contrasenia));
+        cliente.setContraseniaTemporalModificada(Boolean.FALSE);
 
         cliente.setNombres(request.getNombres());
         cliente.setNombresDos(request.getNombresDos());
@@ -81,12 +85,12 @@ public class UsuarioMapper {
         cliente.setApellidosDos(request.getApellidosDos());
         cliente.setCorreoElectronico(request.getCorreoElectronico());
         cliente.setNumeroTelefono(request.getNumeroTelefono());
+        cliente.setNumeroIdentificacion(request.getNumeroIdentificacion());
+        cliente.setTipoIdentificacion(request.getTipoIdentificacion());
+
         if (cliente.getId() == null) {
             cliente.setNombreUsuario(request.getNombreUsuario());
         }
-
-        if (!contrasenia.isEmpty())
-            cliente.setContrasenia(contrasenia);
 
         cliente.setUrlImagen(request.getUrlImagen());
         cliente.setEstado(request.getEstado());

@@ -33,6 +33,10 @@ public class ClientePoliza extends AuditingData {
     private String numeroCertificado;
 
     @ManyToOne
+    @JoinColumn(name = "empresa_id")
+    private Empresa empresa;
+
+    @ManyToOne
     @NotNull
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;

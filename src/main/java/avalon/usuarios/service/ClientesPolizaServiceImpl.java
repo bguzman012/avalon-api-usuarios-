@@ -110,7 +110,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     }
 
     @Override
-    public ByteArrayOutputStream generateExcelClientesPolizas(String busqueda, String sortField, String sortOrder ) throws IOException {
+    public ByteArrayOutputStream generateExcelClientesPolizas(String busqueda, String sortField, String sortOrder) throws IOException {
         List<ClientePoliza> allClientesPolizas = this.searchAllClienesPolizas(busqueda, sortField, sortOrder);
 
         Workbook workbook = new XSSFWorkbook();
@@ -121,36 +121,40 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         headerCell.setCellValue("#");
 
         headerCell = headerRow.createCell(1);
-        headerCell.setCellValue("CLIENTE");
+        headerCell.setCellValue("NUM. CERT.");
 
         headerCell = headerRow.createCell(2);
-        headerCell.setCellValue("POLIZA");
+        headerCell.setCellValue("CLIENTE");
 
         headerCell = headerRow.createCell(3);
-        headerCell.setCellValue("ASESOR");
+        headerCell.setCellValue("ASEGURADORA");
 
         headerCell = headerRow.createCell(4);
-        headerCell.setCellValue("AGENTE");
+        headerCell.setCellValue("POLIZA");
 
         headerCell = headerRow.createCell(5);
-        headerCell.setCellValue("CODIGO");
+        headerCell.setCellValue("EMPRESA");
 
         headerCell = headerRow.createCell(6);
-        headerCell.setCellValue("NUM. CERT.");
+        headerCell.setCellValue("ASESOR");
+
+        headerCell = headerRow.createCell(7);
+        headerCell.setCellValue("AGENTE");
 
         int rowNum = 1;
         int registro = 1;
-        for(ClientePoliza clientePoliza: allClientesPolizas){
+        for (ClientePoliza clientePoliza : allClientesPolizas) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue((int) registro);
-            row.createCell(1).setCellValue((String) clientePoliza.getCliente().getNombreUsuario());
-            row.createCell(2).setCellValue((String) clientePoliza.getPoliza().getNombre());
-            row.createCell(3).setCellValue((String) clientePoliza.getAsesor().getNombreUsuario());
-            row.createCell(4).setCellValue((String) clientePoliza.getAgente().getNombreUsuario());
-            row.createCell(5).setCellValue((String) clientePoliza.getCodigo());
-            row.createCell(6).setCellValue((String) clientePoliza.getNumeroCertificado());
+            row.createCell(1).setCellValue(clientePoliza.getNumeroCertificado());
+            row.createCell(2).setCellValue(clientePoliza.getCliente().getNombreUsuario());
+            row.createCell(3).setCellValue(clientePoliza.getPoliza().getAseguradora().getNombre());
+            row.createCell(4).setCellValue(clientePoliza.getPoliza().getNombre());
+            row.createCell(5).setCellValue(clientePoliza.getEmpresa() != null ? clientePoliza.getEmpresa().getNombre() : "");
+            row.createCell(6).setCellValue(clientePoliza.getAsesor().getNombreUsuario());
+            row.createCell(7).setCellValue(clientePoliza.getAgente().getNombreUsuario());
 
-            registro ++;
+            registro++;
         }
 
         // Autoajustar el ancho de las columnas
@@ -194,6 +198,9 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                                             Usuario usuario) {
         List<Predicate> predicates = new ArrayList<>();
 
+        // Agregar un LEFT JOIN explícito para 'empresa'
+        Join<ClientePoliza, Empresa> empresaJoin = cmRoot.join("empresa", JoinType.LEFT);
+
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
@@ -202,6 +209,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                     cb.like(cb.lower(cmRoot.get("asesor").get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(cmRoot.get("agente").get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(cmRoot.get("poliza").get("nombre")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("poliza").get("aseguradora").get("nombre")), likePattern),
+                    cb.like(cb.lower(empresaJoin.get("nombre")), likePattern), // Usar el 'join' aquí
                     cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
                     cb.like(cb.lower(cmRoot.get("numeroCertificado")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),
@@ -239,6 +248,9 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                                                String busqueda) {
         List<Predicate> predicates = new ArrayList<>();
 
+        // Agregar un LEFT JOIN explícito para 'empresa'
+        Join<ClientePoliza, Empresa> empresaJoin = cmRoot.join("empresa", JoinType.LEFT);
+
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
@@ -247,6 +259,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                     cb.like(cb.lower(cmRoot.get("asesor").get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(cmRoot.get("agente").get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(cmRoot.get("poliza").get("nombre")), likePattern),
+                    cb.like(cb.lower(cmRoot.get("poliza").get("aseguradora").get("nombre")), likePattern),
+                    cb.like(cb.lower(empresaJoin.get("nombre")), likePattern), // Usar el 'join' aquí
                     cb.like(cb.lower(cmRoot.get("codigo")), likePattern),
                     cb.like(cb.lower(cmRoot.get("numeroCertificado")), likePattern),
                     cb.like(cb.function("TO_CHAR", String.class, cmRoot.get("fechaInicio"), cb.literal("yyyy-MM-dd")), likePattern),

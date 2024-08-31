@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface ClienteMembresiaService {
 
     ClienteMembresia saveClienteMembresia(ClienteMembresia clienteMembresia);
-    Page<ClienteMembresia> searchClientesMembresias(String busqueda, Pageable pageable, Cliente cliente, Membresia membresia);
+    Page<ClienteMembresia> searchClientesMembresias(String busqueda, String estado, Pageable pageable, Cliente cliente, Membresia membresia);
     Optional<ClienteMembresia> getClienteMembresia(Long id);
     void deleteClienteMembresia(Long id);
     ByteArrayOutputStream generateExcelClientesPolizas(String busqueda, String sortField, String sortOrder, Cliente cliente, Membresia membresia) throws IOException;

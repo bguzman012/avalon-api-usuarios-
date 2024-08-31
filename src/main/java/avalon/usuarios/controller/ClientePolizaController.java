@@ -40,6 +40,8 @@ public class ClientePolizaController {
     private AgenteService agenteService;
     @Autowired
     private PolizaService polizaService;
+    @Autowired
+    private EmpresaService empresaService;
 
     @GetMapping("/clientesPolizas/excel")
     public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String busqueda,
@@ -178,10 +180,15 @@ public class ClientePolizaController {
         Agente agente = this.agenteService.findById(request.getAgenteId()).orElseThrow(() -> new IllegalArgumentException("Agente no encontrado"));
         Poliza poliza = this.polizaService.getPoliza(request.getPolizaId()).orElseThrow(() -> new IllegalArgumentException("Poliza no encontrado"));
 
+        Empresa empresa = null;
+        if (request.getEmpresaId()!= null)
+            empresa = this.empresaService.getEmpresa(request.getEmpresaId()).orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
+
         clientePolizaeference.setCliente(cliente);
         clientePolizaeference.setAsesor(asesor);
         clientePolizaeference.setAgente(agente);
         clientePolizaeference.setPoliza(poliza);
+        clientePolizaeference.setEmpresa(empresa);
         clientePolizaeference.setFechaInicio(request.getFechaInicio());
         clientePolizaeference.setFechaFin(request.getFechaFin());
         clientePolizaeference.setNumeroCertificado(request.getNumeroCertificado());

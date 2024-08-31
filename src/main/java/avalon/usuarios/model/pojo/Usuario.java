@@ -71,6 +71,13 @@ public class Usuario extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "numero_identificacion", unique = true)
+    private String numeroIdentificacion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_identificacion")
+    private TipoIdentificacion tipoIdentificacion;
+
     @ManyToOne
     @NotNull(message = "Rol no puede ser nulo")
     @JoinColumn(name = "rol_id")

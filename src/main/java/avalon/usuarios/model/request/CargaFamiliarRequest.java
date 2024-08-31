@@ -1,5 +1,6 @@
 package avalon.usuarios.model.request;
 
+import avalon.usuarios.model.pojo.TipoIdentificacion;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +21,6 @@ public class CargaFamiliarRequest{
 	private String correoElectronico;
 	private String numeroTelefono;
 	private String nombreUsuario;
-	private String contrasenia;
 	private String urlImagen;
 	private String estado;
 	private Long rolId;
@@ -30,6 +30,9 @@ public class CargaFamiliarRequest{
 	private String lugarResidencia;
 	private DireccionRequest direccion;
 
+	private String numeroIdentificacion;
+	private TipoIdentificacion tipoIdentificacion;
+
 	@NotNull
 	private String parentesco;
 	private Long clienteId;
@@ -37,5 +40,8 @@ public class CargaFamiliarRequest{
 	private String numeroCertificado;
 	@NotNull
 	private Long clientePolizaTitularId;
+
+	private Long clienteMembresiaTitularId;
+	private String codigoMembresia;
 	// Getters and setters
 }

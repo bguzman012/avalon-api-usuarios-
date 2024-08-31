@@ -22,6 +22,7 @@ public class ClientePolizaRequest {
 	private Long asesorId;
 	@NotNull
 	private Long agenteId;
+	private Long empresaId;
 	@NotNull
 	private Long polizaId;
 	@NotNull

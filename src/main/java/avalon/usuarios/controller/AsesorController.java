@@ -90,7 +90,7 @@ public class AsesorController {
     }
 
     @PutMapping("/asesores/{asesorId}")
-    public ResponseEntity<Asesor> updateAsesor(@PathVariable Long asesorId, @RequestBody AsesorRequest request) {
+    public ResponseEntity<Asesor> updateAsesor(@PathVariable Long asesorId, @RequestBody AsesorRequest request) throws MessagingException, IOException {
         Asesor asesor = service.findById(asesorId).orElseThrow(() -> new IllegalArgumentException("Asesor no encontrado"));
         Asesor asesorUpdate = usuarioMapper.mapToUsuario(request, asesor);
 

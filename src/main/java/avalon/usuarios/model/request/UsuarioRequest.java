@@ -1,5 +1,6 @@
 package avalon.usuarios.model.request;
 
+import avalon.usuarios.model.pojo.TipoIdentificacion;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,6 +26,8 @@ public class UsuarioRequest {
 	@NotNull
 	private String nombreUsuario;
 	private String urlImagen;
+	private String numeroIdentificacion;
+	private TipoIdentificacion tipoIdentificacion;
 	@NotNull
 	private String estado;
 	@NotNull
