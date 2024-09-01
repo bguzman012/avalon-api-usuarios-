@@ -10,5 +10,6 @@ public interface PaisService {
 
     List<Pais> findAll();
     Optional<Pais> findById(Long id);
+    Optional<Pais> findByNombre(String nombre);
 
 }

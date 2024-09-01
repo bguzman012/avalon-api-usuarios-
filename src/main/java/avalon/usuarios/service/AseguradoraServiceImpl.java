@@ -35,6 +35,11 @@ public class AseguradoraServiceImpl implements AseguradoraService {
     }
 
     @Override
+    public Optional<Aseguradora> getAseguradoraByNombre(String nombre) {
+        return repository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    @Override
     public Aseguradora createAseguradora(Aseguradora aseguradora) {
         return repository.save(aseguradora);
     }

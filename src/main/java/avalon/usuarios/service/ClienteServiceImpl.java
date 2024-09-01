@@ -18,6 +18,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ClienteServiceImpl extends UsuariosServiceImpl<Cliente> implements ClienteService {
@@ -127,6 +128,11 @@ public class ClienteServiceImpl extends UsuariosServiceImpl<Cliente> implements 
         Long totalRecords = countClientes(estado, busqueda, usuario);
 
             return new PageImpl<>(clientes, pageable, totalRecords);
+    }
+
+    @Override
+    public Optional<Cliente> findClienteByCorreoElectronico(String correoElectronico) {
+        return this.clienteRepository.findByCorreoElectronico(correoElectronico);
     }
 
     private Long countClientes(String estado, String busqueda, Usuario usuario) {

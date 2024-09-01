@@ -32,4 +32,9 @@ public class EstadosServiceImpl implements EstadosService {
     public Optional<Estado> findById(Long id) {
         return this.repository.findById(id);
     }
+
+    @Override
+    public Optional<Estado> findByNombre(String nombre) {
+        return repository.findByNombreContainingIgnoreCase(nombre);
+    }
 }

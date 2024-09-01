@@ -9,11 +9,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository("asesorRepository")
 public interface AsesorRepository extends BaseUsuarioRepository<Asesor> {
 
     Page<Asesor> findAll(Pageable pageable);
     Page<Asesor> findAllByEstado(String estado, Pageable pageable);
+    Optional<Asesor> findByCorreoElectronico(String correoElectronico);
 
 }

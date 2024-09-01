@@ -12,5 +12,5 @@ public interface EstadosService {
 
     List<Estado> findAllByPais(Pais pais);
     Optional<Estado> findById(Long id);
-
+    Optional<Estado> findByNombre(String nombre);
 }

@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface EmpresaRepository extends JpaRepository<Empresa, Long> {
 
@@ -17,5 +19,7 @@ public interface EmpresaRepository extends JpaRepository<Empresa, Long> {
             ":busqueda IS NULL OR LOWER(c.descripcion) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR " +
             "LOWER(c.correoElectronico) LIKE LOWER(CONCAT('%', :busqueda, '%')))")
     Page<Empresa> searchEmpresas(@Param("busqueda") String busqueda, Pageable pageable);
+
+    Optional<Empresa> findByNombreContainingIgnoreCase(String nombre);
 
 }

@@ -28,4 +28,9 @@ public class PaisServiceImpl implements PaisService {
     public Optional<Pais> findById(Long id) {
         return repository.findById(id);
     }
+
+    @Override
+    public Optional<Pais> findByNombre(String nombre) {
+        return repository.findByNombreContainingIgnoreCase(nombre);
+    }
 }

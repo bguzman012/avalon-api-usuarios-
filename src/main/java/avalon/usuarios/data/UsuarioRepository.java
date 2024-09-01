@@ -10,6 +10,8 @@ import java.util.List;
 @Repository("usuarioRepository")
 public interface UsuarioRepository  extends BaseUsuarioRepository<Usuario> {
     Usuario findByNombreUsuario(String nombreUsuario);
+    Boolean existsByNombreUsuario(String nombreUsuario);
+
     List<Usuario> findAllByRolAndEstado(Rol rol, String estado);
     List<Usuario> findAllByRol(Rol rol);
     List<Usuario> findAllByEstado(String estado);

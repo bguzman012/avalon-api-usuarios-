@@ -15,12 +15,11 @@ public interface UsuariosService<T extends Usuario> {
     List<T> findAll();
     List<T> findAllByEstado(String estado);
     void deleteById(Long id);
-
     T partiallyUpdateUsuario(PartiallyUpdateUsuario request, T entity) throws MessagingException, IOException;
     Usuario validarCredenciales(String nombreUsuario, String contrasenia);
     void actualizarContrasenia(Usuario usuario, String nuevaContrasenia);
     String generateCodigo2FA();
     Usuario findByNombreUsuario(String nombreUsuario);
     Usuario getUsuario(Long usuarioId);
-//    List<Usuario> getUsuariosByRolAndEstado(Long rolId, String estado);
+    Boolean existeByNombreUsuario(String nombreUsuario);
 }

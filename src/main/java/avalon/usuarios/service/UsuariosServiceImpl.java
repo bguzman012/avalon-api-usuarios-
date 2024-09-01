@@ -40,8 +40,26 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
 
+    public String generarNombreUsuario(String correoElectronico) {
+        String baseNombreUsuario = correoElectronico.split("@")[0];
+        String nombreUsuario = baseNombreUsuario;
+        int counter = 1;
+
+        // Verifica si el nombre de usuario ya existe
+        while (usuarioRepository.existsByNombreUsuario(nombreUsuario)) {
+            nombreUsuario = baseNombreUsuario + counter;
+            counter++;
+        }
+
+        return nombreUsuario;
+    }
+
     @Override
     public T save(T entity) throws MessagingException, IOException {
+        //Se agrega el nombre de usuario cuando se crea
+        if (entity.getId() == null)
+            entity.setNombreUsuario(generarNombreUsuario(entity.getCorreoElectronico()));
+
         if (entity.getId() == null && (entity.getRol().getCodigo().equals(this.ROL_AGENTE) || entity.getRol().getCodigo().equals(this.ROL_ASESOR))) {
             String contraseniaTemporal = PasswordGenerator.generateTemporaryPassword();
 
@@ -148,6 +166,11 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     @Override
     public Usuario getUsuario(Long usuarioId) {
         return repository.findById(usuarioId).orElse(null);
+    }
+
+    @Override
+    public Boolean existeByNombreUsuario(String nombreUsuario) {
+        return this.usuarioRepository.existsByNombreUsuario(nombreUsuario);
     }
 
 

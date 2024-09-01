@@ -5,6 +5,8 @@ import avalon.usuarios.data.ClienteRepository;
 import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.data.UsuarioRepository;
 import avalon.usuarios.model.pojo.*;
+import avalon.usuarios.model.request.MigracionClientePolizaRequest;
+import avalon.usuarios.model.response.MigracionResponse;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -58,6 +60,11 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
         return String.format("%07d", nuevoCodigoInt);
     }
 
+    @Override
+    public MigracionResponse saveMigracionClientePoliza(MigracionClientePolizaRequest request) {
+
+        return null;
+    }
 
     @Override
     public Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario) {
@@ -107,6 +114,11 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
                 .getResultList();
 
         return resultList;
+    }
+
+    @Override
+    public Boolean existClientePolizaTitular(String numeroCertificado, String tipo) {
+        return this.repository.existsByNumeroCertificadoAndTipoAndEstado(numeroCertificado, tipo, "A");
     }
 
     @Override
@@ -276,6 +288,11 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     }
 
     @Override
+    public Optional<ClientePoliza> getClientePolizaTitularByCertificado(String numeroCertificado) {
+        return this.repository.findByNumeroCertificadoAndTipo(numeroCertificado, "TITULAR");
+    }
+
+    @Override
     public ClientePoliza savePoliza(ClientePoliza clientePoliza) {
         if (clientePoliza.getCodigo() == null) {
             clientePoliza.setCodigo(this.generarNuevoCodigo());
@@ -283,6 +300,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
         return this.repository.save(clientePoliza);
     }
+
+
 
     @Override
     public void deleteClientePoliza(Long clientePolizaId) {

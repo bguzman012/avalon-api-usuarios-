@@ -50,6 +50,11 @@ public class MembresiaServiceImpl implements MembresiaService {
     }
 
     @Override
+    public Optional<Membresia> getMembresiaByName(String membresiaName) {
+        return this.repository.findByNombresContainingIgnoreCase(membresiaName);
+    }
+
+    @Override
     public void deleteMembresia(Long id) {
         repository.deleteById(id);
     }

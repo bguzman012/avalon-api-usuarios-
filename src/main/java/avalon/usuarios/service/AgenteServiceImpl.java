@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AgenteServiceImpl extends UsuariosServiceImpl<Agente> implements AgenteService {
@@ -59,6 +60,11 @@ public class AgenteServiceImpl extends UsuariosServiceImpl<Agente> implements Ag
         Long totalRecords = countAgentees(estado, busqueda, null);
 
         return new PageImpl<>(agentes, pageable, totalRecords);
+    }
+
+    @Override
+    public Optional<Agente> findByCorreo(String correo) {
+        return agenteRepository.findByCorreoElectronico(correo);
     }
 
     @Override

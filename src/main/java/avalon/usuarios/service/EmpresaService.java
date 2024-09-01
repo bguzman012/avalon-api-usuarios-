@@ -10,6 +10,7 @@ public interface EmpresaService {
 
     Page<Empresa> searchEmpresas(String busqueda, Pageable pageable);
     Optional<Empresa> getEmpresa(Long empresaId);
+    Optional<Empresa> getEmpresaByNombre(String empresaNombre);
     Empresa saveEmpresa(Empresa empresa);
     void deleteEmpresa(Long empresaId);
 }

@@ -1,8 +1,10 @@
 package avalon.usuarios.controller;
 
 import avalon.usuarios.config.AuditorAwareImpl;
+import avalon.usuarios.mapper.UsuarioMapper;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.*;
+import avalon.usuarios.model.response.MigracionResponse;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +39,23 @@ public class ClientePolizaController {
     @Autowired
     private AsesorService asesorService;
     @Autowired
+    private ClienteMembresiaService clienteMembresiaService;
+    @Autowired
     private AgenteService agenteService;
+    @Autowired
+    private AseguradoraService aseguradoraService;
     @Autowired
     private PolizaService polizaService;
     @Autowired
+    private MembresiaService membresiaService;
+    @Autowired
     private EmpresaService empresaService;
+    @Autowired
+    private UsuarioMapper usuarioMapper;
+    @Autowired
+    private PaisService paisService;
+    @Autowired
+    private EstadosService estadosService;
 
     @GetMapping("/clientesPolizas/excel")
     public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String busqueda,
@@ -71,21 +85,138 @@ public class ClientePolizaController {
         }
     }
 
-//    @GetMapping("/clientesPolizas/export")
-//    public ResponseEntity<ClientePoliza> esportClientesPolizas(@RequestParam(required = false) String busqueda,
-//                                                               @RequestParam(defaultValue = "createdDate") String sortField,
-//                                                               @RequestParam(defaultValue = "desc") String sortOrder) {
-//        Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
-//        Pageable pageable = PageRequest.of(page, size, sort);
-//
-//        Page<ClientePoliza> clientePolizaPage = service.searchClienesPolizas(busqueda, pageable, null, null, this.getCurrentUser());
-//
-//        List<ClientePoliza> clientePolizas = clientePolizaPage.getContent();
-//        long totalRecords = clientePolizaPage.getTotalElements();
-//
-//        PaginatedResponse<ClientePoliza> response = new PaginatedResponse<>(clientePolizas, totalRecords);
-//        return ResponseEntity.ok(response);
-//    }
+    @PostMapping("/clientesPolizas/migracion")
+    public ResponseEntity<MigracionResponse> createMigracion(@RequestBody MigracionClientePolizaRequest request) {
+        try {
+            ClientePoliza clientePoliza = new ClientePoliza();
+            MigracionResponse migracionResponse;
+
+            Aseguradora aseguradora = this.aseguradoraService.getAseguradoraByNombre(request.getSeguro()).orElse(null);
+            if (aseguradora == null) {
+                migracionResponse = new MigracionResponse(500, "Aseguradora no encontrada en la base de datos", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            Asesor asesor = this.asesorService.findByCorreo(request.getCorreoAsesor()).orElse(null);
+            if (asesor == null) {
+                migracionResponse = new MigracionResponse(500, "Asesor no encontrado en la base de datos", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            Agente agente = this.agenteService.findByCorreo(request.getCorreoAgente()).orElse(null);
+            if (agente == null) {
+                migracionResponse = new MigracionResponse(500, "Agente no encontrado en la base de datos", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            Poliza poliza = this.polizaService.getPolizaByNameAndAseguradora(request.getPoliza(), aseguradora).orElse(null);
+            if (poliza == null) {
+                migracionResponse = new MigracionResponse(500, "Poliza no encontrada en la base de datos", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            Pais pais = paisService.findByNombre(request.getPais()).orElse(null);
+            if (pais == null) {
+                migracionResponse = new MigracionResponse(500, "País no encontrada en la base de datos", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            Estado estado = estadosService.findByNombre(request.getEstado()).orElse(null);
+            if (estado == null) {
+                migracionResponse = new MigracionResponse(500, "Estado no encontrado en la base de datos", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            // La empresa puede ser nulo, si viene un parsmetro de empresa, primero buscamos si no encontramos, creamos
+            Empresa empresa = null;
+            if (request.getEmpresa() != null && !request.getEmpresa().isEmpty()) {
+                empresa = this.empresaService.getEmpresaByNombre(request.getEmpresa()).orElse(null);
+                if (empresa == null) {
+                    Empresa empresaCreated = new Empresa();
+                    empresaCreated.setNombre(request.getEmpresa());
+                    empresaCreated.setDescripcion(request.getEmpresa());
+                    this.empresaService.saveEmpresa(empresaCreated);
+                    empresa = empresaCreated;
+                }
+            }
+
+            if (!request.getTipoPoliza().equals("DEPENDIENTE") && !request.getTipoPoliza().equals("TITULAR")) {
+                migracionResponse = new MigracionResponse(500, "El tipo de poliza solo puede ser DEPENDIENTE o TITULAR.", "ERROR");
+                return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+            }
+
+            // Si es dependiente busca la poliza del titular para relacionarle
+            if (request.getTipoPoliza().equals("DEPENDIENTE")) {
+                ClientePoliza clientePolizaTitular = this.service.getClientePolizaTitularByCertificado(request.getNumeroCertificado()).orElse(null);
+                if (clientePolizaTitular == null) {
+                    migracionResponse = new MigracionResponse(500, "El titular de la poliza con numero certificado " + request.getNumeroCertificado() + " no existe.", "ERROR");
+                    return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+                }
+
+                clientePoliza.setTitular(clientePolizaTitular);
+                clientePoliza.setTipo("DEPENDIENTE");
+            }
+
+            if (request.getTipoPoliza().equals("TITULAR")) {
+                Boolean existClientePolizaTitularByCertificado = service.existClientePolizaTitular(request.getNumeroCertificado(), "TITULAR");
+                if (existClientePolizaTitularByCertificado) {
+                    migracionResponse = new MigracionResponse(500, "Esta poliza ya tiene un titular, no es opsible agregar otro.", "ERROR");
+                    return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+                }
+
+                clientePoliza.setTitular(null);
+                clientePoliza.setTipo("TITULAR");
+            }
+
+            Cliente cliente = this.clienteService.findClienteByCorreoElectronico(request.getCorreoElectronico()).orElse(null);
+            if (cliente == null) {
+                cliente = usuarioMapper.mapToClienteFromMigracionClientePoliza(request, new Cliente(), new Direccion());
+
+                this.clienteService.save(cliente);
+            }
+
+            if (request.getMembresia() != null && !request.getMembresia().isEmpty()) {
+                Membresia membresia = this.membresiaService.getMembresiaByName(request.getMembresia()).orElse(null);
+                if (membresia == null) {
+                    migracionResponse = new MigracionResponse(500, "Membresía no encontrada en la base de datos", "ERROR");
+                    return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+                }
+
+                ClienteMembresia clienteMembresiaDependiente = new ClienteMembresia();
+                clienteMembresiaDependiente.setCodigo(request.getMembresiaCodigo());
+                clienteMembresiaDependiente.setMembresia(membresia);
+                clienteMembresiaDependiente.setCliente(cliente);
+                clienteMembresiaDependiente.setAsesor(asesor);
+                clienteMembresiaDependiente.setFechaInicio(request.getFechaInicioMembresia());
+                clienteMembresiaDependiente.setFechaFin(request.getFechaExpiracionMembresia());
+                clienteMembresiaDependiente.setEstado("A");
+
+                this.clienteMembresiaService.saveClienteMembresia(clienteMembresiaDependiente);
+            }
+
+
+            clientePoliza.setCliente(cliente);
+            clientePoliza.setEmpresa(empresa);
+            clientePoliza.setAsesor(asesor);
+            clientePoliza.setAgente(agente);
+            clientePoliza.setPoliza(poliza);
+            clientePoliza.setEstado("A");
+            clientePoliza.setFechaInicio(request.getFechaInicioPoliza());
+            clientePoliza.setFechaFin(request.getFechaExpiracionPoliza());
+            clientePoliza.setNumeroCertificado(request.getNumeroCertificado());
+            clientePoliza.setParentesco(request.getParentesco());
+
+            this.service.savePoliza(clientePoliza);
+
+            migracionResponse = new MigracionResponse(200, "Cliente poliza migrado con éxito", "MIGRADO");
+            return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+        } catch (
+                Exception e) {
+            MigracionResponse migracionResponse = new MigracionResponse(500, e.getMessage(), "ERROR");
+            return ResponseEntity.status(HttpStatus.CREATED).body(migracionResponse);
+        }
+
+    }
 
     @GetMapping("/clientesPolizas")
     public ResponseEntity<PaginatedResponse<ClientePoliza>> getPolizas(@RequestParam(required = false) String busqueda,
@@ -181,7 +312,7 @@ public class ClientePolizaController {
         Poliza poliza = this.polizaService.getPoliza(request.getPolizaId()).orElseThrow(() -> new IllegalArgumentException("Poliza no encontrado"));
 
         Empresa empresa = null;
-        if (request.getEmpresaId()!= null)
+        if (request.getEmpresaId() != null)
             empresa = this.empresaService.getEmpresa(request.getEmpresaId()).orElseThrow(() -> new IllegalArgumentException("Empresa no encontrada"));
 
         clientePolizaeference.setCliente(cliente);
@@ -196,6 +327,7 @@ public class ClientePolizaController {
 
         return clientePolizaeference;
     }
+
 
     private Usuario getCurrentUser() {
         Optional<String> currentUser = this.auditorAware.getCurrentAuditor();

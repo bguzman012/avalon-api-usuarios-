@@ -17,6 +17,7 @@ public interface PolizaService {
     Page<Poliza> searchPolizasByAseguradora(String busqueda, Pageable pageable, Aseguradora aseguradora);
 
     Optional<Poliza> getPoliza(Long polizaId);
+    Optional<Poliza> getPolizaByNameAndAseguradora(String polizaName, Aseguradora aseguradora);
     Poliza savePoliza(Poliza poliza);
     void deletePoliza(Long polizaId);
 }

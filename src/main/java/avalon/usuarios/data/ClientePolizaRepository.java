@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClientePolizaRepository extends JpaRepository<ClientePoliza, Long> {
@@ -15,5 +16,7 @@ public interface ClientePolizaRepository extends JpaRepository<ClientePoliza, Lo
     List<ClientePoliza> findAllByPoliza(Poliza poliza);
     List<ClientePoliza> findAllByCliente(Cliente cliente);
     List<ClientePoliza> findAllByEstado(String estado);
+    Optional<ClientePoliza> findByNumeroCertificadoAndTipo(String numeroCertificado, String tipoPoliza);
+    Boolean existsByNumeroCertificadoAndTipoAndEstado(String numeroCertificado, String tipoPoliza, String estado);
 
 }

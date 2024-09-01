@@ -13,6 +13,8 @@ public interface AseguradoraService {
 
     Page<Aseguradora> searchAseguradoras(String estado, String busqueda, Pageable pageable);
     Optional<Aseguradora> getAseguradora(Long aseguradoraId);
+    Optional<Aseguradora> getAseguradoraByNombre(String nombre);
+
     Aseguradora createAseguradora(Aseguradora aseguradora);
     Aseguradora partiallyUpdateAseguradora(PartiallyUpdateAseguradora request, Long aseguradoraId);
     void deleteAseguradora(Long aseguradoraId);

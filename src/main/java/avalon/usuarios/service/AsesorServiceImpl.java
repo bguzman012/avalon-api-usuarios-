@@ -42,6 +42,11 @@ public class AsesorServiceImpl extends UsuariosServiceImpl<Asesor> implements As
     }
 
     @Override
+    public Optional<Asesor> findByCorreo(String correo) {
+        return asesorRepository.findByCorreoElectronico(correo);
+    }
+
+    @Override
     public Page<Asesor> searchAsesores(String estado, String busqueda, Pageable pageable) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 

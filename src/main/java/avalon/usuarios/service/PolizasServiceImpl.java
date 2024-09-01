@@ -50,6 +50,11 @@ public class PolizasServiceImpl implements PolizaService {
     }
 
     @Override
+    public Optional<Poliza> getPolizaByNameAndAseguradora(String polizaName, Aseguradora aseguradora) {
+        return this.repository.findByNombreContainingIgnoreCaseAndAseguradora(polizaName, aseguradora);
+    }
+
+    @Override
     public Poliza savePoliza(Poliza poliza) {
         return this.repository.save(poliza);
     }

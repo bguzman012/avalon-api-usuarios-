@@ -7,10 +7,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AgenteService extends UsuariosService<Agente> {
     Page<Agente> findAll(Pageable pageable);
     Page<Agente> findAllByEstado(String estado, Pageable pageable);
     Page<Agente> searchAgentes(String estado, String busqueda, Pageable pageable);
+    Optional<Agente> findByCorreo(String correo);
+
     Page<Agente> searchAgentesByBroker(String estado, String busqueda, Pageable pageable, Broker broker);
 }

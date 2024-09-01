@@ -3,6 +3,7 @@ package avalon.usuarios.mapper;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.CargaFamiliarRequest;
 import avalon.usuarios.model.request.ClienteRequest;
+import avalon.usuarios.model.request.MigracionClientePolizaRequest;
 import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.EstadosService;
 import avalon.usuarios.service.PaisService;
@@ -22,6 +23,7 @@ public class UsuarioMapper {
     private EstadosService estadosService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    private final Long ROL_CLIENTE = 3L;
 
     @Autowired
     public UsuarioMapper(RolesService rolService) {
@@ -41,10 +43,6 @@ public class UsuarioMapper {
         usuario.setNumeroTelefono(request.getNumeroTelefono());
         usuario.setNumeroIdentificacion(request.getNumeroIdentificacion());
         usuario.setTipoIdentificacion(request.getTipoIdentificacion());
-
-        if (usuario.getId() == null) {
-            usuario.setNombreUsuario(request.getNombreUsuario());
-        }
 
         usuario.setUrlImagen(request.getUrlImagen());
         usuario.setEstado(request.getEstado());
@@ -88,10 +86,6 @@ public class UsuarioMapper {
         cliente.setNumeroIdentificacion(request.getNumeroIdentificacion());
         cliente.setTipoIdentificacion(request.getTipoIdentificacion());
 
-        if (cliente.getId() == null) {
-            cliente.setNombreUsuario(request.getNombreUsuario());
-        }
-
         cliente.setUrlImagen(request.getUrlImagen());
         cliente.setEstado(request.getEstado());
         cliente.setRol(rolService.findById(request.getRolId()));
@@ -114,5 +108,40 @@ public class UsuarioMapper {
 
         return cliente;
     }
+
+    public Cliente mapToClienteFromMigracionClientePoliza(MigracionClientePolizaRequest request, Cliente cliente, Direccion direccion) {
+        String contrasenia = PasswordGenerator.generateTemporaryPassword();
+
+        cliente.setContrasenia(passwordEncoder.encode(contrasenia));
+        cliente.setContraseniaTemporalModificada(Boolean.FALSE);
+
+        cliente.setNombres(request.getNombres());
+        cliente.setNombresDos(request.getNombresDos());
+        cliente.setApellidos(request.getApellidos());
+        cliente.setApellidosDos(request.getApellidosDos());
+        cliente.setCorreoElectronico(request.getCorreoElectronico());
+        cliente.setNumeroTelefono(request.getTelefono());
+        cliente.setNumeroIdentificacion(request.getNumeroIdentificacion());
+        cliente.setTipoIdentificacion(request.getTipoIdentificacion());
+
+        cliente.setEstado("A");
+        cliente.setRol(rolService.findById(this.ROL_CLIENTE));
+
+        Pais pais = paisService.findByNombre(request.getPais()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
+        Estado estado = estadosService.findByNombre(request.getEstado()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
+
+        cliente.setFechaNacimiento(request.getFechaNacimiento());
+
+        direccion.setDireccionUno(request.getDireccionUno());
+        direccion.setDireccionDos(request.getDireccionDos());
+        direccion.setCodigoPostal(request.getCodigoPostal());
+        direccion.setPais(pais);
+        direccion.setState(estado);
+        direccion.setCiudad(request.getCiudad());
+
+        cliente.setDireccion(direccion);
+        return cliente;
+    }
+
 
 }

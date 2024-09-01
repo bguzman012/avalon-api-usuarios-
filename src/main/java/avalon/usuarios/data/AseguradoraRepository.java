@@ -10,11 +10,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AseguradoraRepository extends JpaRepository<Aseguradora, Long> {
 
     List<Aseguradora> findAllByEstado(String estado);
+
+    Optional<Aseguradora> findByNombreContainingIgnoreCase(String nombre);
 
     @Query("SELECT a FROM Aseguradora a WHERE (:estado IS NULL OR a.estado = :estado) AND " +
             "(:busqueda IS NULL OR LOWER(a.nombre) LIKE LOWER(CONCAT('%', :busqueda, '%')) OR " +

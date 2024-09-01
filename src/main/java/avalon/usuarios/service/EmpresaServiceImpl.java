@@ -31,6 +31,11 @@ public class EmpresaServiceImpl implements EmpresaService {
     }
 
     @Override
+    public Optional<Empresa> getEmpresaByNombre(String empresaNombre) {
+        return repository.findByNombreContainingIgnoreCase(empresaNombre);
+    }
+
+    @Override
     public Empresa saveEmpresa(Empresa empresa) {
         return repository.save(empresa);
     }
