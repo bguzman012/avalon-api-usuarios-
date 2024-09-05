@@ -21,5 +21,4 @@ public interface ClienteMembresiaService {
     ByteArrayOutputStream generateExcelClientesPolizas(String busqueda, String sortField, String sortOrder, Cliente cliente, Membresia membresia) throws IOException;
     List<ClienteMembresia> searchAllClientesMembresias(String busqueda, String sortField, String sortOrder,  Cliente cliente, Membresia membresia);
 
-
 }

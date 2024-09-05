@@ -34,13 +34,19 @@ public class AsesorController {
     private UsuarioMapper usuarioMapper;
 
     @PostMapping("/asesores")
-    public ResponseEntity<Asesor> createAsesor(@RequestBody AsesorRequest request) {
+    public ResponseEntity<?> createAsesor(@RequestBody AsesorRequest request) {
         try {
             Asesor asesor = usuarioMapper.mapToUsuario(request, new Asesor());
             Asesor result = service.save(asesor);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            String err = e.getMessage();
+            if (err.contains("uk_correo_electronico"))
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Ocurrió un error al persistir la información, el correo electrónico ya le pertenece a otro usuario.");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Ocurrió un error al persistir la información.");
         }
     }
 
@@ -48,10 +54,10 @@ public class AsesorController {
     public ResponseEntity<PaginatedResponse<Asesor>> getAsesores(@RequestParam(required = false) String estado,
                                                                  @RequestParam(required = false) String busqueda,
                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                 @RequestParam(defaultValue = "10") int size,
                                                                  @RequestParam(defaultValue = "createdDate") String sortField,
                                                                  @RequestParam(defaultValue = "desc") String sortOrder
-                                                                 ) {
+    ) {
 
         Sort sort = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortField).descending() : Sort.by(sortField).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -90,12 +96,22 @@ public class AsesorController {
     }
 
     @PutMapping("/asesores/{asesorId}")
-    public ResponseEntity<Asesor> updateAsesor(@PathVariable Long asesorId, @RequestBody AsesorRequest request) throws MessagingException, IOException {
-        Asesor asesor = service.findById(asesorId).orElseThrow(() -> new IllegalArgumentException("Asesor no encontrado"));
-        Asesor asesorUpdate = usuarioMapper.mapToUsuario(request, asesor);
+    public ResponseEntity<?> updateAsesor(@PathVariable Long asesorId, @RequestBody AsesorRequest request) throws MessagingException, IOException {
+        try {
+            Asesor asesor = service.findById(asesorId).orElseThrow(() -> new IllegalArgumentException("Asesor no encontrado"));
+            Asesor asesorUpdate = usuarioMapper.mapToUsuario(request, asesor);
 
-        service.save(asesorUpdate);
-        return asesorUpdate != null ? ResponseEntity.ok(asesorUpdate) : ResponseEntity.badRequest().build();
+            service.save(asesorUpdate);
+            return asesorUpdate != null ? ResponseEntity.ok(asesorUpdate) : ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            String err = e.getMessage();
+            if (err.contains("uk_correo_electronico"))
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Ocurrió un error al persistir la información, el correo electrónico ya le pertenece a otro usuario.");
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Ocurrió un error al persistir la información.");
+        }
     }
 
 //    @GetMapping("/roles/{rolId}/usuarios")

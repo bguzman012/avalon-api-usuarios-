@@ -10,7 +10,10 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios",
+        uniqueConstraints = {
+        @UniqueConstraint(columnNames = "correo_electronico", name = "UK_CORREO_ELECTRONICO")
+})
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter

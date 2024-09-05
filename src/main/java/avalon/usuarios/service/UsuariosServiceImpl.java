@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.swing.text.html.parser.Entity;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -69,15 +70,20 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
             entity.setContraseniaTemporal(contraseniaTemporal);
             entity.setEstado(this.ESTADO_ACTIVO);
 
-            // Descomentar para enviar correo de
-            String textoMail = "<p><b>" + entity.getNombres() + " " + entity.getNombresDos() + " "
-                    + entity.getApellidos() + " " + entity.getApellidosDos() + " [" + entity.getNombreUsuario() +
-                    "]</b></p>" +
-                    "<p>Su usuario ha sido creado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
-                    "inicio de sesión es la siguiente: </p>" +
-                    "<p><b>" + contraseniaTemporal + "</b></p>";
+            T entitySave = this.repository.save(entity);
 
-            this.mailService.sendHtmlEmail(entity.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
+            if (entitySave.getId() != null) {
+                String textoMail = "<p><b>" + entity.getNombres() + " " + entity.getNombresDos() + " "
+                        + entity.getApellidos() + " " + entity.getApellidosDos() + " [" + entity.getNombreUsuario() +
+                        "]</b></p>" +
+                        "<p>Su usuario ha sido creado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                        "inicio de sesión es la siguiente: </p>" +
+                        "<p><b>" + contraseniaTemporal + "</b></p>";
+
+                this.mailService.sendHtmlEmail(entity.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
+            }
+
+            return entitySave;
         }
 
         return repository.save(entity);
