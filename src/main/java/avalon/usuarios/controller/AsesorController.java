@@ -7,6 +7,7 @@ import avalon.usuarios.model.request.AsesorRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
+import avalon.usuarios.util.ExceptionHandlerUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,13 +41,14 @@ public class AsesorController {
             Asesor result = service.save(asesor);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            String err = e.getMessage();
-            if (err.contains("uk_correo_electronico"))
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Ocurrió un error al persistir la información, el correo electrónico ya le pertenece a otro usuario.");
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Ocurrió un error al persistir la información.");
+            return ExceptionHandlerUtil.userHandleException(e);
+//            String err = e.getMessage();
+//            if (err.contains("uk_correo_electronico"))
+//                return ResponseEntity.status(HttpStatus.CONFLICT)
+//                        .body("Ocurrió un error al persistir la información, el correo electrónico ya le pertenece a otro usuario.");
+//
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body("Ocurrió un error al persistir la información.");
         }
     }
 
@@ -104,13 +106,14 @@ public class AsesorController {
             service.save(asesorUpdate);
             return asesorUpdate != null ? ResponseEntity.ok(asesorUpdate) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            String err = e.getMessage();
-            if (err.contains("uk_correo_electronico"))
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Ocurrió un error al persistir la información, el correo electrónico ya le pertenece a otro usuario.");
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Ocurrió un error al persistir la información.");
+            return ExceptionHandlerUtil.userHandleException(e);
+//            String err = e.getMessage();
+//            if (err.contains("uk_correo_electronico"))
+//                return ResponseEntity.status(HttpStatus.CONFLICT)
+//                        .body("Ocurrió un error al persistir la información, el correo electrónico ya le pertenece a otro usuario.");
+//
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body("Ocurrió un error al persistir la información.");
         }
     }
 

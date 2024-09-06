@@ -32,7 +32,7 @@ public class MailServiceImpl implements MailService {
         message.setTo(to);
         message.setSubject(subject);
         message.setText(text);
-        message.setFrom("bryamgmfn@gmail.com"); // Asegúrate de que coincide con el email configurado
+        message.setFrom("AVALON"); // Asegúrate de que coincide con el email configurado
 
         mailSender.send(message);
     }
@@ -51,7 +51,7 @@ public class MailServiceImpl implements MailService {
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlBody, true); // El segundo parámetro "true" indica que es HTML
-        helper.setFrom("bryamgmfn@gmail.com");
+        helper.setFrom("AVALON");
 
         mailSender.send(message);
     }

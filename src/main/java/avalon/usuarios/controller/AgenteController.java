@@ -9,6 +9,7 @@ import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.AgenteService;
 import avalon.usuarios.service.BrokerService;
+import avalon.usuarios.util.ExceptionHandlerUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class AgenteController {
     private BrokerService brokerService;
 
     @PostMapping("/agentes")
-    public ResponseEntity<Agente> createAgente(@RequestBody AgenteRequest request) {
+    public ResponseEntity<?> createAgente(@RequestBody AgenteRequest request) {
         try {
             Agente agente = usuarioMapper.mapToUsuario(request, new Agente());
             Broker broker = brokerService.getBroker(request.getBrokerId());
@@ -47,7 +48,7 @@ public class AgenteController {
             Agente result = service.save(agente);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ExceptionHandlerUtil.userHandleException(e);
         }
     }
 
@@ -74,12 +75,12 @@ public class AgenteController {
 
     @GetMapping("/brokers/{brokerId}/agentes")
     public ResponseEntity<PaginatedResponse<Agente>> getAgentesByBroker(@PathVariable Long brokerId,
-                                                                @RequestParam(required = false) String estado,
-                                                                @RequestParam(required = false) String busqueda,
-                                                                @RequestParam(defaultValue = "0") int page,
-                                                                @RequestParam(defaultValue = "10") int size,
-                                                                @RequestParam(defaultValue = "createdDate") String sortField,
-                                                                @RequestParam(defaultValue = "desc") String sortOrder
+                                                                        @RequestParam(required = false) String estado,
+                                                                        @RequestParam(required = false) String busqueda,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size,
+                                                                        @RequestParam(defaultValue = "createdDate") String sortField,
+                                                                        @RequestParam(defaultValue = "desc") String sortOrder
     ) {
         Broker broker = brokerService.getBroker(brokerId);
         if (broker == null)
@@ -123,15 +124,18 @@ public class AgenteController {
     }
 
     @PutMapping("/agentes/{agenteId}")
-    public ResponseEntity<Agente> updateAgente(@PathVariable Long agenteId, @RequestBody AgenteRequest request) throws MessagingException, IOException {
-        Agente agente = this.service.findById(agenteId).orElseThrow(() -> new IllegalArgumentException("Agente no encontrado"));
-        Agente agenteUpdate = usuarioMapper.mapToUsuario(request, agente);
-        Broker broker = brokerService.getBroker(request.getBrokerId());
-        agenteUpdate.setBroker(broker);
+    public ResponseEntity<?> updateAgente(@PathVariable Long agenteId, @RequestBody AgenteRequest request) throws MessagingException, IOException {
+        try {
+            Agente agente = this.service.findById(agenteId).orElseThrow(() -> new IllegalArgumentException("Agente no encontrado"));
+            Agente agenteUpdate = usuarioMapper.mapToUsuario(request, agente);
+            Broker broker = brokerService.getBroker(request.getBrokerId());
+            agenteUpdate.setBroker(broker);
 
-        service.save(agenteUpdate);
-        return agenteUpdate != null ? ResponseEntity.ok(agenteUpdate) : ResponseEntity.badRequest().build();
-
+            service.save(agenteUpdate);
+            return agenteUpdate != null ? ResponseEntity.ok(agenteUpdate) : ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ExceptionHandlerUtil.userHandleException(e);
+        }
     }
 
 }

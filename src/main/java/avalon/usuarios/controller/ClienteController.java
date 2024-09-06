@@ -9,6 +9,7 @@ import avalon.usuarios.model.request.ClienteRequest;
 import avalon.usuarios.model.request.PartiallyUpdateUsuario;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.ClienteService;
+import avalon.usuarios.util.ExceptionHandlerUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,13 +39,13 @@ public class ClienteController {
     private AuditorAwareImpl auditorAware;
 
     @PostMapping("/clientes")
-    public ResponseEntity<Cliente> createCliente(@RequestBody ClienteRequest request) {
+    public ResponseEntity<?> createCliente(@RequestBody ClienteRequest request) {
         try {
             Cliente cliente = usuarioMapper.mapToUsuario(request, new Cliente(), new Direccion());
             Cliente result = service.save(cliente);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ExceptionHandlerUtil.userHandleException(e);
         }
     }
 
@@ -119,12 +120,16 @@ public class ClienteController {
     }
 
     @PutMapping("/clientes/{clienteId}")
-    public ResponseEntity<Cliente> updateCliente(@PathVariable Long clienteId, @RequestBody ClienteRequest request) throws MessagingException, IOException {
-        Cliente cliente = service.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
-        Cliente clienteUpdate = usuarioMapper.mapToUsuario(request, cliente, cliente.getDireccion());
+    public ResponseEntity<?> updateCliente(@PathVariable Long clienteId, @RequestBody ClienteRequest request) throws MessagingException, IOException {
+        try {
+            Cliente cliente = service.findById(clienteId).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
+            Cliente clienteUpdate = usuarioMapper.mapToUsuario(request, cliente, cliente.getDireccion());
 
-        service.save(clienteUpdate);
-        return clienteUpdate != null ? ResponseEntity.ok(clienteUpdate) : ResponseEntity.badRequest().build();
+            service.save(clienteUpdate);
+            return clienteUpdate != null ? ResponseEntity.ok(clienteUpdate) : ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ExceptionHandlerUtil.userHandleException(e);
+        }
     }
 
 }
