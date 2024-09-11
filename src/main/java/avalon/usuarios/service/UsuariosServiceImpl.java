@@ -41,8 +41,8 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
 
-    public String generarNombreUsuario(String correoElectronico) {
-        String baseNombreUsuario = correoElectronico.split("@")[0];
+    public String generarNombreUsuario(String nombre, String apellido) {
+        String baseNombreUsuario = nombre.charAt(0) + apellido;
         String nombreUsuario = baseNombreUsuario;
         int counter = 1;
 
@@ -59,7 +59,7 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     public T save(T entity) throws MessagingException, IOException {
         //Se agrega el nombre de usuario cuando se crea
         if (entity.getId() == null)
-            entity.setNombreUsuario(generarNombreUsuario(entity.getCorreoElectronico()));
+            entity.setNombreUsuario(generarNombreUsuario(entity.getNombres(), entity.getApellidos()));
 
         if (entity.getId() == null && (entity.getRol().getCodigo().equals(this.ROL_AGENTE) || entity.getRol().getCodigo().equals(this.ROL_ASESOR))) {
             String contraseniaTemporal = PasswordGenerator.generateTemporaryPassword();
