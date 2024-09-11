@@ -17,6 +17,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // Agregar el interceptor para todas las rutas
         registry.addInterceptor(jwtTokenInterceptor).
-                addPathPatterns("/**").excludePathPatterns("/login");
+                addPathPatterns("/**").excludePathPatterns("/login", "/sendCodeByMail", "/restart-password");
     }
 }

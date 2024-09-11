@@ -170,6 +170,16 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     }
 
     @Override
+    public Usuario findUsuarioByCorreo(String correoElectronico) {
+        return this.usuarioRepository.findByCorreoElectronico(correoElectronico);
+    }
+
+//    @Override
+//    public Usuario findByCorreo(String correoElectronico) {
+//        return this.usuarioRepository.findByCorreoElectronico(correoElectronico);
+//    }
+
+    @Override
     public Usuario getUsuario(Long usuarioId) {
         return repository.findById(usuarioId).orElse(null);
     }

@@ -2,13 +2,10 @@ package avalon.usuarios.controller;
 
 import avalon.usuarios.model.pojo.Cliente;
 import avalon.usuarios.model.pojo.VerificationCode;
-import avalon.usuarios.model.request.ChangePasswordRequest;
-import avalon.usuarios.model.request.SendCodeRequest;
-import avalon.usuarios.model.request.VerificationRequest;
+import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.JwtAuthenticationResponse;
 import avalon.usuarios.config.JwtTokenProvider;
 import avalon.usuarios.model.pojo.Usuario;
-import avalon.usuarios.model.request.LoginRequest;
 import avalon.usuarios.model.response.ApiResponse;
 import avalon.usuarios.service.UsuariosService;
 import avalon.usuarios.service.VerificationCodeService;
@@ -84,6 +81,21 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/sendCodeByMail")
+    public ResponseEntity<?> sendCodeByMail(@RequestBody SendCodeByMailRequest sendCodeByMailRequest) throws MessagingException, IOException {
+        String mail = sendCodeByMailRequest.getCorreoElectronico();
+
+        Usuario usuarioEncontrado = service.findUsuarioByCorreo(mail);
+
+        // Validar credenciales
+        if (usuarioEncontrado != null) {
+            this.enviarCodigoCorreoElectronico2FA(usuarioEncontrado);
+            return ResponseEntity.ok(new ApiResponse(true, "Operacion exitosa", "EXITO"));
+        } else {
+            return ResponseEntity.ok(new ApiResponse(true, "Operacion exitosa", "EXITO"));
+        }
+    }
+
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
         try {
@@ -97,6 +109,41 @@ public class AuthController {
             if (usuarioEncontrado == null) {
                 return ResponseEntity.badRequest().body(new ApiResponse(false, "Contraseña actual incorrecta", "CONTRASENIA_INCORRECTA"));
             }
+
+            // Lógica para actualizar la contraseña
+            service.actualizarContrasenia(usuarioEncontrado, nuevaContrasenia);
+
+            return ResponseEntity.ok(new ApiResponse(true, "Contraseña cambiada con éxito", "CONTRASENIA_CAMBIADA"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/restart-password")
+    public ResponseEntity<?> restartPassword(@RequestBody RestartPasswordRequest restartPasswordRequest) {
+        try {
+            String codigoDosFa = restartPasswordRequest.getCodigo2FA();
+            String correoElectronico = restartPasswordRequest.getCorreoElectronico();
+            String nuevaContrasenia = restartPasswordRequest.getContraseniaNueva();
+
+            // Valida que la contraseña actual sea correcta
+            Usuario usuarioEncontrado = service.findUsuarioByCorreo(correoElectronico);
+            if (usuarioEncontrado == null) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+
+            Optional<VerificationCode> verificationCode = verificationCodeService.
+                    findByUsernameAndCodeAndExpiresAtAfterAndUsedFalse(usuarioEncontrado.getNombreUsuario(),
+                            codigoDosFa, now);
+
+            if (verificationCode.isPresent()) {
+                VerificationCode verificationCodeFounded = verificationCode.get();
+                verificationCodeFounded.setUsed(true);
+                this.verificationCodeService.saveVerificationCode(verificationCodeFounded);
+            }else
+                return ResponseEntity.ok(new ApiResponse(false, "El código incorrecto o ha expirado", "CODIGO_ERROR"));
 
             // Lógica para actualizar la contraseña
             service.actualizarContrasenia(usuarioEncontrado, nuevaContrasenia);
@@ -142,7 +189,15 @@ public class AuthController {
     private void enviarCodigo2FA(Usuario usuario) throws MessagingException, IOException {
         String codigo2FA = service.generateCodigo2FA();
         VerificationCode verificationCode = this.generateVerificationCode(usuario, codigo2FA);
-//        this.enviarMailCodigo2FA(usuario, verificationCode);
+        String texto = "<p>El código 2FA para su acceso es el siguiente: </p>";
+        this.enviarMailCodigo2FA(usuario, verificationCode, texto, "Código Inicio de Sesión");
+    }
+
+    private void enviarCodigoCorreoElectronico2FA(Usuario usuario) throws MessagingException, IOException {
+        String codigo2FA = service.generateCodigo2FA();
+        VerificationCode verificationCode = this.generateVerificationCode(usuario, codigo2FA);
+        String texto = "<p>El código 2FA para el cambio de contraseña es el siguiente: </p>";
+        this.enviarMailCodigo2FA(usuario, verificationCode, texto, "Código reinicio de contraseña");
     }
 
     private VerificationCode generateVerificationCode(Usuario usuario, String codigo2FA) {
@@ -153,7 +208,7 @@ public class AuthController {
         return verificationCodeService.saveVerificationCode(verificationCode); // Guardar en la base de datos
     }
 
-    private void enviarMailCodigo2FA(Usuario usuario, VerificationCode verificationCode) throws MessagingException, IOException {
+    private void enviarMailCodigo2FA(Usuario usuario, VerificationCode verificationCode, String texto, String asunto) throws MessagingException, IOException {
         String nombreCompleto = usuario.getNombres() + " " + usuario.getNombresDos() + " "
                 + usuario.getApellidos() + " " + usuario.getApellidosDos();
         String nombreUsuario = usuario.getNombreUsuario();
@@ -162,11 +217,12 @@ public class AuthController {
         String fechaExpiracionFormateada = fechaExpiracion.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
 
         String textoMail = "<p><b>" + nombreCompleto + " [" + nombreUsuario + "]</b></p>" +
-                "<p>El código 2FA para su acceso es el siguiente: </p>" +
+//                "<p>El código 2FA para su acceso es el siguiente: </p>" +
+                texto +
                 "<p><b>" + codigo2FA + "</b></p>" +
                 "<p>Este código es válido hasta: <b>" + fechaExpiracionFormateada + "</b></p>";
 
-        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), "Código Inicio de Sesión", textoMail);
+//        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), asunto, textoMail);
     }
 
 

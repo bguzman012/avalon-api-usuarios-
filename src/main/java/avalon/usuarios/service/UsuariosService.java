@@ -20,6 +20,7 @@ public interface UsuariosService<T extends Usuario> {
     void actualizarContrasenia(Usuario usuario, String nuevaContrasenia);
     String generateCodigo2FA();
     Usuario findByNombreUsuario(String nombreUsuario);
+    Usuario findUsuarioByCorreo(String correoElectronico);
     Usuario getUsuario(Long usuarioId);
     Boolean existeByNombreUsuario(String nombreUsuario);
 }
