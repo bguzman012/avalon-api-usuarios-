@@ -14,7 +14,6 @@ import lombok.Setter;
 public class EmergenciaRequest {
 
 	private String estado;
-	@NotNull
 	private Long medicoCentroMedicoAseguradoraId;
 	private String nombreDocumento;
 	private String diagnostico;

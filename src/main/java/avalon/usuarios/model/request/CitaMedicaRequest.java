@@ -30,7 +30,6 @@ public class CitaMedicaRequest {
 	private String nombreDocumento;
 	@NotNull
 	private Long clientePolizaId;
-	@NotNull
 	private Long medicoCentroMedicoAseguradoraId;
 	private Map<RequisitoAdicional, Boolean> requisitosAdicionales;
 	private String otrosRequisitos;

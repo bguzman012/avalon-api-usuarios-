@@ -25,7 +25,6 @@ public class ReclamacionRequest {
 	@NotNull
 	@Temporal(TemporalType.DATE)
 	private Date fechaServicio;
-	@NotNull
 	private Long medicoCentroMedicoAseguradoraId;
 	@NotNull
 	@Pattern(regexp = "EMERGENCIA|PROGRAMADA", message = "TipoAdm debe ser EMERGENCIA o PROGRAMADA")

@@ -54,12 +54,12 @@ public class EmergenciaController {
 
     @PostMapping("/emergencias")
     public ResponseEntity<Emergencia> createEmergencia(@RequestPart("emergencia") EmergenciaRequest request,
-                                                       @RequestPart("fotoEmergencia") MultipartFile fotoEmergencia) {
+                                                       @RequestPart(value = "fotoEmergencia", required = false) MultipartFile fotoEmergencia) {
         try {
             request.setEstado("N");
             Emergencia emergencia = this.mapToEmergencia(request, new Emergencia(), new Direccion());
 
-            if (!fotoEmergencia.isEmpty()) {
+            if (fotoEmergencia != null && !fotoEmergencia.isEmpty()) {
                 Imagen imagen = new Imagen(fotoEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
                 this.imagenService.saveImagen(imagen);
                 emergencia.setImagenId(imagen.getId());
@@ -144,7 +144,7 @@ public class EmergenciaController {
             Emergencia emergencia = service.getEmergencia(emergenciaId).orElseThrow(() -> new IllegalArgumentException("Emergencia no encontrada"));
             Emergencia emergenciaMapped = this.mapToEmergencia(request, emergencia, emergencia.getDireccion());
 
-            if (emergencia.getImagenId() != null && fotoEmergencia != null) {
+            if (emergencia.getImagenId() != null) {
                 this.imagenService.deleteImagen(emergencia.getImagenId());
                 emergencia.setImagenId(null);
             }
@@ -174,8 +174,12 @@ public class EmergenciaController {
 
     private Emergencia mapToEmergencia(EmergenciaRequest request, Emergencia emergencia, Direccion direccion) {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
-                request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = null;
+        if (request.getMedicoCentroMedicoAseguradoraId() != null) {
+            medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        }
+
         Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
         Estado estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
         Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
@@ -200,7 +204,7 @@ public class EmergenciaController {
         return emergencia;
     }
 
-    private void crearComentarioCierreCitasMedicas(ComentarioEmergenciaRequest comentarioEmergenciaRequest, Emergencia emergencia){
+    private void crearComentarioCierreCitasMedicas(ComentarioEmergenciaRequest comentarioEmergenciaRequest, Emergencia emergencia) {
         Usuario usuario = this.usuariosService.getUsuario(comentarioEmergenciaRequest.getUsuarioComentaId());
 
         ComentarioEmergencia comentarioEmergencia = new ComentarioEmergencia();
@@ -212,7 +216,7 @@ public class EmergenciaController {
             String textoCierre = "Se ha cerrado por el " + usuario.getRol().getNombre() + " " +
                     usuario.getNombres() + " " + usuario.getApellidos() + " (" + usuario.getNombreUsuario() + ")";
             comentarioEmergencia.setContenido(textoCierre);
-        }else
+        } else
             comentarioEmergencia.setContenido(comentarioEmergenciaRequest.getContenido());
 
         comentarioEmergenciaService.saveComentario(comentarioEmergencia);

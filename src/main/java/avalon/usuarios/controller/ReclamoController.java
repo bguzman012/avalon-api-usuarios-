@@ -78,11 +78,11 @@ public class ReclamoController {
 
     @PostMapping("/reclamaciones")
     public ResponseEntity<Reclamacion> createReclamacion(@RequestPart("reclamacion") ReclamacionRequest request,
-                                                         @RequestPart("fotoReclamo") MultipartFile fotoReclamo) {
+                                                         @RequestPart(value = "fotoReclamo", required = false) MultipartFile fotoReclamo) {
         try {
             request.setEstado("N");
             Reclamacion reclamacion = this.mapToReclamacion(request, new Reclamacion());
-            if (!fotoReclamo.isEmpty()) {
+            if (fotoReclamo != null && !fotoReclamo.isEmpty()) {
                 Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
                 this.imagenService.saveImagen(imagen);
                 reclamacion.setImagenId(imagen.getId());
@@ -156,7 +156,7 @@ public class ReclamoController {
             Reclamacion reclamacionMapped = this.mapToReclamacion(request, reclamacion);
 
 
-            if (reclamacionMapped.getImagenId() != null && fotoReclamo != null){
+            if (reclamacionMapped.getImagenId() != null){
                 this.imagenService.deleteImagen(reclamacion.getImagenId());
                 reclamacionMapped.setImagenId(null);
             }
@@ -196,8 +196,11 @@ public class ReclamoController {
 
     private Reclamacion mapToReclamacion(ReclamacionRequest request, Reclamacion reclamacion) {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
-                request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = null;
+        if (request.getMedicoCentroMedicoAseguradoraId() != null) {
+            medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        }
         Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
 
         reclamacion.setCaso(caso);

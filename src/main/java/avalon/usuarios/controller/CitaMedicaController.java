@@ -79,11 +79,11 @@ public class CitaMedicaController {
 
     @PostMapping("/citasMedicas")
     public ResponseEntity<CitaMedica> createCitaMedica(@RequestPart("citaMedica") CitaMedicaRequest request,
-                                                       @RequestPart("fotoCitaMedica") MultipartFile fotoCitaMedica) {
+                                                       @RequestPart(value = "fotoCitaMedica", required = false) MultipartFile fotoCitaMedica) {
         try {
             request.setEstado("N");
             CitaMedica citaMedica = this.mapToCitaMedica(request, new CitaMedica());
-            if (!fotoCitaMedica.isEmpty()) {
+            if (fotoCitaMedica != null && !fotoCitaMedica.isEmpty()) {
                 Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
                 this.imagenService.saveImagen(imagen);
                 citaMedica.setImagenId(imagen.getId());
@@ -168,7 +168,7 @@ public class CitaMedicaController {
             CitaMedica citaMedica = service.getCitaMedica(citaMedicaId).orElseThrow(() -> new IllegalArgumentException("Cita Médica no encontrada"));
             CitaMedica citaMedicaMapped = this.mapToCitaMedica(request, citaMedica);
 
-            if (citaMedicaMapped.getImagenId() != null && fotoCitaMedica != null) {
+            if (citaMedicaMapped.getImagenId() != null) {
                 this.imagenService.deleteImagen(citaMedica.getImagenId());
                 citaMedicaMapped.setImagenId(null);
             }
@@ -198,8 +198,12 @@ public class CitaMedicaController {
 
     private CitaMedica mapToCitaMedica(CitaMedicaRequest request, CitaMedica citaMedica) {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
-        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
-                request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = null;
+        if (request.getMedicoCentroMedicoAseguradoraId() != null) {
+            medicoCentroMedicoAseguradora = medicoCentroMedicoAseguradoraService.getMedicoCentroMedicoAseguradora(
+                    request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
+        }
+
         Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
 
         citaMedica.setEstado(request.getEstado());
