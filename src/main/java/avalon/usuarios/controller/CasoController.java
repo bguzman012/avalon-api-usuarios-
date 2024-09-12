@@ -42,6 +42,22 @@ public class CasoController {
         this.usuariosService = usuariosService;
     }
 
+    @GetMapping("/casosTrack/excel")
+    public ResponseEntity<byte[]> downloadTrackExcel(@RequestParam(required = false) String busqueda,
+                                                     @RequestParam(defaultValue = "createdDate") String sortField,
+                                                     @RequestParam(defaultValue = "desc") String sortOrder) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelCasosTrack(busqueda, sortField, sortOrder);
+
+        // Configurar las cabeceras de la respuesta
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=casos-track.xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(byteArrayOutputStream.toByteArray());
+    }
+
     @PostMapping("/casos")
     public ResponseEntity<Caso> createCaso(@RequestBody CasoRequest request) {
         try {
@@ -73,6 +89,16 @@ public class CasoController {
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(byteArrayOutputStream.toByteArray());
+    }
+
+    @GetMapping("/casosTrack")
+    public ResponseEntity<PaginatedResponse<Object>> getCasosTrack(@RequestParam(required = false) String busqueda,
+                                                                   @RequestParam(defaultValue = "0") int page,
+                                                                   @RequestParam(defaultValue = "10") int size,
+                                                                   @RequestParam(defaultValue = "created_date") String sortField,
+                                                                   @RequestParam(defaultValue = "asc") String sortOrder) {
+        PaginatedResponse<Object> response = service.getCasosTrack(busqueda, sortField, sortOrder, page, size);
+        return ResponseEntity.ok(response);
     }
 
 

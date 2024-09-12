@@ -2,9 +2,11 @@ package avalon.usuarios.service;
 
 import avalon.usuarios.data.CasoRepository;
 import avalon.usuarios.model.pojo.*;
+import avalon.usuarios.model.response.PaginatedResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.persistence.criteria.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -66,7 +68,7 @@ public class CasoServiceImpl implements CasoService {
         return new PageImpl<>(resultList, pageable, totalRecords);
     }
 
-    private Long countCasos(String busqueda,  ClientePoliza clientePoliza, Usuario usuario) {
+    private Long countCasos(String busqueda, ClientePoliza clientePoliza, Usuario usuario) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         // Subconsulta para el conteo total de registros
@@ -184,6 +186,82 @@ public class CasoServiceImpl implements CasoService {
     }
 
     @Override
+    public PaginatedResponse<Object> getCasosTrack(String busqueda, String sortField, String sortOrder,  int pageNumber, int pageSize) {
+        String order = " ORDER BY " + sortField + " " + sortOrder;
+
+        String sqlSelect = "SELECT * " +  getBaseSqlUnion() + order;
+
+        Query query = entityManager.createNativeQuery(sqlSelect);
+        query.setFirstResult(pageNumber * pageSize);  // Salta los registros de las páginas anteriores
+        query.setMaxResults(pageSize);  // Establece el número máximo de resultados por página
+
+        PaginatedResponse<Object> response = new PaginatedResponse<>(query.getResultList(),
+                getTotalRecords(busqueda));
+        return response;
+    }
+
+    private String getBaseSqlUnion() {
+        return """
+                FROM (
+                    select citas.caso_id, caso.codigo as caso_codigo, cp.codigo as cli_pol_codigo, pol.nombre, usu.nombre_usuario, citas.estado, citas.created_date,
+                           'CITA' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
+                    from citas_medicas citas
+                             JOIN casos caso on citas.caso_id = caso.id
+                             JOIN clientes_polizas cp on citas.cliente_poliza_id = cp.id
+                             JOIN polizas pol on cp.poliza_id = pol.id
+                             JOIN usuarios usu on cp.cliente_id = usu.id
+                            LEFT JOIN medico_centr_med_aseg mcma on citas.medico_centro_medico_aseguradora_id = mcma.id
+                            JOIN medicos med on mcma.medico_id = med.id
+                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
+                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
+                    UNION
+                                 
+                    select eme.caso_id, caso.codigo as caso_codigo, cp.codigo as cli_pol_codigo, pol.nombre, usu.nombre_usuario, eme.estado, eme.created_date,
+                           'EMERGENCIA' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
+                    from emergencias eme
+                             JOIN casos caso on eme.caso_id = caso.id
+                             JOIN clientes_polizas cp on eme.cliente_poliza_id = cp.id
+                             JOIN polizas pol on cp.poliza_id = pol.id
+                             JOIN usuarios usu on cp.cliente_id = usu.id
+                            LEFT JOIN medico_centr_med_aseg mcma on eme.medico_centro_medico_aseguradora_id = mcma.id
+                            JOIN medicos med on mcma.medico_id = med.id
+                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
+                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
+                    UNION
+                    select rec.caso_id, caso.codigo as caso_codigo, cp.codigo as cli_pol_codigo, pol.nombre, usu.nombre_usuario, rec.estado, rec.created_date,
+                           'RECLAMACION' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
+                    from reclamaciones rec
+                             JOIN casos caso on rec.caso_id = caso.id
+                             JOIN clientes_polizas cp on rec.cliente_poliza_id = cp.id
+                             JOIN polizas pol on cp.poliza_id = pol.id
+                             JOIN usuarios usu on cp.cliente_id = usu.id
+                            LEFT JOIN medico_centr_med_aseg mcma on rec.medico_centro_medico_aseguradora_id = mcma.id
+                            JOIN medicos med on mcma.medico_id = med.id
+                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
+                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
+                ) AS QUERY_UNION""";
+    }
+
+    private Long getTotalRecords(String busqueda) {
+        String sql = "SELECT COUNT(*) " + getBaseSqlUnion();
+
+        Query query = entityManager.createNativeQuery(sql);
+        return (Long) query.getSingleResult();
+    }
+
+    @Override
+    public ByteArrayOutputStream generateExcelCasosTrack(String busqueda, String sortField, String sortOrder) throws IOException {
+        String sql = "SELECT * FROM (select caso_id, cliente_poliza_id, medico_centro_medico_aseguradora_id, created_date from citas_medicas " +
+                "UNION select caso_id, cliente_poliza_id, medico_centro_medico_aseguradora_id, created_date from emergencias " +
+                "UNION select caso_id, cliente_poliza_id, medico_centro_medico_aseguradora_id, created_date from reclamaciones) " +
+                "AS QUERY_UNION ORDER BY caso_id";
+
+        Query query = entityManager.createNativeQuery(sql);
+        List<Object[]> results = query.getResultList();
+        return null;
+    }
+
+    @Override
     public ByteArrayOutputStream generateExcelCasos(String busqueda, String sortField, String sortOrder, ClientePoliza clientePoliza) throws IOException {
         List<Caso> allCasos = this.searchAllCasos(busqueda, sortField, sortOrder, clientePoliza);
 
@@ -205,14 +283,14 @@ public class CasoServiceImpl implements CasoService {
 
         int rowNum = 1;
         int registro = 1;
-        for(Caso caso: allCasos){
+        for (Caso caso : allCasos) {
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue((int) registro);
             row.createCell(1).setCellValue((String) caso.getCodigo());
             row.createCell(2).setCellValue((String) caso.getClienteDisplayName());
             row.createCell(3).setCellValue((String) caso.getClientePoliza().getDisplayName());
 
-            registro ++;
+            registro++;
         }
 
         // Autoajustar el ancho de las columnas
