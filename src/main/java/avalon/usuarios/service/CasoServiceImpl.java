@@ -34,6 +34,10 @@ public class CasoServiceImpl implements CasoService {
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
 
+    private final String ESTADO_POR_GESTIONAR = "N";
+    private final String ESTADO_GESTIONADO = "G";
+    private final String ESTADO_CERRADO = "C";
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -186,10 +190,26 @@ public class CasoServiceImpl implements CasoService {
     }
 
     @Override
-    public PaginatedResponse<Object> getCasosTrack(String busqueda, String sortField, String sortOrder,  int pageNumber, int pageSize) {
-        String order = " ORDER BY " + sortField + " " + sortOrder;
+    public PaginatedResponse<Object> getCasosTrack(String busqueda, int pageNumber, int pageSize) {
+        String order = " ORDER BY caso_id, created_date";
 
-        String sqlSelect = "SELECT * " +  getBaseSqlUnion() + order;
+        String busqueda_like  = null;
+        if (busqueda != null && !busqueda.isEmpty() && !busqueda.isBlank())
+            busqueda_like = "LOWER('%" + busqueda + "%')";
+
+        String filtros = " WHERE LOWER(caso_codigo) LIKE " + busqueda_like +
+                "OR LOWER(nombre_usuario) LIKE " + busqueda_like +
+                "OR LOWER(tipo) LIKE " + busqueda_like +
+                "OR LOWER(medico) LIKE " + busqueda_like +
+                "OR LOWER(aseguradora) LIKE " + busqueda_like +
+                "OR LOWER(centro_medico) LIKE " + busqueda_like;
+
+        String sqlSelect = "SELECT * " + getBaseSqlUnion();
+
+        if (busqueda != null && !busqueda.isEmpty() && !busqueda.isBlank())
+            sqlSelect += filtros;
+
+        sqlSelect += order;
 
         Query query = entityManager.createNativeQuery(sqlSelect);
         query.setFirstResult(pageNumber * pageSize);  // Salta los registros de las páginas anteriores
@@ -203,62 +223,169 @@ public class CasoServiceImpl implements CasoService {
     private String getBaseSqlUnion() {
         return """
                 FROM (
-                    select citas.caso_id, caso.codigo as caso_codigo, cp.codigo as cli_pol_codigo, pol.nombre, usu.nombre_usuario, citas.estado, citas.created_date,
-                           'CITA' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
-                    from citas_medicas citas
-                             JOIN casos caso on citas.caso_id = caso.id
-                             JOIN clientes_polizas cp on citas.cliente_poliza_id = cp.id
-                             JOIN polizas pol on cp.poliza_id = pol.id
-                             JOIN usuarios usu on cp.cliente_id = usu.id
-                            LEFT JOIN medico_centr_med_aseg mcma on citas.medico_centro_medico_aseguradora_id = mcma.id
-                            JOIN medicos med on mcma.medico_id = med.id
-                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
-                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
-                    UNION
-                                 
-                    select eme.caso_id, caso.codigo as caso_codigo, cp.codigo as cli_pol_codigo, pol.nombre, usu.nombre_usuario, eme.estado, eme.created_date,
-                           'EMERGENCIA' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
-                    from emergencias eme
-                             JOIN casos caso on eme.caso_id = caso.id
-                             JOIN clientes_polizas cp on eme.cliente_poliza_id = cp.id
-                             JOIN polizas pol on cp.poliza_id = pol.id
-                             JOIN usuarios usu on cp.cliente_id = usu.id
-                            LEFT JOIN medico_centr_med_aseg mcma on eme.medico_centro_medico_aseguradora_id = mcma.id
-                            JOIN medicos med on mcma.medico_id = med.id
-                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
-                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
-                    UNION
-                    select rec.caso_id, caso.codigo as caso_codigo, cp.codigo as cli_pol_codigo, pol.nombre, usu.nombre_usuario, rec.estado, rec.created_date,
-                           'RECLAMACION' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
-                    from reclamaciones rec
-                             JOIN casos caso on rec.caso_id = caso.id
-                             JOIN clientes_polizas cp on rec.cliente_poliza_id = cp.id
-                             JOIN polizas pol on cp.poliza_id = pol.id
-                             JOIN usuarios usu on cp.cliente_id = usu.id
-                            LEFT JOIN medico_centr_med_aseg mcma on rec.medico_centro_medico_aseguradora_id = mcma.id
-                            JOIN medicos med on mcma.medico_id = med.id
-                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
-                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
-                ) AS QUERY_UNION""";
+                                    select citas.caso_id, caso.codigo as caso_codigo, citas.codigo as codigo_actividad, concat(cp.codigo, ' - ', pol.nombre) as cli_pol_codigo, usu.nombre_usuario, citas.estado, citas.created_date,
+                                           'CITA' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
+                                    from citas_medicas citas
+                                             JOIN casos caso on citas.caso_id = caso.id
+                                             JOIN clientes_polizas cp on citas.cliente_poliza_id = cp.id
+                                             JOIN polizas pol on cp.poliza_id = pol.id
+                                             JOIN usuarios usu on cp.cliente_id = usu.id
+                                            LEFT JOIN medico_centr_med_aseg mcma on citas.medico_centro_medico_aseguradora_id = mcma.id
+                                            JOIN medicos med on mcma.medico_id = med.id
+                                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
+                                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
+                                    UNION
+                                
+                                    select eme.caso_id, caso.codigo as caso_codigo, eme.codigo as codigo_actividad, concat(cp.codigo, ' - ', pol.nombre) as cli_pol_codigo, usu.nombre_usuario, eme.estado, eme.created_date,
+                                           'EMERGENCIA' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
+                                    from emergencias eme
+                                             JOIN casos caso on eme.caso_id = caso.id
+                                             JOIN clientes_polizas cp on eme.cliente_poliza_id = cp.id
+                                             JOIN polizas pol on cp.poliza_id = pol.id
+                                             JOIN usuarios usu on cp.cliente_id = usu.id
+                                            LEFT JOIN medico_centr_med_aseg mcma on eme.medico_centro_medico_aseguradora_id = mcma.id
+                                            JOIN medicos med on mcma.medico_id = med.id
+                                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
+                                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
+                                    UNION
+                                    select rec.caso_id, caso.codigo as caso_codigo, rec.codigo as codigo_actividad, concat(cp.codigo, ' - ', pol.nombre) as cli_pol_codigo, usu.nombre_usuario, rec.estado, rec.created_date,
+                                           'RECLAMACION' as tipo, concat(med.nombres, ' ', med.apellidos) medico, aseg.nombre aseguradora, cm.nombre centro_medico
+                                    from reclamaciones rec
+                                             JOIN casos caso on rec.caso_id = caso.id
+                                             JOIN clientes_polizas cp on rec.cliente_poliza_id = cp.id
+                                             JOIN polizas pol on cp.poliza_id = pol.id
+                                             JOIN usuarios usu on cp.cliente_id = usu.id
+                                            LEFT JOIN medico_centr_med_aseg mcma on rec.medico_centro_medico_aseguradora_id = mcma.id
+                                            JOIN medicos med on mcma.medico_id = med.id
+                                            JOIN aseguradoras aseg on mcma.aseguradora_id = aseg.id
+                                            JOIN centros_medicos cm on mcma.centro_medico_id = cm.id
+                                ) AS QUERY_UNION""";
     }
 
     private Long getTotalRecords(String busqueda) {
         String sql = "SELECT COUNT(*) " + getBaseSqlUnion();
+
+        String busqueda_like = null;
+        if (busqueda != null && !busqueda.isEmpty() && !busqueda.isBlank())
+            busqueda_like = "LOWER('%" + busqueda + "%')";
+
+        String filtros = " WHERE LOWER(caso_codigo) LIKE " + busqueda_like +
+                "OR LOWER(nombre_usuario) LIKE " + busqueda_like +
+                "OR LOWER(tipo) LIKE " + busqueda_like +
+                "OR LOWER(medico) LIKE " + busqueda_like +
+                "OR LOWER(aseguradora) LIKE " + busqueda_like +
+                "OR LOWER(centro_medico) LIKE " + busqueda_like;
+
+        if (busqueda != null && !busqueda.isEmpty() && !busqueda.isBlank())
+            sql += filtros;
 
         Query query = entityManager.createNativeQuery(sql);
         return (Long) query.getSingleResult();
     }
 
     @Override
-    public ByteArrayOutputStream generateExcelCasosTrack(String busqueda, String sortField, String sortOrder) throws IOException {
-        String sql = "SELECT * FROM (select caso_id, cliente_poliza_id, medico_centro_medico_aseguradora_id, created_date from citas_medicas " +
-                "UNION select caso_id, cliente_poliza_id, medico_centro_medico_aseguradora_id, created_date from emergencias " +
-                "UNION select caso_id, cliente_poliza_id, medico_centro_medico_aseguradora_id, created_date from reclamaciones) " +
-                "AS QUERY_UNION ORDER BY caso_id";
+    public ByteArrayOutputStream generateExcelCasosTrack(String busqueda) throws IOException {
+        String order = " ORDER BY caso_id, created_date";
 
-        Query query = entityManager.createNativeQuery(sql);
+        String busqueda_like  = null;
+        if (busqueda != null && !busqueda.isEmpty() && !busqueda.isBlank())
+            busqueda_like = "LOWER('%" + busqueda + "%')";
+
+        String filtros = " WHERE LOWER(caso_codigo) LIKE " + busqueda_like +
+                "OR LOWER(nombre_usuario) LIKE " + busqueda_like +
+                "OR LOWER(tipo) LIKE " + busqueda_like +
+                "OR LOWER(medico) LIKE " + busqueda_like +
+                "OR LOWER(aseguradora) LIKE " + busqueda_like +
+                "OR LOWER(centro_medico) LIKE " + busqueda_like;
+
+        String sqlSelect = "SELECT * " + getBaseSqlUnion();
+
+        if (busqueda != null && !busqueda.isEmpty() && !busqueda.isBlank())
+            sqlSelect += filtros;
+
+        sqlSelect += order;
+
+        Query query = entityManager.createNativeQuery(sqlSelect);
+
         List<Object[]> results = query.getResultList();
-        return null;
+
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("atenciones-casos");
+
+        Row headerRow = sheet.createRow(0);
+        Cell headerCell = headerRow.createCell(0);
+        headerCell.setCellValue("#");
+
+        headerCell = headerRow.createCell(1);
+        headerCell.setCellValue("CÓDIGO CASO ");
+
+        headerCell = headerRow.createCell(2);
+        headerCell.setCellValue("TIPO ACTIVIDAD");
+
+        headerCell = headerRow.createCell(3);
+        headerCell.setCellValue("CÓDIGO ACTIVIDAD");
+
+        headerCell = headerRow.createCell(4);
+        headerCell.setCellValue("CLIENTE");
+
+        headerCell = headerRow.createCell(5);
+        headerCell.setCellValue("PÓLIZA");
+
+        headerCell = headerRow.createCell(6);
+        headerCell.setCellValue("ASEGURADORA");
+
+        headerCell = headerRow.createCell(7);
+        headerCell.setCellValue("CENTRO MÉDICO");
+
+        headerCell = headerRow.createCell(8);
+        headerCell.setCellValue("MÉDICO");
+
+        headerCell = headerRow.createCell(9);
+        headerCell.setCellValue("ESTADO");
+
+        int rowNum = 1;
+        int registro = 1;
+
+        for (int i = 0; i < results.size(); i++) {
+            Object[] resultRow = results.get(i);
+            Row row = sheet.createRow(rowNum++);
+            row.createCell(0).setCellValue((int) registro);
+            row.createCell(1).setCellValue((String) resultRow[1]);
+            row.createCell(2).setCellValue((String) resultRow[7]);
+            row.createCell(3).setCellValue((String) resultRow[2]);
+            row.createCell(4).setCellValue((String) resultRow[4]);
+            row.createCell(5).setCellValue((String) resultRow[3]);
+            row.createCell(6).setCellValue((String) resultRow[9]);
+            row.createCell(7).setCellValue((String) resultRow[10]);
+            row.createCell(8).setCellValue((String) resultRow[8]);
+
+            String estado = "";
+            if (resultRow[5].equals(this.ESTADO_POR_GESTIONAR))
+                estado = "POR GESTIONAR";
+
+            if (resultRow[5].equals(this.ESTADO_GESTIONADO))
+                estado = "GESTIONADO";
+
+            if (resultRow[5].equals(this.ESTADO_CERRADO))
+                estado = "CERRADO";
+
+            row.createCell(9).setCellValue((String) estado);
+            registro++;
+        }
+
+        // Autoajustar el ancho de las columnas
+        for (int i = 0; i < 3; i++) {
+            sheet.autoSizeColumn(i);
+        }
+
+        // Escribir el libro de trabajo a un ByteArrayOutputStream
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        workbook.write(outputStream);
+        workbook.close();
+
+
+        return outputStream;
     }
 
     @Override

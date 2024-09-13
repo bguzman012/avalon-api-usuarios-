@@ -43,10 +43,8 @@ public class CasoController {
     }
 
     @GetMapping("/casosTrack/excel")
-    public ResponseEntity<byte[]> downloadTrackExcel(@RequestParam(required = false) String busqueda,
-                                                     @RequestParam(defaultValue = "createdDate") String sortField,
-                                                     @RequestParam(defaultValue = "desc") String sortOrder) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelCasosTrack(busqueda, sortField, sortOrder);
+    public ResponseEntity<byte[]> downloadTrackExcel(@RequestParam(required = false) String busqueda) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = service.generateExcelCasosTrack(busqueda);
 
         // Configurar las cabeceras de la respuesta
         HttpHeaders headers = new HttpHeaders();
@@ -94,10 +92,8 @@ public class CasoController {
     @GetMapping("/casosTrack")
     public ResponseEntity<PaginatedResponse<Object>> getCasosTrack(@RequestParam(required = false) String busqueda,
                                                                    @RequestParam(defaultValue = "0") int page,
-                                                                   @RequestParam(defaultValue = "10") int size,
-                                                                   @RequestParam(defaultValue = "created_date") String sortField,
-                                                                   @RequestParam(defaultValue = "asc") String sortOrder) {
-        PaginatedResponse<Object> response = service.getCasosTrack(busqueda, sortField, sortOrder, page, size);
+                                                                   @RequestParam(defaultValue = "10") int size) {
+        PaginatedResponse<Object> response = service.getCasosTrack(busqueda, page, size);
         return ResponseEntity.ok(response);
     }
 

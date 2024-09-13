@@ -20,8 +20,8 @@ public interface CasoService {
     Caso saveCaso(Caso caso);
     void deleteCaso(Long casoId);
     List<Caso> searchAllCasos(String busqueda, String sortField, String sortOrder, ClientePoliza clientePoliza);
-    PaginatedResponse<Object> getCasosTrack(String busqueda, String sortField, String sortOrder,  int pageNumber, int pageSize);
-    ByteArrayOutputStream generateExcelCasosTrack(String busqueda, String sortField, String sortOrder) throws IOException;
+    PaginatedResponse<Object> getCasosTrack(String busqueda, int pageNumber, int pageSize);
+    ByteArrayOutputStream generateExcelCasosTrack(String busqueda) throws IOException;
     ByteArrayOutputStream generateExcelCasos(String busqueda, String sortField, String sortOrder, ClientePoliza clientePoliza) throws IOException;
 
 }
