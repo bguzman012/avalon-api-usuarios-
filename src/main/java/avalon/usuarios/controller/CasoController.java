@@ -61,6 +61,14 @@ public class CasoController {
         try {
             Caso caso = this.mapToCaso(request, new Caso());
             service.saveCaso(caso);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(caso.getClientePoliza(), "Caso creado", "Se ha creado un caso", usuario);
             return caso.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(caso) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

@@ -6,7 +6,9 @@ import avalon.usuarios.data.PolizaRepository;
 import avalon.usuarios.data.UsuarioRepository;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.MigracionClientePolizaRequest;
+import avalon.usuarios.model.request.NotificacionRequest;
 import avalon.usuarios.model.response.MigracionResponse;
+import avalon.usuarios.service.externos.NotificacionService;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -37,6 +39,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     private final String ROL_ASESOR = "ASR";
     private final String ROL_AGENTE = "BRO";
     private final ClientePolizaRepository repository;
+    @Autowired
+    private NotificacionService notificacionService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -58,6 +62,51 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
         int nuevoCodigoInt = Integer.parseInt(ultimoCodigo) + 1;
         return String.format("%07d", nuevoCodigoInt);
+    }
+
+    @Override
+    public void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario) {
+
+        if (!usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
+            NotificacionRequest notificacionRequestCliente = new NotificacionRequest();
+            notificacionRequestCliente.setAsunto(asunto);
+            notificacionRequestCliente.setMensaje(mensaje);
+            notificacionRequestCliente.setUsuarioEnvia(usuario.getNombreUsuario());
+
+            // Se  envia al titular, el cliente es menor de edad
+            if (!clientePoliza.getCliente().tiene18OMasAnios())
+                notificacionRequestCliente.setUsuarioAseguradorId(clientePoliza.getTitular().getCliente().getNombreUsuario());
+            else
+                notificacionRequestCliente.setUsuarioAseguradorId(clientePoliza.getCliente().getNombreUsuario());
+
+            notificacionRequestCliente.setTipoNotificacionId(1L);
+
+            notificacionService.enviarNotificacion(notificacionRequestCliente);
+        }
+
+        if (!usuario.getRol().getCodigo().equals(this.ROL_AGENTE)) {
+            NotificacionRequest notificacionRequestAgente = new NotificacionRequest();
+
+            notificacionRequestAgente.setAsunto(asunto);
+            notificacionRequestAgente.setMensaje(mensaje);
+            notificacionRequestAgente.setUsuarioEnvia(usuario.getNombreUsuario());
+            notificacionRequestAgente.setUsuarioAseguradorId(clientePoliza.getAgente().getNombreUsuario());
+            notificacionRequestAgente.setTipoNotificacionId(1L);
+
+            notificacionService.enviarNotificacion(notificacionRequestAgente);
+        }
+
+        if (!usuario.getRol().getCodigo().equals(this.ROL_ASESOR)) {
+            NotificacionRequest notificacionRequestAsesor = new NotificacionRequest();
+
+            notificacionRequestAsesor.setAsunto(asunto);
+            notificacionRequestAsesor.setMensaje(mensaje);
+            notificacionRequestAsesor.setUsuarioEnvia(usuario.getNombreUsuario());
+            notificacionRequestAsesor.setUsuarioAseguradorId(clientePoliza.getAsesor().getNombreUsuario());
+            notificacionRequestAsesor.setTipoNotificacionId(1L);
+
+            notificacionService.enviarNotificacion(notificacionRequestAsesor);
+        }
     }
 
     @Override
@@ -300,7 +349,6 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
         return this.repository.save(clientePoliza);
     }
-
 
 
     @Override

@@ -1,5 +1,6 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.ComentarioRequest;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -27,6 +29,10 @@ public class ComentarioController {
     private String TOPICO = "IMAGEN_RECLAMACION_COMENTARIO";
     @Autowired
     private ImagenService imagenService;
+    @Autowired
+    private AuditorAwareImpl auditorAware;
+    @Autowired
+    private ClientesPolizaService clientesPolizaService;
 
     @Autowired
     public ComentarioController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioService comentarioService, ReclamacionService reclamacionService) {
@@ -60,6 +66,14 @@ public class ComentarioController {
             }
 
             comentarioService.saveComentario(comentario);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuarioService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentario.getReclamacion().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en un reembolso", usuario);
             return comentario.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentario) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

@@ -89,6 +89,14 @@ public class ReclamoController {
             }
 
             service.saveReclamacion(reclamacion);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(reclamacion.getClientePoliza(), "Reembolso creado", "Se ha creado un reembolso", usuario);
             return reclamacion.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(reclamacion) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -178,8 +186,17 @@ public class ReclamoController {
     public ResponseEntity<Reclamacion> partiallyUpdateReclamacion(@RequestBody PartiallyUpdateReclamacionRequest request, @PathVariable Long reclamacionId) {
         Reclamacion result = service.partiallyUpdateReclamacion(request, reclamacionId);
 
-        if (request.getEstado().equals("C") && request.getComentarioRequest() != null && result != null)
+        if (request.getEstado().equals("C") && request.getComentarioRequest() != null && result != null) {
             this.crearComentarioCierreReclamaciones(request.getComentarioRequest(), result);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(result.getClientePoliza(), "Reembolso cerrado", "Se ha cerrado un reembolso", usuario);
+        }
 
         if (result != null) {
             return ResponseEntity.ok(result);

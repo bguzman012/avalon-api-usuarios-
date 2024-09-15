@@ -1,12 +1,15 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.data.ClienteMembresiaRepository;
 import avalon.usuarios.model.pojo.Cliente;
+import avalon.usuarios.model.pojo.ClienteMembresia;
 import avalon.usuarios.model.pojo.VerificationCode;
 import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.JwtAuthenticationResponse;
 import avalon.usuarios.config.JwtTokenProvider;
 import avalon.usuarios.model.pojo.Usuario;
 import avalon.usuarios.model.response.ApiResponse;
+import avalon.usuarios.service.ClienteMembresiaService;
 import avalon.usuarios.service.UsuariosService;
 import avalon.usuarios.service.VerificationCodeService;
 import avalon.usuarios.service.mail.MailService;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -33,6 +37,8 @@ public class AuthController {
     private final UsuariosService service;
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private ClienteMembresiaService clienteMembresiaService;
     @Autowired
     private VerificationCodeService verificationCodeService;
     @Autowired
@@ -69,7 +75,13 @@ public class AuthController {
                 Cliente cliente = (Cliente) usuarioEncontrado;
                 if (!cliente.tiene18OMasAnios()) return ResponseEntity.badRequest().body(new ApiResponse(false,
                         "El usuario no tiene la edad suficiente para utilizar el sistema", "MENOR_EDAD"));
+
+                List<ClienteMembresia> membresias = clienteMembresiaService.findByEstadoAndCliente("A", cliente);
+                if (membresias.isEmpty()) return ResponseEntity.badRequest().body(new ApiResponse(false,
+                        "No tiene una membresía activa, pongase en contacto con AVALON para adquirirla y poder ingresar al sistema", "NO_MEMBRESIA"));
             }
+
+
 
             if (generate2FA != null && generate2FA.equals("SI"))
                 this.enviarCodigo2FA(usuarioEncontrado);

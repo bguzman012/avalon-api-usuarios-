@@ -66,6 +66,14 @@ public class EmergenciaController {
             }
 
             service.saveEmergencia(emergencia);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(emergencia.getClientePoliza(), "Emergencia creada", "Se ha creado una emergencia", usuario);
             return emergencia.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(emergencia) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -127,9 +135,17 @@ public class EmergenciaController {
         try {
             Emergencia emergencia = service.partiallyUpdateEmergencia(request, emergenciaId);
 
-            if (request.getEstado().equals("C") && request.getComentarioEmergenciaRequest() != null && emergencia != null)
+            if (request.getEstado().equals("C") && request.getComentarioEmergenciaRequest() != null && emergencia != null) {
                 this.crearComentarioCierreCitasMedicas(request.getComentarioEmergenciaRequest(), emergencia);
 
+                Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+                if (currentUser.isEmpty())
+                    return ResponseEntity.notFound().build();
+
+                Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(emergencia.getClientePoliza(), "Emergencia cerrada", "Se ha cerrado una emergencia", usuario);
+            }
             return emergencia == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(emergencia);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

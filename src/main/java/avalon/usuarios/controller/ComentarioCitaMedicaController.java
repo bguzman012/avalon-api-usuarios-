@@ -1,5 +1,6 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.CitaMedicaRequest;
 import avalon.usuarios.model.request.ComentarioCitaMedicaRequest;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -27,6 +29,10 @@ public class ComentarioCitaMedicaController {
     private String TOPICO = "IMAGEN_CITA_MEDICA_COMENTARIO";
     @Autowired
     private ImagenService imagenService;
+    @Autowired
+    private AuditorAwareImpl auditorAware;
+    @Autowired
+    private ClientesPolizaService clientesPolizaService;
 
 
     @Autowired
@@ -61,6 +67,14 @@ public class ComentarioCitaMedicaController {
             }
 
             comentarioCitasMedicasService.saveComentario(comentarioCitasMedicas);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuarioService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentarioCitasMedicas.getCitaMedica().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en una cita médica", usuario);
             return comentarioCitasMedicas.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentarioCitasMedicas) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

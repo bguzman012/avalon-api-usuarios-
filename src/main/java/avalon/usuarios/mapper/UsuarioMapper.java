@@ -124,7 +124,7 @@ public class UsuarioMapper {
         cliente.setNumeroIdentificacion(request.getNumeroIdentificacion());
         cliente.setTipoIdentificacion(request.getTipoIdentificacion());
 
-        cliente.setEstado("A");
+        cliente.setEstado("P");
         cliente.setRol(rolService.findById(this.ROL_CLIENTE));
 
         Pais pais = paisService.findByNombre(request.getPais()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));

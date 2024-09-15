@@ -243,6 +243,11 @@ public class ClienteMembresiaServiceImpl implements ClienteMembresiaService {
         return resultList;
     }
 
+    @Override
+    public List<ClienteMembresia> findByEstadoAndCliente(String estado, Cliente cliente) {
+        return repository.findAllByEstadoAndCliente(estado, cliente);
+    }
+
     // Ejecutar cada 10 minutos
     @Scheduled(cron = "0 0 0 * * ?")  // Ejemplo: se ejecuta a la medianoche todos los días
     @Transactional

@@ -3,6 +3,7 @@ package avalon.usuarios.service;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.ClientePolizaRequest;
 import avalon.usuarios.model.request.MigracionClientePolizaRequest;
+import avalon.usuarios.model.request.NotificacionRequest;
 import avalon.usuarios.model.response.MigracionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +16,7 @@ import java.util.Optional;
 public interface ClientesPolizaService {
 
     String generarNuevoCodigo();
-
+    void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario);
     Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario);
 
     List<ClientePoliza> searchAllClienesPolizas(String busqueda, String sortField, String sortOrder);

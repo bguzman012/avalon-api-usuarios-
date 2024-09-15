@@ -42,6 +42,7 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
         if (isValidToken(token)) {
             String username = getUsernameFromToken(token);
             if (username != null) {
+                request.setAttribute("token", token);
                 request.setAttribute("username", username);
             }
             return true;  // Continuar con la ejecución del controlador

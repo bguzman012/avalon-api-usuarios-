@@ -90,6 +90,15 @@ public class CitaMedicaController {
             }
 
             service.saveCitaMedica(citaMedica);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(citaMedica.getClientePoliza(), "Cita média creada", "Se ha creado una cita médica", usuario);
+
             return citaMedica.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(citaMedica) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -151,8 +160,19 @@ public class CitaMedicaController {
         try {
             CitaMedica citaMedica = service.partiallyUpdateCitaMedica(request, citaMedicaId);
 
-            if (request.getEstado().equals("C") && request.getComentarioCitaMedicaRequest() != null && citaMedica != null)
+            if (request.getEstado().equals("C") && request.getComentarioCitaMedicaRequest() != null && citaMedica != null) {
                 this.crearComentarioCierreCitasMedicas(request.getComentarioCitaMedicaRequest(), citaMedica);
+
+                Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+                if (currentUser.isEmpty())
+                    return ResponseEntity.notFound().build();
+
+                Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(citaMedica.getClientePoliza(), "Cita média cerrada", "Se ha cerrado una cita médica", usuario);
+
+
+            }
 
             return citaMedica == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(citaMedica);
         } catch (Exception e) {

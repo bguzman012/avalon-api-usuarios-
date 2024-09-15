@@ -2,7 +2,9 @@ package avalon.usuarios.service;
 
 import avalon.usuarios.data.CitaMedicaRepository;
 import avalon.usuarios.model.pojo.*;
+import avalon.usuarios.model.request.NotificacionRequest;
 import avalon.usuarios.model.request.PartiallyUpdateCitaMedicaRequest;
+import avalon.usuarios.service.externos.NotificacionService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;

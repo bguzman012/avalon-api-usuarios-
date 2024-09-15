@@ -1,12 +1,10 @@
 package avalon.usuarios.controller;
 
+import avalon.usuarios.config.AuditorAwareImpl;
 import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.ComentarioEmergenciaRequest;
 import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
-import avalon.usuarios.service.EmergenciaService;
-import avalon.usuarios.service.ComentarioEmergenciaService;
-import avalon.usuarios.service.ImagenService;
-import avalon.usuarios.service.UsuariosService;
+import avalon.usuarios.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -28,6 +27,10 @@ public class ComentarioEmergenciaController {
     private String TOPICO = "IMAGEN_CITA_MEDICA_EMERGENCIA";
     @Autowired
     private ImagenService imagenService;
+    @Autowired
+    private AuditorAwareImpl auditorAware;
+    @Autowired
+    private ClientesPolizaService clientesPolizaService;
 
     @Autowired
     public ComentarioEmergenciaController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioEmergenciaService comentarioEmergenciaService, EmergenciaService emergenciaService) {
@@ -61,6 +64,14 @@ public class ComentarioEmergenciaController {
             }
 
             comentarioEmergenciaService.saveComentario(comentarioEmergencia);
+
+            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+
+            if (currentUser.isEmpty())
+                return ResponseEntity.notFound().build();
+
+            Usuario usuario = this.usuarioService.findByNombreUsuario(currentUser.get());
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentarioEmergencia.getEmergencia().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en una emergencia", usuario);
             return comentarioEmergencia.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentarioEmergencia) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
