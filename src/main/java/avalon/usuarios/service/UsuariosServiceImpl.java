@@ -52,7 +52,7 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
             counter++;
         }
 
-        return nombreUsuario;
+        return nombreUsuario.toLowerCase();
     }
 
     @Override

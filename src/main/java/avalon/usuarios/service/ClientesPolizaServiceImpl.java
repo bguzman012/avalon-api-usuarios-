@@ -11,6 +11,7 @@ import avalon.usuarios.model.response.MigracionResponse;
 import avalon.usuarios.service.externos.NotificacionService;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
 import jakarta.transaction.Transactional;
@@ -52,16 +53,17 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
 
     @Override
     public String generarNuevoCodigo() {
-        String ultimoCodigo = (String) entityManager.createQuery("SELECT cp.codigo FROM ClientePoliza cp ORDER BY cp.codigo DESC")
-                .setMaxResults(1)
-                .getSingleResult();
+        try {
+            String ultimoCodigo = (String) entityManager.createQuery("SELECT cp.codigo FROM ClientePoliza cp ORDER BY cp.codigo DESC")
+                    .setMaxResults(1)
+                    .getSingleResult();
 
-        if (ultimoCodigo == null) {
+            int nuevoCodigoInt = Integer.parseInt(ultimoCodigo) + 1;
+            return String.format("%07d", nuevoCodigoInt);
+        } catch (NoResultException e) {
+            // Si no hay resultados, se devuelve el primer código
             return "0000001";
         }
-
-        int nuevoCodigoInt = Integer.parseInt(ultimoCodigo) + 1;
-        return String.format("%07d", nuevoCodigoInt);
     }
 
     @Override
