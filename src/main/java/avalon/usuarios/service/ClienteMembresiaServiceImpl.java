@@ -249,7 +249,7 @@ public class ClienteMembresiaServiceImpl implements ClienteMembresiaService {
     }
 
     // Ejecutar cada 10 minutos
-    @Scheduled(cron = "0 0 0 * * ?")  // Ejemplo: se ejecuta a la medianoche todos los días
+    @Scheduled(cron = "0 20 9 * * ?")
     @Transactional
     public void actualizarMembresiasVencidas() {
         cambiarEstadoMembresiasVencidas();
