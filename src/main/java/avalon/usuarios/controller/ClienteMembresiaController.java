@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -65,7 +66,12 @@ public class ClienteMembresiaController {
     public ResponseEntity<ClienteMembresia> createClienteMembresia(@RequestBody ClienteMembresiaRequest request) {
         try {
             ClienteMembresia clienteMembresia = this.mapToClienteMembresia(request, new ClienteMembresia());
-            clienteMembresia.setEstado("A");
+            Date hoy = new Date();
+            if (clienteMembresia.getFechaFin().before(hoy))
+                clienteMembresia.setEstado("V");
+            else
+                clienteMembresia.setEstado("A");
+
             ClienteMembresia result = service.saveClienteMembresia(clienteMembresia);
             return result.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(result) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -158,6 +164,13 @@ public class ClienteMembresiaController {
     public ResponseEntity<ClienteMembresia> updateUsuarioMembresia(@PathVariable Long clienteMembresiaId, @RequestBody ClienteMembresiaRequest request) {
         ClienteMembresia clienteMembresia = service.getClienteMembresia(clienteMembresiaId).orElseThrow(() -> new IllegalArgumentException("Cliente Membresía no encontrado"));
         ClienteMembresia clienteMembresiaMapped = this.mapToClienteMembresia(request, clienteMembresia);
+
+        Date hoy = new Date();
+        if (clienteMembresiaMapped.getFechaFin().before(hoy))
+            clienteMembresiaMapped.setEstado("V");
+        else
+            clienteMembresiaMapped.setEstado("A");
+
         this.service.saveClienteMembresia(clienteMembresiaMapped);
         return clienteMembresiaMapped != null ? ResponseEntity.ok(clienteMembresiaMapped) : ResponseEntity.badRequest().build();
     }
