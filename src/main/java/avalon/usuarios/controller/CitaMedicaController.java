@@ -47,6 +47,7 @@ public class CitaMedicaController {
     @Autowired
     private AuditorAwareImpl auditorAware;
     private String TOPICO = "IMAGEN_CITA_MEDICA";
+    private final Long TIPO_NOTIFICACION_CITA = 7L;
 
     @Autowired
     public CitaMedicaController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, CitaMedicaService citaMedicaService) {
@@ -97,7 +98,7 @@ public class CitaMedicaController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(citaMedica.getClientePoliza(), "Cita média creada", "Se ha creado una cita médica", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(citaMedica.getClientePoliza(), "Cita média creada", "Se ha creado una cita médica", usuario, TIPO_NOTIFICACION_CITA);
 
             return citaMedica.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(citaMedica) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
@@ -169,9 +170,7 @@ public class CitaMedicaController {
                     return ResponseEntity.notFound().build();
 
                 Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(citaMedica.getClientePoliza(), "Cita média cerrada", "Se ha cerrado una cita médica", usuario);
-
-
+                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(citaMedica.getClientePoliza(), "Cita média cerrada", "Se ha cerrado una cita médica", usuario, TIPO_NOTIFICACION_CITA);
             }
 
             return citaMedica == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(citaMedica);

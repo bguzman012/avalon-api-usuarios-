@@ -33,7 +33,7 @@ public class ComentarioCitaMedicaController {
     private AuditorAwareImpl auditorAware;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
-
+    private final Long TIPO_NOTIFICACION_COMENTARIO_CITA = 10L;
 
     @Autowired
     public ComentarioCitaMedicaController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioCitasMedicasService comentarioCitasMedicasService, CitaMedicaService citaMedicaService) {
@@ -74,7 +74,7 @@ public class ComentarioCitaMedicaController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuarioService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentarioCitasMedicas.getCitaMedica().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en una cita médica", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentarioCitasMedicas.getCitaMedica().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en una cita médica", usuario, TIPO_NOTIFICACION_COMENTARIO_CITA);
             return comentarioCitasMedicas.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentarioCitasMedicas) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

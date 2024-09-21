@@ -33,6 +33,7 @@ public class ComentarioController {
     private AuditorAwareImpl auditorAware;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
+    private final Long TIPO_NOTIFICACION_COMENTARIO_RECLAMACION = 9L;
 
     @Autowired
     public ComentarioController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioService comentarioService, ReclamacionService reclamacionService) {
@@ -73,7 +74,7 @@ public class ComentarioController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuarioService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentario.getReclamacion().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en un reembolso", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentario.getReclamacion().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en un reembolso", usuario, TIPO_NOTIFICACION_COMENTARIO_RECLAMACION);
             return comentario.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentario) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

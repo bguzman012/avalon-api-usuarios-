@@ -67,7 +67,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     }
 
     @Override
-    public void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario) {
+    public void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario, Long tipoNotificacion) {
 
         if (!usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
             NotificacionRequest notificacionRequestCliente = new NotificacionRequest();
@@ -81,7 +81,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             else
                 notificacionRequestCliente.setUsuarioAseguradorId(clientePoliza.getCliente().getNombreUsuario());
 
-            notificacionRequestCliente.setTipoNotificacionId(1L);
+            notificacionRequestCliente.setTipoNotificacionId(tipoNotificacion);
 
             notificacionService.enviarNotificacion(notificacionRequestCliente);
         }
@@ -93,7 +93,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             notificacionRequestAgente.setMensaje(mensaje);
             notificacionRequestAgente.setUsuarioEnvia(usuario.getNombreUsuario());
             notificacionRequestAgente.setUsuarioAseguradorId(clientePoliza.getAgente().getNombreUsuario());
-            notificacionRequestAgente.setTipoNotificacionId(1L);
+            notificacionRequestAgente.setTipoNotificacionId(tipoNotificacion);
 
             notificacionService.enviarNotificacion(notificacionRequestAgente);
         }
@@ -105,7 +105,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             notificacionRequestAsesor.setMensaje(mensaje);
             notificacionRequestAsesor.setUsuarioEnvia(usuario.getNombreUsuario());
             notificacionRequestAsesor.setUsuarioAseguradorId(clientePoliza.getAsesor().getNombreUsuario());
-            notificacionRequestAsesor.setTipoNotificacionId(1L);
+            notificacionRequestAsesor.setTipoNotificacionId(tipoNotificacion);
 
             notificacionService.enviarNotificacion(notificacionRequestAsesor);
         }

@@ -45,6 +45,7 @@ public class EmergenciaController {
     @Autowired
     private AuditorAwareImpl auditorAware;
     private String TOPICO = "IMAGEN_EMERGENCIA";
+    private final Long TIPO_NOTIFICACION_EMERGENCIAS = 5L;
 
     @Autowired
     public EmergenciaController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, EmergenciaService emergenciaService) {
@@ -73,7 +74,7 @@ public class EmergenciaController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(emergencia.getClientePoliza(), "Emergencia creada", "Se ha creado una emergencia", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(emergencia.getClientePoliza(), "Emergencia creada", "Se ha creado una emergencia", usuario, TIPO_NOTIFICACION_EMERGENCIAS);
             return emergencia.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(emergencia) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -144,7 +145,7 @@ public class EmergenciaController {
                     return ResponseEntity.notFound().build();
 
                 Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(emergencia.getClientePoliza(), "Emergencia cerrada", "Se ha cerrado una emergencia", usuario);
+                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(emergencia.getClientePoliza(), "Emergencia cerrada", "Se ha cerrado una emergencia", usuario, TIPO_NOTIFICACION_EMERGENCIAS);
             }
             return emergencia == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(emergencia);
         } catch (Exception e) {

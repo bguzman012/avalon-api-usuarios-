@@ -7,6 +7,7 @@ import avalon.usuarios.model.request.*;
 import avalon.usuarios.model.response.MigracionResponse;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
+import avalon.usuarios.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,8 @@ public class ClientePolizaController {
     private PaisService paisService;
     @Autowired
     private EstadosService estadosService;
+    @Autowired
+    private MailService mailService;
 
     @GetMapping("/clientesPolizas/excel")
     public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String busqueda,
@@ -171,8 +174,15 @@ public class ClientePolizaController {
             Cliente cliente = this.clienteService.findClienteByCorreoElectronico(request.getCorreoElectronico()).orElse(null);
             if (cliente == null) {
                 cliente = usuarioMapper.mapToClienteFromMigracionClientePoliza(request, new Cliente(), new Direccion());
-
                 this.clienteService.save(cliente);
+                String textoMail = "<p><b>" + cliente.getNombres() + " " + cliente.getNombresDos() + " "
+                        + cliente.getApellidos() + " " + cliente.getApellidosDos() + " [" + cliente.getNombreUsuario() +
+                        "]</b></p>" +
+                        "<p>Su usuario ha sido creado y aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                        "inicio de sesión es la siguiente: </p>" +
+                        "<p><b>" + cliente.getContraseniaTemporal() + "</b></p>";
+
+                this.mailService.sendHtmlEmail(cliente.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
             }
 
             if (request.getMembresia() != null && !request.getMembresia().isEmpty()) {

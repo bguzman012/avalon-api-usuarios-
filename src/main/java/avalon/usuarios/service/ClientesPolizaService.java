@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface ClientesPolizaService {
 
     String generarNuevoCodigo();
-    void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario);
+    void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario, Long tipoNotificacion);
     Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario);
 
     List<ClientePoliza> searchAllClienesPolizas(String busqueda, String sortField, String sortOrder);

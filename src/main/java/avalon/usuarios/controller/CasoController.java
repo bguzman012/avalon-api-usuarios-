@@ -35,6 +35,7 @@ public class CasoController {
     private ClientesPolizaService clientesPolizaService;
     @Autowired
     private AuditorAwareImpl auditorAware;
+    private final Long TIPO_NOTIFICACION_CASO = 4L;
 
     @Autowired
     public CasoController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, CasoService casoService) {
@@ -68,7 +69,7 @@ public class CasoController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(caso.getClientePoliza(), "Caso creado", "Se ha creado un caso", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(caso.getClientePoliza(), "Caso creado", "Se ha creado un caso", usuario, this.TIPO_NOTIFICACION_CASO);
             return caso.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(caso) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

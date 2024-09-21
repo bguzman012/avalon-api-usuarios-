@@ -8,6 +8,7 @@ import avalon.usuarios.model.request.UsuarioRequest;
 import avalon.usuarios.service.EstadosService;
 import avalon.usuarios.service.PaisService;
 import avalon.usuarios.service.RolesService;
+import avalon.usuarios.service.mail.MailService;
 import avalon.usuarios.util.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,8 @@ public class UsuarioMapper {
     @Autowired
     private PasswordEncoder passwordEncoder;
     private final Long ROL_CLIENTE = 3L;
+    @Autowired
+    private MailService mailService;
 
     @Autowired
     public UsuarioMapper(RolesService rolService) {
@@ -114,6 +117,7 @@ public class UsuarioMapper {
 
         cliente.setContrasenia(passwordEncoder.encode(contrasenia));
         cliente.setContraseniaTemporalModificada(Boolean.FALSE);
+        cliente.setContraseniaTemporal(contrasenia);
 
         cliente.setNombres(request.getNombres());
         cliente.setNombresDos(request.getNombresDos());
@@ -124,7 +128,7 @@ public class UsuarioMapper {
         cliente.setNumeroIdentificacion(request.getNumeroIdentificacion());
         cliente.setTipoIdentificacion(request.getTipoIdentificacion());
 
-        cliente.setEstado("P");
+        cliente.setEstado("A");
         cliente.setRol(rolService.findById(this.ROL_CLIENTE));
 
         Pais pais = paisService.findByNombre(request.getPais()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));

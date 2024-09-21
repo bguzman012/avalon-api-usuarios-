@@ -31,6 +31,7 @@ public class ComentarioEmergenciaController {
     private AuditorAwareImpl auditorAware;
     @Autowired
     private ClientesPolizaService clientesPolizaService;
+    private final Long TIPO_NOTIFICACION_COMENTARIO_EMERGENCIA = 8L;
 
     @Autowired
     public ComentarioEmergenciaController(@Qualifier("usuariosServiceImpl") UsuariosService service, ComentarioEmergenciaService comentarioEmergenciaService, EmergenciaService emergenciaService) {
@@ -71,7 +72,7 @@ public class ComentarioEmergenciaController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuarioService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentarioEmergencia.getEmergencia().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en una emergencia", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(comentarioEmergencia.getEmergencia().getClientePoliza(), "Comentario creado", "Se ha agregado un comentario en una emergencia", usuario, TIPO_NOTIFICACION_COMENTARIO_EMERGENCIA);
             return comentarioEmergencia.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(comentarioEmergencia) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

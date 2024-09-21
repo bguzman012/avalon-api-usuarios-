@@ -47,6 +47,7 @@ public class ReclamoController {
     @Autowired
     private AuditorAwareImpl auditorAware;
     private String TOPICO = "IMAGEN_RECLAMO";
+    private final Long TIPO_NOTIFICACION_RECLAMO = 6L;
 
     @Autowired
     public ReclamoController(@Qualifier("usuariosServiceImpl") UsuariosService usuariosService, ReclamacionService reclamacionService) {
@@ -96,7 +97,7 @@ public class ReclamoController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(reclamacion.getClientePoliza(), "Reembolso creado", "Se ha creado un reembolso", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(reclamacion.getClientePoliza(), "Reembolso creado", "Se ha creado un reembolso", usuario, TIPO_NOTIFICACION_RECLAMO);
             return reclamacion.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(reclamacion) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -195,7 +196,7 @@ public class ReclamoController {
                 return ResponseEntity.notFound().build();
 
             Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(result.getClientePoliza(), "Reembolso cerrado", "Se ha cerrado un reembolso", usuario);
+            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(result.getClientePoliza(), "Reembolso cerrado", "Se ha cerrado un reembolso", usuario, TIPO_NOTIFICACION_RECLAMO);
         }
 
         if (result != null) {
