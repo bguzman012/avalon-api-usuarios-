@@ -8,6 +8,7 @@ import avalon.usuarios.model.request.ClientePolizaRequest;
 import avalon.usuarios.model.request.UpdateCargaFamiliarRequest;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
+import avalon.usuarios.service.mail.MailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ public class CargaFamiliarController {
     private ClienteMembresiaService clienteMembresiaService;
     @Autowired
     private UsuarioMapper usuarioMapper;
+    @Autowired
+    private MailService mailService;
 
     @PostMapping("/cargasFamiliares")
     public ResponseEntity<ClientePoliza> createCargaFamiliar(@RequestBody CargaFamiliarRequest request) {
@@ -47,8 +50,16 @@ public class CargaFamiliarController {
             Cliente cliente;
             if (request.getClienteId() == null) {
                 cliente = usuarioMapper.mapToUsuarioFromCargaFamiliar(request, new Cliente(), new Direccion());
-
                 this.clienteService.save(cliente);
+
+                String textoMail = "<p><b>" + cliente.getNombres() + " " + cliente.getNombresDos() + " "
+                        + cliente.getApellidos() + " " + cliente.getApellidosDos() + " [" + cliente.getNombreUsuario() +
+                        "]</b></p>" +
+                        "<p>Su usuario ha sido creado y aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                        "inicio de sesión es la siguiente: </p>" +
+                        "<p><b>" + cliente.getContraseniaTemporal() + "</b></p>";
+
+                this.mailService.sendHtmlEmail(cliente.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
 
                 ClienteMembresia clienteMembresiaTitular = this.clienteMembresiaService.getClienteMembresia(request.getClienteMembresiaTitularId()).orElseThrow(() -> new IllegalArgumentException("Cliente membresía titular no encontrada"));
                 ClienteMembresia clienteMembresiaDependiente = new ClienteMembresia();

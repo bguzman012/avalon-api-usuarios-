@@ -79,6 +79,7 @@ public class UsuarioMapper {
 
         cliente.setContrasenia(passwordEncoder.encode(contrasenia));
         cliente.setContraseniaTemporalModificada(Boolean.FALSE);
+        cliente.setContraseniaTemporal(contrasenia);
 
         cliente.setNombres(request.getNombres());
         cliente.setNombresDos(request.getNombresDos());
@@ -90,7 +91,7 @@ public class UsuarioMapper {
         cliente.setTipoIdentificacion(request.getTipoIdentificacion());
 
         cliente.setUrlImagen(request.getUrlImagen());
-        cliente.setEstado(request.getEstado());
+        cliente.setEstado("A");
         cliente.setRol(rolService.findById(request.getRolId()));
 
         Pais pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));

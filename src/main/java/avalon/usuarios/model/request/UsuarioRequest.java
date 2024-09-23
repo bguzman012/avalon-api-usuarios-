@@ -23,7 +23,6 @@ public class UsuarioRequest {
 	private String correoElectronico;
 	@NotNull
 	private String numeroTelefono;
-	@NotNull
 	private String nombreUsuario;
 	private String urlImagen;
 	private String numeroIdentificacion;

@@ -21,8 +21,7 @@ public class NotificacionServiceImpl implements NotificacionService{
     @Autowired
     private RequestContextHolderUtil requestContextHolderUtil;
 
-    private final String url = "http://localhost:8087/notificaciones";
-//    private final String url = "http://149.56.110.32:8087/notificaciones";
+    private final String url = "http://149.56.110.32:8087/notificaciones";
 
     @Override
     public void enviarNotificacion(NotificacionRequest notificacionRequest) {
