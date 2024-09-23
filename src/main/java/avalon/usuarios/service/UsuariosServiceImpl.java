@@ -42,7 +42,7 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     private final String ROL_AGENTE = "BRO";
 
     public String generarNombreUsuario(String nombre, String apellido) {
-        String baseNombreUsuario = nombre.charAt(0) + apellido;
+        String baseNombreUsuario = nombre.toLowerCase().charAt(0) + apellido.toLowerCase();
         String nombreUsuario = baseNombreUsuario;
         int counter = 1;
 
@@ -52,7 +52,7 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
             counter++;
         }
 
-        return nombreUsuario.toLowerCase();
+        return nombreUsuario;
     }
 
     @Override

@@ -9,6 +9,7 @@ import avalon.usuarios.model.request.UpdateCargaFamiliarRequest;
 import avalon.usuarios.model.response.PaginatedResponse;
 import avalon.usuarios.service.*;
 import avalon.usuarios.service.mail.MailService;
+import avalon.usuarios.util.ExceptionHandlerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,22 +46,23 @@ public class CargaFamiliarController {
     private MailService mailService;
 
     @PostMapping("/cargasFamiliares")
-    public ResponseEntity<ClientePoliza> createCargaFamiliar(@RequestBody CargaFamiliarRequest request) {
+    public ResponseEntity<?> createCargaFamiliar(@RequestBody CargaFamiliarRequest request) {
         try {
             Cliente cliente;
             if (request.getClienteId() == null) {
                 cliente = usuarioMapper.mapToUsuarioFromCargaFamiliar(request, new Cliente(), new Direccion());
                 this.clienteService.save(cliente);
 
-                String textoMail = "<p><b>" + cliente.getNombres() + " " + cliente.getNombresDos() + " "
-                        + cliente.getApellidos() + " " + cliente.getApellidosDos() + " [" + cliente.getNombreUsuario() +
-                        "]</b></p>" +
-                        "<p>Su usuario ha sido creado y aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
-                        "inicio de sesión es la siguiente: </p>" +
-                        "<p><b>" + cliente.getContraseniaTemporal() + "</b></p>";
+                if (cliente.tiene18OMasAnios()) {
+                    String textoMail = "<p><b>" + cliente.getNombres() + " " + cliente.getNombresDos() + " "
+                            + cliente.getApellidos() + " " + cliente.getApellidosDos() + " [" + cliente.getNombreUsuario() +
+                            "]</b></p>" +
+                            "<p>Su usuario ha sido creado y aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                            "inicio de sesión es la siguiente: </p>" +
+                            "<p><b>" + cliente.getContraseniaTemporal() + "</b></p>";
 
-                this.mailService.sendHtmlEmail(cliente.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
-
+                    this.mailService.sendHtmlEmail(cliente.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
+                }
                 ClienteMembresia clienteMembresiaTitular = this.clienteMembresiaService.getClienteMembresia(request.getClienteMembresiaTitularId()).orElseThrow(() -> new IllegalArgumentException("Cliente membresía titular no encontrada"));
                 ClienteMembresia clienteMembresiaDependiente = new ClienteMembresia();
                 clienteMembresiaDependiente.setCodigo(request.getCodigoMembresia());
@@ -72,14 +74,14 @@ public class CargaFamiliarController {
                 clienteMembresiaDependiente.setEstado(clienteMembresiaTitular.getEstado());
 
                 this.clienteMembresiaService.saveClienteMembresia(clienteMembresiaDependiente);
-            }else
+            } else
                 cliente = this.clienteService.findById(request.getClienteId()).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
 
-            ClientePoliza clientePoliza= this.mapToClientePolizaCargaFamiliar(request, cliente, new ClientePoliza());
+            ClientePoliza clientePoliza = this.mapToClientePolizaCargaFamiliar(request, cliente, new ClientePoliza());
             clientesPolizaService.savePoliza(clientePoliza);
             return clientePoliza.getId() != null ? ResponseEntity.status(HttpStatus.CREATED).body(clientePoliza) : ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ExceptionHandlerUtil.userHandleException(e);
         }
     }
 

@@ -175,14 +175,17 @@ public class ClientePolizaController {
             if (cliente == null) {
                 cliente = usuarioMapper.mapToClienteFromMigracionClientePoliza(request, new Cliente(), new Direccion());
                 this.clienteService.save(cliente);
-                String textoMail = "<p><b>" + cliente.getNombres() + " " + cliente.getNombresDos() + " "
-                        + cliente.getApellidos() + " " + cliente.getApellidosDos() + " [" + cliente.getNombreUsuario() +
-                        "]</b></p>" +
-                        "<p>Su usuario ha sido creado y aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
-                        "inicio de sesión es la siguiente: </p>" +
-                        "<p><b>" + cliente.getContraseniaTemporal() + "</b></p>";
 
-                this.mailService.sendHtmlEmail(cliente.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
+                if (cliente.tiene18OMasAnios()) {
+                    String textoMail = "<p><b>" + cliente.getNombres() + " " + cliente.getNombresDos() + " "
+                            + cliente.getApellidos() + " " + cliente.getApellidosDos() + " [" + cliente.getNombreUsuario() +
+                            "]</b></p>" +
+                            "<p>Su usuario ha sido creado y aprobado con éxito por parte del Administrador de Avalon. La contraseña temporal para su primer " +
+                            "inicio de sesión es la siguiente: </p>" +
+                            "<p><b>" + cliente.getContraseniaTemporal() + "</b></p>";
+
+                    this.mailService.sendHtmlEmail(cliente.getCorreoElectronico(), "Avalon Usuario Creado", textoMail);
+                }
             }
 
             if (request.getMembresia() != null && !request.getMembresia().isEmpty()) {

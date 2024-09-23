@@ -74,7 +74,7 @@ public class Usuario extends AuditingData {
     @Column(name = "estado")
     private String estado;
 
-    @Column(name = "numero_identificacion", unique = true)
+    @Column(name = "numero_identificacion")
     private String numeroIdentificacion;
 
     @Enumerated(EnumType.STRING)
