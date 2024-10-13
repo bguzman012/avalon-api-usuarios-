@@ -19,10 +19,11 @@ import java.util.List;
 @ToString
 public class Imagen extends AuditingData {
 
-    public Imagen(byte[] documento, String topico, String nombreDocumento) {
+    public Imagen(byte[] documento, String topico, String nombreDocumento, String tipo) {
         this.documento = documento;
         this.topico = topico;
         this.nombreDocumento = nombreDocumento;
+        this.tipo = tipo;
     }
 
     @Id
@@ -39,6 +40,9 @@ public class Imagen extends AuditingData {
 
     @Column(name = "topico")
     private String topico;
+
+    @Column(name = "tipo")
+    private String tipo;
 
     @Temporal(TemporalType.DATE)
     private Date fechaInicio;

@@ -21,5 +21,6 @@ public class ComentarioCitaMedicaRequest {
 	@NotNull
 	private String estado;
 	private String nombreDocumento;
+	private String tipoDocumento;
 
 }

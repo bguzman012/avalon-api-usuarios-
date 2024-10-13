@@ -85,7 +85,7 @@ public class CitaMedicaController {
             request.setEstado("N");
             CitaMedica citaMedica = this.mapToCitaMedica(request, new CitaMedica());
             if (fotoCitaMedica != null && !fotoCitaMedica.isEmpty()) {
-                Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 citaMedica.setImagenId(imagen.getId());
             }
@@ -193,7 +193,7 @@ public class CitaMedicaController {
             }
 
             if (fotoCitaMedica != null && !fotoCitaMedica.isEmpty()) {
-                Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 citaMedicaMapped.setImagenId(imagen.getId());
             }

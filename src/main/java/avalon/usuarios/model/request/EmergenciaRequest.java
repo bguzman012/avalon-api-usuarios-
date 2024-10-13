@@ -16,6 +16,7 @@ public class EmergenciaRequest {
 	private String estado;
 	private Long medicoCentroMedicoAseguradoraId;
 	private String nombreDocumento;
+	private String tipoDocumento;
 	private String diagnostico;
 	private DireccionRequest direccion;
 	@NotNull

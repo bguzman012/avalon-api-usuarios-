@@ -61,7 +61,7 @@ public class EmergenciaController {
             Emergencia emergencia = this.mapToEmergencia(request, new Emergencia(), new Direccion());
 
             if (fotoEmergencia != null && !fotoEmergencia.isEmpty()) {
-                Imagen imagen = new Imagen(fotoEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 emergencia.setImagenId(imagen.getId());
             }
@@ -167,7 +167,7 @@ public class EmergenciaController {
             }
 
             if (fotoEmergencia != null && !fotoEmergencia.isEmpty()) {
-                Imagen imagen = new Imagen(fotoEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 emergenciaMapped.setImagenId(imagen.getId());
             }

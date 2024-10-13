@@ -28,6 +28,7 @@ public class CitaMedicaRequest {
 	private String informacionAdicional;
 	private String estado;
 	private String nombreDocumento;
+	private String tipoDocumento;
 	@NotNull
 	private Long clientePolizaId;
 	private Long medicoCentroMedicoAseguradoraId;

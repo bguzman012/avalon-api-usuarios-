@@ -20,6 +20,7 @@ public class ReclamacionRequest {
 
 	private String estado;
 	private String nombreDocumento;
+	private String tipoDocumento;
 	@NotNull
 	private Long clientePolizaId;
 	@NotNull

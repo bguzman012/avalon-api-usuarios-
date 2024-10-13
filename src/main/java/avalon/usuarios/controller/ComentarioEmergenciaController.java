@@ -59,7 +59,7 @@ public class ComentarioEmergenciaController {
             ComentarioEmergencia comentarioEmergencia = this.mapToComentario(request, new ComentarioEmergencia());
 
             if (fotoComentarioEmergencia != null && !fotoComentarioEmergencia.isEmpty()) {
-                Imagen imagen = new Imagen(fotoComentarioEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoComentarioEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 comentarioEmergencia.setImagenId(imagen.getId());
             }
@@ -118,7 +118,7 @@ public class ComentarioEmergenciaController {
             }
 
             if (fotoComentarioEmergencia != null && !fotoComentarioEmergencia.isEmpty()) {
-                Imagen imagen = new Imagen(fotoComentarioEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoComentarioEmergencia.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 comentarioMapped.setImagenId(imagen.getId());
             }

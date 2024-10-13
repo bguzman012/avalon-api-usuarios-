@@ -21,5 +21,6 @@ public class ComentarioRequest {
 	@NotNull
 	private String estado;
 	private String nombreDocumento;
+	private String tipoDocumento;
 
 }

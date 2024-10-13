@@ -61,7 +61,7 @@ public class ComentarioController {
             Comentario comentario = this.mapToComentario(request, new Comentario());
 
             if (fotoComentarioReclamacion != null && !fotoComentarioReclamacion.isEmpty()) {
-                Imagen imagen = new Imagen(fotoComentarioReclamacion.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoComentarioReclamacion.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 comentario.setImagenId(imagen.getId());
             }
@@ -119,7 +119,7 @@ public class ComentarioController {
             }
 
             if (fotoComentarioReclamacion != null && !fotoComentarioReclamacion.isEmpty()) {
-                Imagen imagen = new Imagen(fotoComentarioReclamacion.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoComentarioReclamacion.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 comentarioMapped.setImagenId(imagen.getId());
             }

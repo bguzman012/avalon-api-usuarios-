@@ -21,5 +21,6 @@ public class ComentarioEmergenciaRequest {
 	@NotNull
 	private String estado;
 	private String nombreDocumento;
+	private String tipoDocumento;
 
 }

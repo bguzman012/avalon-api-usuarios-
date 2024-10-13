@@ -84,7 +84,7 @@ public class ReclamoController {
             request.setEstado("N");
             Reclamacion reclamacion = this.mapToReclamacion(request, new Reclamacion());
             if (fotoReclamo != null && !fotoReclamo.isEmpty()) {
-                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 reclamacion.setImagenId(imagen.getId());
             }
@@ -171,7 +171,7 @@ public class ReclamoController {
             }
 
             if (fotoReclamo != null && !fotoReclamo.isEmpty()) {
-                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoReclamo.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 reclamacionMapped.setImagenId(imagen.getId());
             }

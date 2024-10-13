@@ -61,7 +61,7 @@ public class ComentarioCitaMedicaController {
             ComentarioCitasMedicas comentarioCitasMedicas = this.mapToComentario(request, new ComentarioCitasMedicas());
 
             if (fotoComentarioCitaMedica != null && !fotoComentarioCitaMedica.isEmpty()) {
-                Imagen imagen = new Imagen(fotoComentarioCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoComentarioCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 comentarioCitasMedicas.setImagenId(imagen.getId());
             }
@@ -120,7 +120,7 @@ public class ComentarioCitaMedicaController {
             }
 
             if (fotoComentarioCitaMedica != null && !fotoComentarioCitaMedica.isEmpty()) {
-                Imagen imagen = new Imagen(fotoComentarioCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento());
+                Imagen imagen = new Imagen(fotoComentarioCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
                 comentarioMapped.setImagenId(imagen.getId());
             }
