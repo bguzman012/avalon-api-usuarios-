@@ -36,6 +36,13 @@ public class Cliente extends Usuario {
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private List<ClienteMembresia> clienteMembresiaList;
 
+    @Transient
+    public String getDisplayName() {
+        return (getNombreUsuario() != null ? getNombreUsuario() + " [" : "") +
+                (getNombres() != null ? getNombres() + " " : "") +
+                (getApellidos() != null ? getApellidos() + "]": "") ;
+    }
+
     public boolean tiene18OMasAnios() {
         Calendar fechaActual = Calendar.getInstance();
         Calendar fechaNacimientoCal = Calendar.getInstance();
