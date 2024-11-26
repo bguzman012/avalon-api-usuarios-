@@ -221,15 +221,17 @@ public class AuthController {
     }
 
     private void enviarMailCodigo2FA(Usuario usuario, VerificationCode verificationCode, String texto, String asunto) throws MessagingException, IOException {
-        String nombreCompleto = usuario.getNombres() + " " + usuario.getNombresDos() + " "
-                + usuario.getApellidos() + " " + usuario.getApellidosDos();
+        String nombreCompleto = usuario.getNombres()
+                + (usuario.getNombresDos() != null && !usuario.getNombresDos().isEmpty() ? " " + usuario.getNombresDos() : "")
+                + " " + usuario.getApellidos()
+                + (usuario.getApellidosDos() != null && !usuario.getApellidosDos().isEmpty() ? " " + usuario.getApellidosDos() : "");
+
         String nombreUsuario = usuario.getNombreUsuario();
         String codigo2FA = verificationCode.getCode(); // Obtener el código 2FA
         LocalDateTime fechaExpiracion = verificationCode.getExpiresAt(); // Obtener la fecha de expiración
         String fechaExpiracionFormateada = fechaExpiracion.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
 
         String textoMail = "<p><b>" + nombreCompleto + " [" + nombreUsuario + "]</b></p>" +
-                "<p>El código 2FA para su acceso es el siguiente: </p>" +
                 texto +
                 "<p><b>" + codigo2FA + "</b></p>" +
                 "<p>Este código es válido hasta: <b>" + fechaExpiracionFormateada + "</b></p>";
