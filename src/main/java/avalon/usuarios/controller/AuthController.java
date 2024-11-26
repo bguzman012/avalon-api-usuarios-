@@ -89,7 +89,7 @@ public class AuthController {
             String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
             return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId(), "LOGIN_EXITOSO_2FA", "Usuario loggeado extosamente"));
         } else {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "Credenciales inválidas", "CREDENCIALES_INVALIDAS"));
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "Usuario o contraseña inválida", "CREDENCIALES_INVALIDAS"));
         }
     }
 
