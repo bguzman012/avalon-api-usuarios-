@@ -252,19 +252,33 @@ public class ReclamacionServiceImpl implements ReclamacionService {
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
+            // Realiza LEFT JOINs para las relaciones necesarias
+            Join<Reclamacion, Caso> casoJoin = rRoot.join("caso", JoinType.LEFT);
+            Join<Reclamacion, ClientePoliza> clientePolizaJoin = rRoot.join("clientePoliza", JoinType.LEFT);
+            Join<ClientePoliza, Cliente> clienteJoin = clientePolizaJoin.join("cliente", JoinType.LEFT);
+            Join<ClientePoliza, Poliza> polizaJoin = clientePolizaJoin.join("poliza", JoinType.LEFT);
+            Join<Reclamacion, MedicoCentroMedicoAseguradora> medicoCentroJoin = rRoot.join("medicoCentroMedicoAseguradora", JoinType.LEFT);
+            Join<MedicoCentroMedicoAseguradora, Medico> medicoJoin = medicoCentroJoin.join("medico", JoinType.LEFT);
+            Join<MedicoCentroMedicoAseguradora, CentroMedico> centroMedicoJoin = medicoCentroJoin.join("centroMedico", JoinType.LEFT);
+            Join<MedicoCentroMedicoAseguradora, Aseguradora> aseguradoraJoin = medicoCentroJoin.join("aseguradora", JoinType.LEFT);
+
+            // Construye los predicados con LIKE utilizando los LEFT JOINs
             predicates.add(cb.or(
-                    cb.like(cb.lower(rRoot.get("codigo")), likePattern),
-                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
-                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
-                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
-
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
-
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
+                    cb.like(cb.lower(rRoot.get("codigo")), likePattern), // Campo "codigo" directo en CitaMedica
+                    cb.like(cb.lower(casoJoin.get("codigo")), likePattern), // Campo "codigo" en la entidad Caso
+                    cb.like(cb.lower(clienteJoin.get("nombreUsuario")), likePattern), // Campo "nombreUsuario" en Cliente
+                    cb.like(cb.lower(clienteJoin.get("nombres")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("nombresDos")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("apellidos")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("apellidosDos")), likePattern),
+                    cb.like(cb.lower(polizaJoin.get("nombre")), likePattern), // Campo "nombre" en Poliza
+                    cb.like(cb.lower(medicoJoin.get("nombres")), likePattern), // Campo "nombres" en Medico
+                    cb.like(cb.lower(medicoJoin.get("apellidos")), likePattern), // Campo "apellidos" en Medico
+                    cb.like(cb.lower(centroMedicoJoin.get("nombre")), likePattern), // Campo "nombre" en CentroMedico
+                    cb.like(cb.lower(aseguradoraJoin.get("nombre")), likePattern) // Campo "nombre" en Aseguradora
             ));
         }
+
 
         if ((estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
             predicates.add(cb.notEqual(rRoot.get("estado"), "I"));

@@ -141,6 +141,9 @@ public class UsuariosServiceImpl<T extends Usuario> implements UsuariosService<T
     @Override
     public Usuario validarCredenciales(String nombreUsuario, String contrasenia) {
         Usuario usuarioEncontrado = findByNombreUsuario(nombreUsuario);
+        if (usuarioEncontrado == null)
+            usuarioEncontrado = findUsuarioByCorreo(nombreUsuario);
+
         if (usuarioEncontrado != null && passwordEncoder.matches(contrasenia, usuarioEncontrado.getContrasenia())) {
             return usuarioEncontrado;
         }

@@ -1,10 +1,7 @@
 package avalon.usuarios.service;
 
 import avalon.usuarios.data.EmergenciaRepository;
-import avalon.usuarios.model.pojo.Caso;
-import avalon.usuarios.model.pojo.Emergencia;
-import avalon.usuarios.model.pojo.ClientePoliza;
-import avalon.usuarios.model.pojo.Usuario;
+import avalon.usuarios.model.pojo.*;
 import avalon.usuarios.model.request.PartiallyUpdateEmergenciasRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -134,25 +131,41 @@ public class EmergenciaServiceImpl implements EmergenciaService {
 
     private List<Predicate> buildPredicates(CriteriaBuilder cb, Root<Emergencia> rRoot, String busqueda, String estado, ClientePoliza clientePoliza, Caso caso, Usuario usuario) {
         List<Predicate> predicates = new ArrayList<>();
-
         if (busqueda != null && !busqueda.isEmpty()) {
             String likePattern = "%" + busqueda.toLowerCase() + "%";
 
+            // Realiza LEFT JOINs para las relaciones necesarias
+            Join<Emergencia, Caso> casoJoin = rRoot.join("caso", JoinType.LEFT);
+            Join<Emergencia, ClientePoliza> clientePolizaJoin = rRoot.join("clientePoliza", JoinType.LEFT);
+            Join<ClientePoliza, Cliente> clienteJoin = clientePolizaJoin.join("cliente", JoinType.LEFT);
+            Join<ClientePoliza, Poliza> polizaJoin = clientePolizaJoin.join("poliza", JoinType.LEFT);
+            Join<CitaMedica, MedicoCentroMedicoAseguradora> medicoCentroJoin = rRoot.join("medicoCentroMedicoAseguradora", JoinType.LEFT);
+            Join<MedicoCentroMedicoAseguradora, Medico> medicoJoin = medicoCentroJoin.join("medico", JoinType.LEFT);
+            Join<MedicoCentroMedicoAseguradora, CentroMedico> centroMedicoJoin = medicoCentroJoin.join("centroMedico", JoinType.LEFT);
+            Join<MedicoCentroMedicoAseguradora, Aseguradora> aseguradoraJoin = medicoCentroJoin.join("aseguradora", JoinType.LEFT);
+
+            // Agrega los predicados con las relaciones de LEFT JOIN
             predicates.add(cb.or(
                     cb.like(cb.lower(rRoot.get("codigo")), likePattern),
-                    cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
-                    cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
-                    cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),
-
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("nombres")), likePattern),
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("medico").get("apellidos")), likePattern),
-
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("centroMedico").get("nombre")), likePattern),
-                    cb.like(cb.lower(rRoot.get("medicoCentroMedicoAseguradora").get("aseguradora").get("nombre")), likePattern)
+                    cb.like(cb.lower(casoJoin.get("codigo")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("nombreUsuario")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("nombres")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("nombresDos")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("apellidos")), likePattern),
+                    cb.like(cb.lower(clienteJoin.get("apellidosDos")), likePattern),
+                    cb.like(cb.lower(polizaJoin.get("nombre")), likePattern),
+                    cb.like(cb.lower(medicoJoin.get("nombres")), likePattern),
+                    cb.like(cb.lower(medicoJoin.get("apellidos")), likePattern),
+                    cb.like(cb.lower(centroMedicoJoin.get("nombre")), likePattern),
+                    cb.like(cb.lower(aseguradoraJoin.get("nombre")), likePattern)
             ));
         }
 
-        if ((estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
+        if (estado != null && !estado.isEmpty()) {
+            predicates.add(cb.equal(rRoot.get("estado"), estado));
+        }
+
+        if (usuario != null && (estado == null || estado.isEmpty()) && !usuario.getRol().getCodigo().equals(this.ROL_ADMIN)) {
             predicates.add(cb.notEqual(rRoot.get("estado"), "I"));
         }
 
@@ -164,10 +177,10 @@ public class EmergenciaServiceImpl implements EmergenciaService {
             predicates.add(cb.equal(rRoot.get("caso"), caso));
         }
 
-        if (usuario.getRol().getCodigo().equals(this.ROL_ASESOR))
+        if (usuario!= null && usuario.getRol().getCodigo().equals(this.ROL_ASESOR))
             predicates.add(cb.equal(rRoot.get("clientePoliza").get("asesor").get("id"), usuario.getId()));
 
-        if (usuario.getRol().getCodigo().equals(this.ROL_AGENTE))
+        if (usuario!= null && usuario.getRol().getCodigo().equals(this.ROL_AGENTE))
             predicates.add(cb.equal(rRoot.get("clientePoliza").get("agente").get("id"), usuario.getId()));
 
         // Si el usuario loggeado es cliente, se obtiene todos los casos del cliente,

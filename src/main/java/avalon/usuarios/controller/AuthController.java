@@ -62,7 +62,7 @@ public class AuthController {
         if (usuarioEncontrado != null) {
             if (usuarioEncontrado.getContraseniaTemporalModificada().equals(Boolean.FALSE) &&
                     Objects.equals(usuarioEncontrado.getEstado(), "A")) {
-                String tokenCambioContrasenia = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
+                String tokenCambioContrasenia = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuarioEncontrado.getNombreUsuario()));
                 return ResponseEntity.ok().body(new JwtAuthenticationResponse(tokenCambioContrasenia, usuarioEncontrado.getId(),
                         "CAMBIO_CONTRASENIA", "Para iniciar sesión por primera vez es necesario que cambie la contraseña que se le ha sido asignada por una segura"));
             }
@@ -86,7 +86,7 @@ public class AuthController {
             if (generate2FA != null && generate2FA.equals("SI"))
                 this.enviarCodigo2FA(usuarioEncontrado);
 
-            String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuario));
+            String token = jwtTokenProvider.generateToken(service.findByNombreUsuario(usuarioEncontrado.getNombreUsuario()));
             return ResponseEntity.ok(new JwtAuthenticationResponse(token, usuarioEncontrado.getId(), "LOGIN_EXITOSO_2FA", "Usuario loggeado extosamente"));
         } else {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Usuario o contraseña inválida", "CREDENCIALES_INVALIDAS"));
@@ -155,7 +155,7 @@ public class AuthController {
                 verificationCodeFounded.setUsed(true);
                 this.verificationCodeService.saveVerificationCode(verificationCodeFounded);
             }else
-                return ResponseEntity.ok(new ApiResponse(false, "El código incorrecto o ha expirado", "CODIGO_ERROR"));
+                return ResponseEntity.ok(new ApiResponse(false, "El código es incorrecto o ha expirado", "CODIGO_ERROR"));
 
             // Lógica para actualizar la contraseña
             service.actualizarContrasenia(usuarioEncontrado, nuevaContrasenia);
@@ -229,7 +229,7 @@ public class AuthController {
         String fechaExpiracionFormateada = fechaExpiracion.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
 
         String textoMail = "<p><b>" + nombreCompleto + " [" + nombreUsuario + "]</b></p>" +
-//                "<p>El código 2FA para su acceso es el siguiente: </p>" +
+                "<p>El código 2FA para su acceso es el siguiente: </p>" +
                 texto +
                 "<p><b>" + codigo2FA + "</b></p>" +
                 "<p>Este código es válido hasta: <b>" + fechaExpiracionFormateada + "</b></p>";
