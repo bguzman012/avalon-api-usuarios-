@@ -1,6 +1,8 @@
 package avalon.usuarios.model.request;
 
 import avalon.usuarios.model.pojo.RequisitoAdicional;
+import avalon.usuarios.model.pojo.TipoCitaMedica;
+import avalon.usuarios.model.pojo.TipoIdentificacion;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
@@ -21,6 +23,8 @@ public class CitaMedicaRequest {
 	@NotNull
 	@Temporal(TemporalType.DATE)
 	private Date fechaTentativa;
+	@Temporal(TemporalType.DATE)
+	private Date fechaTentativaHasta;
 	private String ciudadPreferencia;
 	@NotNull
 	private String padecimiento;
@@ -29,6 +33,7 @@ public class CitaMedicaRequest {
 	private String estado;
 	private String nombreDocumento;
 	private String tipoDocumento;
+	private DireccionRequest direccion;
 	@NotNull
 	private Long clientePolizaId;
 	private Long medicoCentroMedicoAseguradoraId;
@@ -36,4 +41,6 @@ public class CitaMedicaRequest {
 	private String otrosRequisitos;
 	@NotNull
 	private Long casoId;
+	private TipoCitaMedica tipoCitaMedica;
+
 }

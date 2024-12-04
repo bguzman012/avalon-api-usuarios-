@@ -46,6 +46,10 @@ public class CitaMedicaController {
     private ImagenService imagenService;
     @Autowired
     private AuditorAwareImpl auditorAware;
+    @Autowired
+    private PaisService paisService;
+    @Autowired
+    private EstadosService estadosService;
     private String TOPICO = "IMAGEN_CITA_MEDICA";
     private final Long TIPO_NOTIFICACION_CITA = 7L;
 
@@ -83,7 +87,7 @@ public class CitaMedicaController {
                                                        @RequestPart(value = "fotoCitaMedica", required = false) MultipartFile fotoCitaMedica) {
         try {
             request.setEstado("N");
-            CitaMedica citaMedica = this.mapToCitaMedica(request, new CitaMedica());
+            CitaMedica citaMedica = this.mapToCitaMedica(request, new CitaMedica(), new Direccion());
             if (fotoCitaMedica != null && !fotoCitaMedica.isEmpty()) {
                 Imagen imagen = new Imagen(fotoCitaMedica.getBytes(), this.TOPICO, request.getNombreDocumento(), request.getTipoDocumento());
                 this.imagenService.saveImagen(imagen);
@@ -185,7 +189,7 @@ public class CitaMedicaController {
                                                        @RequestPart(value="fotoCitaMedica", required = false) MultipartFile fotoCitaMedica) {
         try {
             CitaMedica citaMedica = service.getCitaMedica(citaMedicaId).orElseThrow(() -> new IllegalArgumentException("Cita Médica no encontrada"));
-            CitaMedica citaMedicaMapped = this.mapToCitaMedica(request, citaMedica);
+            CitaMedica citaMedicaMapped = this.mapToCitaMedica(request, citaMedica, citaMedica.getDireccion());
 
             if (citaMedicaMapped.getImagenId() != null) {
                 this.imagenService.deleteImagen(citaMedica.getImagenId());
@@ -215,7 +219,7 @@ public class CitaMedicaController {
         }
     }
 
-    private CitaMedica mapToCitaMedica(CitaMedicaRequest request, CitaMedica citaMedica) {
+    private CitaMedica mapToCitaMedica(CitaMedicaRequest request, CitaMedica citaMedica, Direccion direccion) {
         ClientePoliza clientePoliza = clientesPolizaService.getClientePoliza(request.getClientePolizaId()).orElseThrow(() -> new IllegalArgumentException("Cliente Poliza no encontrada"));
         MedicoCentroMedicoAseguradora medicoCentroMedicoAseguradora = null;
         if (request.getMedicoCentroMedicoAseguradoraId() != null) {
@@ -223,6 +227,12 @@ public class CitaMedicaController {
                     request.getMedicoCentroMedicoAseguradoraId()).orElseThrow(() -> new IllegalArgumentException("Centro Médico no encontrado"));
         }
 
+        Pais pais = null;
+        Estado estado = null;
+        if (request.getDireccion().getPaisId() != null && request.getDireccion().getEstadoId() != null){
+            pais = paisService.findById(request.getDireccion().getPaisId()).orElseThrow(() -> new IllegalArgumentException("País no encontrado"));
+            estado = estadosService.findById(request.getDireccion().getEstadoId()).orElseThrow(() -> new IllegalArgumentException("Estado no encontrado"));
+        }
         Caso caso = casoService.getCaso(request.getCasoId()).orElseThrow(() -> new IllegalArgumentException("Caso no encontrado"));
 
         citaMedica.setEstado(request.getEstado());
@@ -230,11 +240,22 @@ public class CitaMedicaController {
         citaMedica.setCaso(caso);
         citaMedica.setMedicoCentroMedicoAseguradora(medicoCentroMedicoAseguradora);
         citaMedica.setFechaTentativa(request.getFechaTentativa());
+        citaMedica.setFechaTentativaHasta(request.getFechaTentativaHasta());
         citaMedica.setCiudadPreferencia(request.getCiudadPreferencia());
         citaMedica.setPadecimiento(request.getPadecimiento());
         citaMedica.setInformacionAdicional(request.getInformacionAdicional());
         citaMedica.setRequisitosAdicionales(request.getRequisitosAdicionales());
         citaMedica.setOtrosRequisitos(request.getOtrosRequisitos());
+
+        direccion.setDireccionUno(request.getDireccion().getDireccionUno());
+        direccion.setDireccionDos(request.getDireccion().getDireccionDos());
+        direccion.setCodigoPostal(request.getDireccion().getCodigoPostal());
+        direccion.setPais(pais);
+        direccion.setState(estado);
+        direccion.setCiudad(request.getDireccion().getCiudad());
+
+        citaMedica.setDireccion(direccion);
+        citaMedica.setTipoCitaMedica(request.getTipoCitaMedica());
 
         return citaMedica;
     }

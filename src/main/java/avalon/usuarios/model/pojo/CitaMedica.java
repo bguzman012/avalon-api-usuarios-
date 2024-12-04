@@ -44,6 +44,9 @@ public class CitaMedica extends AuditingData {
     @Temporal(TemporalType.DATE)
     private Date fechaTentativa;
 
+    @Temporal(TemporalType.DATE)
+    private Date fechaTentativaHasta;
+
     @Column(name = "imagen_id")
     private Long imagenId;
 
@@ -66,6 +69,9 @@ public class CitaMedica extends AuditingData {
     @JoinColumn(name = "caso_id")
     private Caso caso;
 
+    @Embedded
+    private Direccion direccion;
+
     @JsonIgnore
     @OneToMany(mappedBy = "citaMedica", cascade = CascadeType.ALL)
     private List<ComentarioCitasMedicas> comentarioCitasMedicasList;
@@ -75,5 +81,10 @@ public class CitaMedica extends AuditingData {
     @MapKeyEnumerated(EnumType.STRING)
     @Column(name = "requisitosAdicionales")
     private Map<RequisitoAdicional, Boolean> requisitosAdicionales = new HashMap<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_cita_medica")
+    private TipoCitaMedica tipoCitaMedica;
+
 
 }
