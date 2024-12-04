@@ -236,7 +236,7 @@ public class AuthController {
                 "<p><b>" + codigo2FA + "</b></p>" +
                 "<p>Este código es válido hasta: <b>" + fechaExpiracionFormateada + "</b></p>";
 
-//        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), asunto, textoMail);
+        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), asunto, textoMail);
     }
 
 
