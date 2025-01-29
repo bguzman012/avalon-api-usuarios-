@@ -259,6 +259,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             // Agrega los predicados con las relaciones de LEFT JOIN
             predicates.add(cb.or(
                     cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("padecimiento")), likePattern),
                     cb.like(cb.lower(casoJoin.get("codigo")), likePattern),
                     cb.like(cb.lower(clienteJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(clienteJoin.get("nombres")), likePattern),
@@ -335,6 +336,7 @@ public class CitaMedicaServiceImpl implements CitaMedicaService {
             // Agrega los predicados con las relaciones de LEFT JOIN
             predicates.add(cb.or(
                     cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("padecimiento")), likePattern),
                     cb.like(cb.lower(casoJoin.get("codigo")), likePattern),
                     cb.like(cb.lower(clienteJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(polizaJoin.get("nombre")), likePattern),

@@ -265,6 +265,7 @@ public class ReclamacionServiceImpl implements ReclamacionService {
             // Construye los predicados con LIKE utilizando los LEFT JOINs
             predicates.add(cb.or(
                     cb.like(cb.lower(rRoot.get("codigo")), likePattern), // Campo "codigo" directo en CitaMedica
+                    cb.like(cb.lower(rRoot.get("padecimientoDiagnostico")), likePattern), // Campo "padecimientoDiagnostico" directo en CitaMedica
                     cb.like(cb.lower(casoJoin.get("codigo")), likePattern), // Campo "codigo" en la entidad Caso
                     cb.like(cb.lower(clienteJoin.get("nombreUsuario")), likePattern), // Campo "nombreUsuario" en Cliente
                     cb.like(cb.lower(clienteJoin.get("nombres")), likePattern),
@@ -328,6 +329,7 @@ public class ReclamacionServiceImpl implements ReclamacionService {
 
             predicates.add(cb.or(
                     cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("padecimientoDiagnostico")), likePattern), // Campo "padecimientoDiagnostico" directo en CitaMedica
                     cb.like(cb.lower(rRoot.get("caso").get("codigo")), likePattern),
                     cb.like(cb.lower(rRoot.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(rRoot.get("clientePoliza").get("poliza").get("nombre")), likePattern),

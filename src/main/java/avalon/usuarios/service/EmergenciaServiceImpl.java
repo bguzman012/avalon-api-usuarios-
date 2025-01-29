@@ -147,6 +147,7 @@ public class EmergenciaServiceImpl implements EmergenciaService {
             // Agrega los predicados con las relaciones de LEFT JOIN
             predicates.add(cb.or(
                     cb.like(cb.lower(rRoot.get("codigo")), likePattern),
+                    cb.like(cb.lower(rRoot.get("sintomas")), likePattern),
                     cb.like(cb.lower(casoJoin.get("codigo")), likePattern),
                     cb.like(cb.lower(clienteJoin.get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(clienteJoin.get("nombres")), likePattern),
