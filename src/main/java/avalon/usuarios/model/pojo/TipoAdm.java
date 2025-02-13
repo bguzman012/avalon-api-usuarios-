@@ -1,6 +1,6 @@
 package avalon.usuarios.model.pojo;
 
 public enum TipoAdm {
-    EMERGENCIA,
+    NO_PROGRAMADA,
     PROGRAMADA
 }

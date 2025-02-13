@@ -104,6 +104,7 @@ public class CasoServiceImpl implements CasoService {
 
             predicates.add(cb.or(
                     cb.like(cb.lower(root.get("codigo")), likePattern),
+                    cb.like(cb.lower(root.get("observaciones")), likePattern),
 
                     cb.like(cb.lower(root.get("clientePoliza").get("cliente").get("nombreUsuario")), likePattern),
                     cb.like(cb.lower(root.get("clientePoliza").get("cliente").get("nombres")), likePattern),
