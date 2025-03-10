@@ -5,6 +5,7 @@ import avalon.usuarios.model.request.ClientePolizaRequest;
 import avalon.usuarios.model.request.MigracionClientePolizaRequest;
 import avalon.usuarios.model.request.NotificacionRequest;
 import avalon.usuarios.model.response.MigracionResponse;
+import jakarta.mail.MessagingException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,7 +17,7 @@ import java.util.Optional;
 public interface ClientesPolizaService {
 
     String generarNuevoCodigo();
-    void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario, Long tipoNotificacion);
+    void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario, Long tipoNotificacion) throws MessagingException, IOException;
     Page<ClientePoliza> searchClienesPolizas(String busqueda, Pageable pageable, Cliente cliente, Poliza poliza, Usuario usuario);
 
     List<ClientePoliza> searchAllClienesPolizas(String busqueda, String sortField, String sortOrder);

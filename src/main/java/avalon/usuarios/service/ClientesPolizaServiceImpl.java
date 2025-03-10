@@ -9,7 +9,9 @@ import avalon.usuarios.model.request.MigracionClientePolizaRequest;
 import avalon.usuarios.model.request.NotificacionRequest;
 import avalon.usuarios.model.response.MigracionResponse;
 import avalon.usuarios.service.externos.NotificacionService;
+import avalon.usuarios.service.mail.MailService;
 import jakarta.annotation.PostConstruct;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -31,6 +33,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -42,6 +46,8 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     private final ClientePolizaRepository repository;
     @Autowired
     private NotificacionService notificacionService;
+    @Autowired
+    private MailService mailService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -67,7 +73,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
     }
 
     @Override
-    public void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario, Long tipoNotificacion) {
+    public void enviarNotificacionesMiembrosClientePolizas(ClientePoliza clientePoliza, String asunto, String mensaje, Usuario usuario, Long tipoNotificacion) throws MessagingException, IOException {
 
         if (!usuario.getRol().getCodigo().equals(this.ROL_CLIENTE)) {
             NotificacionRequest notificacionRequestCliente = new NotificacionRequest();
@@ -84,6 +90,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             notificacionRequestCliente.setTipoNotificacionId(tipoNotificacion);
 
             notificacionService.enviarNotificacion(notificacionRequestCliente);
+            this.enviarMail(usuario, asunto, mensaje);
         }
 
         if (!usuario.getRol().getCodigo().equals(this.ROL_AGENTE)) {
@@ -96,6 +103,7 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             notificacionRequestAgente.setTipoNotificacionId(tipoNotificacion);
 
             notificacionService.enviarNotificacion(notificacionRequestAgente);
+            this.enviarMail(usuario, asunto, mensaje);
         }
 
         if (!usuario.getRol().getCodigo().equals(this.ROL_ASESOR)) {
@@ -108,7 +116,21 @@ public class ClientesPolizaServiceImpl implements ClientesPolizaService {
             notificacionRequestAsesor.setTipoNotificacionId(tipoNotificacion);
 
             notificacionService.enviarNotificacion(notificacionRequestAsesor);
+            this.enviarMail(usuario, asunto, mensaje);
         }
+    }
+
+    private void enviarMail(Usuario usuario, String texto, String asunto) throws MessagingException, IOException {
+        String nombreCompleto = usuario.getNombres()
+                + (usuario.getNombresDos() != null && !usuario.getNombresDos().isEmpty() ? " " + usuario.getNombresDos() : "")
+                + " " + usuario.getApellidos()
+                + (usuario.getApellidosDos() != null && !usuario.getApellidosDos().isEmpty() ? " " + usuario.getApellidosDos() : "");
+
+        String nombreUsuario = usuario.getNombreUsuario();
+        String textoMail = "<p><b>" + nombreCompleto + " [" + nombreUsuario + "]</b></p>" +
+                "<p>" + texto + "</p>";
+
+        this.mailService.sendHtmlEmail(usuario.getCorreoElectronico(), asunto, textoMail);
     }
 
     @Override
