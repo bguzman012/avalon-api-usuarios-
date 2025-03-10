@@ -159,13 +159,13 @@ public class ReclamoController {
     @PutMapping("/reclamaciones/{reclamacionId}")
     public ResponseEntity<Reclamacion> updateReclamacion(@PathVariable Long reclamacionId,
                                                          @RequestPart("reclamacion") ReclamacionRequest request,
-                                                         @RequestPart(value="fotoReclamo", required = false) MultipartFile fotoReclamo) {
+                                                         @RequestPart(value = "fotoReclamo", required = false) MultipartFile fotoReclamo) {
         try {
             Reclamacion reclamacion = service.getReclamacion(reclamacionId).orElseThrow(() -> new IllegalArgumentException("Reclamacion no encontrada"));
             Reclamacion reclamacionMapped = this.mapToReclamacion(request, reclamacion);
 
 
-            if (reclamacionMapped.getImagenId() != null){
+            if (reclamacionMapped.getImagenId() != null) {
                 this.imagenService.deleteImagen(reclamacion.getImagenId());
                 reclamacionMapped.setImagenId(null);
             }
@@ -185,24 +185,28 @@ public class ReclamoController {
 
     @PatchMapping("/reclamaciones/{reclamacionId}")
     public ResponseEntity<Reclamacion> partiallyUpdateReclamacion(@RequestBody PartiallyUpdateReclamacionRequest request, @PathVariable Long reclamacionId) {
-        Reclamacion result = service.partiallyUpdateReclamacion(request, reclamacionId);
+        try {
+            Reclamacion result = service.partiallyUpdateReclamacion(request, reclamacionId);
 
-        if (request.getEstado().equals("C") && request.getComentarioRequest() != null && result != null) {
-            this.crearComentarioCierreReclamaciones(request.getComentarioRequest(), result);
+            if (request.getEstado().equals("C") && request.getComentarioRequest() != null && result != null) {
+                this.crearComentarioCierreReclamaciones(request.getComentarioRequest(), result);
 
-            Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
+                Optional<String> currentUser = this.auditorAware.getCurrentAuditor();
 
-            if (currentUser.isEmpty())
+                if (currentUser.isEmpty())
+                    return ResponseEntity.notFound().build();
+
+                Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
+                this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(result.getClientePoliza(), "Reembolso cerrado", "Se ha cerrado un reembolso", usuario, TIPO_NOTIFICACION_RECLAMO);
+            }
+
+            if (result != null) {
+                return ResponseEntity.ok(result);
+            } else {
                 return ResponseEntity.notFound().build();
-
-            Usuario usuario = this.usuariosService.findByNombreUsuario(currentUser.get());
-            this.clientesPolizaService.enviarNotificacionesMiembrosClientePolizas(result.getClientePoliza(), "Reembolso cerrado", "Se ha cerrado un reembolso", usuario, TIPO_NOTIFICACION_RECLAMO);
-        }
-
-        if (result != null) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
@@ -233,7 +237,7 @@ public class ReclamoController {
         return reclamacion;
     }
 
-    private void crearComentarioCierreReclamaciones(ComentarioRequest comentarioRequest, Reclamacion reclamacion){
+    private void crearComentarioCierreReclamaciones(ComentarioRequest comentarioRequest, Reclamacion reclamacion) {
         Usuario usuario = this.usuariosService.getUsuario(comentarioRequest.getUsuarioComentaId());
 
         Comentario comentarioReclamo = new Comentario();
@@ -245,7 +249,7 @@ public class ReclamoController {
             String textoCierre = "Se ha cerrado por el " + usuario.getRol().getNombre() + " " +
                     usuario.getNombres() + " " + usuario.getApellidos() + " (" + usuario.getNombreUsuario() + ")";
             comentarioReclamo.setContenido(textoCierre);
-        }else
+        } else
             comentarioReclamo.setContenido(comentarioRequest.getContenido());
 
         comentarioService.saveComentario(comentarioReclamo);
